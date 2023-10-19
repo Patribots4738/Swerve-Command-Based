@@ -14,6 +14,8 @@ import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.NeoMotorConstants;
 
@@ -50,70 +52,11 @@ public class SwerveModule {
         turningEncoder = turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
         drivingPIDController = drivingSparkMax.getPIDController();
         turningPIDController = turningSparkMax.getPIDController();
-        drivingPIDController.setFeedbackDevice(drivingEncoder);
-        turningPIDController.setFeedbackDevice(turningEncoder);
-
-        // Apply position and velocity conversion factors for the driving encoder. The
-        // native units for position and velocity are rotations and RPM, respectively,
-        // but we want meters and meters per second to use with WPILib's swerve APIs.
-        drivingEncoder.setPositionConversionFactor(ModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
-        drivingEncoder.setVelocityConversionFactor(ModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
-
-        // Apply position and velocity conversion factors for the turning encoder. We
-        // want these in radians and radians per second to use with WPILib's swerve
-        // APIs.
-        turningEncoder.setPositionConversionFactor(ModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
-        turningEncoder.setVelocityConversionFactor(ModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
-
-        // Invert the turning encoder, since the output shaft rotates in the opposite direction of
-        // the steering motor in the MAXSwerve Module.
-        turningEncoder.setInverted(ModuleConstants.TURNING_ENCODER_INVERTED);
-
-        // Enable PID wrap around for the turning motor. This will allow the PID
-        // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
-        // to 10 degrees will go through 0 rather than the other direction which is a
-        // longer route.
-        turningPIDController.setPositionPIDWrappingEnabled(true);
-        turningPIDController.setPositionPIDWrappingMinInput(ModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT);
-        turningPIDController.setPositionPIDWrappingMaxInput(ModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
-
-        // Set the PID gains for the driving motor. Note these are example gains, and you
-        // may need to tune them for your own robot!
-        drivingPIDController.setP(ModuleConstants.DRIVING_P);
-        drivingPIDController.setI(ModuleConstants.DRIVING_I);
-        drivingPIDController.setD(ModuleConstants.DRIVING_D);
-        drivingPIDController.setFF(ModuleConstants.DRIVING_FF);
-        drivingPIDController.setOutputRange(ModuleConstants.DRIVING_MIN_OUTPUT,
-                ModuleConstants.DRIVING_MAX_OUTPUT);
-
-        // Set the PID gains for the turning motor. Note these are example gains, and you
-        // may need to tune them for your own robot!
-        turningPIDController.setP(ModuleConstants.TURNING_P);
-        turningPIDController.setI(ModuleConstants.TURNING_I);
-        turningPIDController.setD(ModuleConstants.TURNING_D);
-        turningPIDController.setFF(ModuleConstants.TURNING_FF);
-        turningPIDController.setOutputRange(ModuleConstants.TURNING_MIN_OUTPUT,
-                ModuleConstants.TURNING_MAX_OUTPUT);
-
-        drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        drivingSparkMax.setSmartCurrentLimit(ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
-        turningSparkMax.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
-        
-        // See https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces#periodic-status-5-default-rate-200ms
-        drivingSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
-        turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
-        turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 20);
-
-        // Save the SPARK MAX configurations. If a SPARK MAX browns out during
-        // operation, it will maintain the above configurations.
-
-        NeoMotorConstants.motors.add(drivingSparkMax);
-        NeoMotorConstants.motors.add(turningSparkMax);
 
         this.chassisAngularOffset = chassisAngularOffset;
-        desiredState.angle = new Rotation2d(turningEncoder.getPosition());
-        drivingEncoder.setPosition(0);
+
+        scheduleConfigCommands();
+
     }
 
     /**
@@ -157,7 +100,8 @@ public class SwerveModule {
                 new Rotation2d(turningEncoder.getPosition()));
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
-        drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+        drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond,
+                CANSparkMax.ControlType.kVelocity);
         turningPIDController.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
 
         this.desiredState = desiredState;
@@ -184,5 +128,81 @@ public class SwerveModule {
     public void setBrakeMode() {
         drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
         turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    }
+
+    public void scheduleConfigCommands() {
+        CommandScheduler.getInstance().schedule(
+                new InstantCommand(
+                        () -> {
+                            drivingPIDController.setFeedbackDevice(drivingEncoder);
+                            turningPIDController.setFeedbackDevice(turningEncoder);
+
+                            // Apply position and velocity conversion factors for the driving encoder. The
+                            // native units for position and velocity are rotations and RPM, respectively,
+                            // but we want meters and meters per second to use with WPILib's swerve APIs.
+                            drivingEncoder.setPositionConversionFactor(ModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
+                            drivingEncoder.setVelocityConversionFactor(ModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
+
+                            // Apply position and velocity conversion factors for the turning encoder. We
+                            // want these in radians and radians per second to use with WPILib's swerve
+                            // APIs.
+                            turningEncoder.setPositionConversionFactor(ModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+                            turningEncoder.setVelocityConversionFactor(ModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+
+                            // Invert the turning encoder, since the output shaft rotates in the opposite
+                            // direction of
+                            // the steering motor in the MAXSwerve Module.
+                            turningEncoder.setInverted(ModuleConstants.TURNING_ENCODER_INVERTED);
+
+                            // Enable PID wrap around for the turning motor. This will allow the PID
+                            // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
+                            // to 10 degrees will go through 0 rather than the other direction which is a
+                            // longer route.
+                            turningPIDController.setPositionPIDWrappingEnabled(true);
+                            turningPIDController.setPositionPIDWrappingMinInput(
+                                    ModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT);
+                            turningPIDController.setPositionPIDWrappingMaxInput(
+                                    ModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
+
+                            // Set the PID gains for the driving motor. Note these are example gains, and
+                            // you
+                            // may need to tune them for your own robot!
+                            drivingPIDController.setP(ModuleConstants.DRIVING_P);
+                            drivingPIDController.setI(ModuleConstants.DRIVING_I);
+                            drivingPIDController.setD(ModuleConstants.DRIVING_D);
+                            drivingPIDController.setFF(ModuleConstants.DRIVING_FF);
+                            drivingPIDController.setOutputRange(ModuleConstants.DRIVING_MIN_OUTPUT,
+                                    ModuleConstants.DRIVING_MAX_OUTPUT);
+
+                            // Set the PID gains for the turning motor. Note these are example gains, and
+                            // you
+                            // may need to tune them for your own robot!
+                            turningPIDController.setP(ModuleConstants.TURNING_P);
+                            turningPIDController.setI(ModuleConstants.TURNING_I);
+                            turningPIDController.setD(ModuleConstants.TURNING_D);
+                            turningPIDController.setFF(ModuleConstants.TURNING_FF);
+                            turningPIDController.setOutputRange(ModuleConstants.TURNING_MIN_OUTPUT,
+                                    ModuleConstants.TURNING_MAX_OUTPUT);
+
+                            drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
+                            turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
+                            drivingSparkMax.setSmartCurrentLimit(ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
+                            turningSparkMax.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
+
+                            // See
+                            // https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces#periodic-status-5-default-rate-200ms
+                            drivingSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
+                            turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
+                            turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 20);
+
+                            // Save the SPARK MAX configurations. If a SPARK MAX browns out during
+                            // operation, it will maintain the above configurations.
+
+                            NeoMotorConstants.motors.add(drivingSparkMax);
+                            NeoMotorConstants.motors.add(turningSparkMax);
+
+                            desiredState.angle = new Rotation2d(turningEncoder.getPosition());
+                            drivingEncoder.setPosition(0);
+                        }));
     }
 }
