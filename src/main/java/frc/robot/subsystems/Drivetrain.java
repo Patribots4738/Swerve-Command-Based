@@ -17,7 +17,23 @@ import frc.robot.Constants.DriveConstants;
 
 public class Drivetrain extends SubsystemBase {
   // Robot swerve modules
-  private final SwerveModule m_frontLeft =
+  private final SwerveModule frontLeft;
+
+  private final SwerveModule rearLeft;
+
+  private final SwerveModule frontRight;
+
+  private final SwerveModule rearRight;
+
+  // The gyro sensor
+  private final ADXRS450_Gyro gyro;
+
+  // Odometry class for tracking robot pose
+  SwerveDriveOdometry odometry;
+
+  /** Creates a new DriveSubsystem. */
+  public Drivetrain() {
+    frontLeft =
       new SwerveModule(
           DriveConstants.frontLeftDriveMotorPort,
           DriveConstants.frontLeftTurningMotorPort,
@@ -26,7 +42,7 @@ public class Drivetrain extends SubsystemBase {
           DriveConstants.frontLeftDriveEncoderReversed,
           DriveConstants.frontLeftTurningEncoderReversed);
 
-  private final SwerveModule m_rearLeft =
+    rearLeft =
       new SwerveModule(
           DriveConstants.rearLeftDriveMotorPort,
           DriveConstants.rearLeftTurningMotorPort,
@@ -35,7 +51,7 @@ public class Drivetrain extends SubsystemBase {
           DriveConstants.rearLeftDriveEncoderReversed,
           DriveConstants.rearLeftTurningEncoderReversed);
 
-  private final SwerveModule m_frontRight =
+    frontRight =
       new SwerveModule(
           DriveConstants.frontRightDriveMotorPort,
           DriveConstants.frontRightTurningMotorPort,
@@ -44,7 +60,7 @@ public class Drivetrain extends SubsystemBase {
           DriveConstants.frontRightDriveEncoderReversed,
           DriveConstants.frontRightTurningEncoderReversed);
 
-  private final SwerveModule m_rearRight =
+    rearRight =
       new SwerveModule(
           DriveConstants.rearRightDriveMotorPort,
           DriveConstants.rearRightTurningMotorPort,
@@ -53,36 +69,32 @@ public class Drivetrain extends SubsystemBase {
           DriveConstants.rearRightDriveEncoderReversed,
           DriveConstants.rearRightTurningEncoderReversed);
 
-  // The gyro sensor
-  private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
+    gyro = new ADXRS450_Gyro();
 
-  // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry =
+    odometry =
       new SwerveDriveOdometry(
           DriveConstants.driveKinematics,
-          m_gyro.getRotation2d(),
+          gyro.getRotation2d(),
           new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
+            frontLeft.getPosition(),
+            frontRight.getPosition(),
+            rearLeft.getPosition(),
+            rearRight.getPosition()
           });
 
-  /** Creates a new DriveSubsystem. */
-  public Drivetrain() {
 
   }
 
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    m_odometry.update(
-        m_gyro.getRotation2d(),
+    odometry.update(
+        gyro.getRotation2d(),
         new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
+          frontLeft.getPosition(),
+          frontRight.getPosition(),
+          rearLeft.getPosition(),
+          rearRight.getPosition()
         });
   }
 
@@ -92,7 +104,7 @@ public class Drivetrain extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return odometry.getPoseMeters();
   }
 
   /**
@@ -101,13 +113,13 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    m_odometry.resetPosition(
-        m_gyro.getRotation2d(),
+    odometry.resetPosition(
+        gyro.getRotation2d(),
         new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
+          frontLeft.getPosition(),
+          frontRight.getPosition(),
+          rearLeft.getPosition(),
+          rearRight.getPosition()
         },
         pose);
   }
@@ -126,15 +138,15 @@ public class Drivetrain extends SubsystemBase {
             discretize(
                 fieldRelative
                     ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        xSpeed, ySpeed, rot, m_gyro.getRotation2d())
+                        xSpeed, ySpeed, rot, gyro.getRotation2d())
                     : new ChassisSpeeds(xSpeed, ySpeed, rot),
                 DriveConstants.drivePeriod));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.maxSpeedMetersPerSecond);
-    m_frontLeft.setDesiredState(swerveModuleStates[0]);
-    m_frontRight.setDesiredState(swerveModuleStates[1]);
-    m_rearLeft.setDesiredState(swerveModuleStates[2]);
-    m_rearRight.setDesiredState(swerveModuleStates[3]);
+    frontLeft.setDesiredState(swerveModuleStates[0]);
+    frontRight.setDesiredState(swerveModuleStates[1]);
+    rearLeft.setDesiredState(swerveModuleStates[2]);
+    rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
   /**
@@ -145,23 +157,23 @@ public class Drivetrain extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         desiredStates, DriveConstants.maxSpeedMetersPerSecond);
-    m_frontLeft.setDesiredState(desiredStates[0]);
-    m_frontRight.setDesiredState(desiredStates[1]);
-    m_rearLeft.setDesiredState(desiredStates[2]);
-    m_rearRight.setDesiredState(desiredStates[3]);
+    frontLeft.setDesiredState(desiredStates[0]);
+    frontRight.setDesiredState(desiredStates[1]);
+    rearLeft.setDesiredState(desiredStates[2]);
+    rearRight.setDesiredState(desiredStates[3]);
   }
 
   /** Resets the drive encoders to currently read a position of 0. */
   public void resetEncoders() {
-    m_frontLeft.resetEncoders();
-    m_rearLeft.resetEncoders();
-    m_frontRight.resetEncoders();
-    m_rearRight.resetEncoders();
+    frontLeft.resetEncoders();
+    rearLeft.resetEncoders();
+    frontRight.resetEncoders();
+    rearRight.resetEncoders();
   }
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
-    m_gyro.reset();
+    gyro.reset();
   }
 
   /**
@@ -170,7 +182,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return m_gyro.getRotation2d().getDegrees();
+    return gyro.getRotation2d().getDegrees();
   }
 
   /**
@@ -179,7 +191,7 @@ public class Drivetrain extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 
   /** Credit: WPIlib 2024
