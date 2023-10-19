@@ -4,9 +4,14 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
+import com.revrobotics.CANSparkMax;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 /**
@@ -18,100 +23,143 @@ import edu.wpi.first.wpilibj.TimedRobot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static final class DriveConstants {
-    public static final int frontLeftDriveMotorPort = 0;
-    public static final int rearLeftDriveMotorPort = 2;
-    public static final int frontRightDriveMotorPort = 4;
-    public static final int rearRightDriveMotorPort = 6;
 
-    public static final int frontLeftTurningMotorPort = 1;
-    public static final int rearLeftTurningMotorPort = 3;
-    public static final int frontRightTurningMotorPort = 5;
-    public static final int rearRightTurningMotorPort = 7;
+    public static final class OIConstants{
+        public static final int driverControllerPort = 0;
+        public static final double driverDeadband = 0.1;
+    }
 
-    public static final int[] frontLeftTurningEncoderPorts = new int[] {0, 1};
-    public static final int[] rearLeftTurningEncoderPorts = new int[] {2, 3};
-    public static final int[] frontRightTurningEncoderPorts = new int[] {4, 5};
-    public static final int[] rearRightTurningEncoderPorts = new int[] {6, 7};
+    public static final class AutoConstants {
 
-    public static final boolean frontLeftTurningEncoderReversed = false;
-    public static final boolean rearLeftTurningEncoderReversed = true;
-    public static final boolean frontRightTurningEncoderReversed = false;
-    public static final boolean rearRightTurningEncoderReversed = true;
+        public static final double MAX_SPEED_METERS_PER_SECOND = 3; // 2.5 has worked very well for us so far
+        public static final double MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5; // 2.5; (2.5vel and 2.5accel output 3s runtime on _1_A)
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND = 2 * Math.PI;
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED = 9;//Math.PI/1.7;
 
-    public static final int[] frontLeftDriveEncoderPorts = new int[] {8, 9};
-    public static final int[] rearLeftDriveEncoderPorts = new int[] {10, 11};
-    public static final int[] frontRightDriveEncoderPorts = new int[] {12, 13};
-    public static final int[] rearRightDriveEncoderPorts = new int[] {14, 15};
+        public static final double PX_CONTROLLER = 1;
+        public static final double PY_CONTROLLER = 1;
+        public static final double P_THETA_CONTROLLER = 1;
 
-    public static final boolean frontLeftDriveEncoderReversed = false;
-    public static final boolean rearLeftDriveEncoderReversed = true;
-    public static final boolean frontRightDriveEncoderReversed = false;
-    public static final boolean rearRightDriveEncoderReversed = true;
+        public static final double X_CORRECTION_P = 2.5;//7;
+        public static final double X_CORRECTION_I = 0;
+        public static final double X_CORRECTION_D = 0.2;
 
-    // If you call DriveSubsystem.drive() with a different period make sure to update this.
-    public static final double drivePeriod = TimedRobot.kDefaultPeriod;
+        public static final double Y_CORRECTION_P = 2.5;//6.03;
+        public static final double Y_CORRECTION_I = 0;
+        public static final double Y_CORRECTION_D = 0.2;
 
-    public static final double tracwidth = 0.5;
-    // Distance between centers of right and left wheels on robot
-    public static final double wheelBase = 0.7;
-    // Distance between front and back wheels on robot
-    public static final SwerveDriveKinematics driveKinematics =
-        new SwerveDriveKinematics(
-            new Translation2d(wheelBase / 2, tracwidth / 2),
-            new Translation2d(wheelBase / 2, -tracwidth / 2),
-            new Translation2d(-wheelBase / 2, tracwidth / 2),
-            new Translation2d(-wheelBase / 2, -tracwidth / 2));
+        public static final double ROTATION_CORRECTION_P = .63;
+        public static final double ROTATION_CORRECTION_I = 0;
+        public static final double ROTATION_CORRECTION_D = 0.0025;
 
-    public static final boolean kGyroReversed = false;
+        // Constraint for the motion-profiled robot angle controller
+        public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS = new TrapezoidProfile.Constraints(
+                MAX_ANGULAR_SPEED_RADIANS_PER_SECOND, MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
+    }
+    
+    public static final class DriveConstants {
+        // Driving Parameters - Note that these are not the maximum capable speeds of
+        // the robot, rather the allowed maximum speeds
+        public static double MAX_SPEED_METERS_PER_SECOND = AutoConstants.MAX_SPEED_METERS_PER_SECOND;
+        public static double DYNAMIC_MAX_ANGULAR_SPEED = 3 * Math.PI; // radians per second
+        public static final double MIN_ANGULAR_SPEED = 4 * Math.PI; // radians per second
+        // NEEDS TO BE TESTED vvv
+        public static final double MAX_ANGULAR_SPEED = 8 * Math.PI; // radians per second
 
-    // These are example values only - DO NOT USE THESE FOR YOUR OWN ROBOT!
-    // These characterization values MUST be determined either experimentally or theoretically
-    // for *your* robot's drive.
-    // The SysId tool provides a convenient method for obtaining these values for your robot.
-    public static final double ksVolts = 1;
-    public static final double kvVoltSecondsPerMeter = 0.8;
-    public static final double kaVoltSecondsSquaredPerMeter = 0.15;
+        public static final double MAX_TELEOP_SPEED_METERS_PER_SECOND = Units.feetToMeters(13.51);
 
-    public static final double maxSpeedMetersPerSecond = 3;
-  }
+        public static final double DIRECTION_SLEW_RATE = 6.28; // radians per second
+        public static final double MAGNITUDE_SLEW_RATE = 80.0; // percent per second (1 = 100%)
+        public static final double ROTATIONAL_SLEW_RATE = 80.0; // percent per second (1 = 100%)
 
-  public static final class ModuleConstants {
-    public static final double maxModuleAngularSpeedRadiansPerSecond = 2 * Math.PI;
-    public static final double maxModuleAngularAccelerationRadiansPerSecondSquared = 2 * Math.PI;
+        // Chassis configuration
+        // Distance between centers of right and left wheels on robot
+        public static final double TRACK_WIDTH = Units.inchesToMeters(21.5);
+        // Distance between front and back wheels on robot
+        public static final double WHEEL_BASE = Units.inchesToMeters(21.5);
 
-    public static final int encoderCPR = 1024;
-    public static final double wheelDiameterMeters = 0.15;
-    public static final double driveEncoderDistancePerPulse =
-        // Assumes the encoders are directly mounted on the wheel shafts
-        (wheelDiameterMeters * Math.PI) / (double) encoderCPR;
+        public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
+                           // Front Positive,   Left Positive
+            new Translation2d( WHEEL_BASE / 2,  TRACK_WIDTH / 2),  // Front Left
+            new Translation2d( WHEEL_BASE / 2, -TRACK_WIDTH / 2),  // Front Right
+            new Translation2d(-WHEEL_BASE / 2,  TRACK_WIDTH / 2),  // Rear  Left
+            new Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2)); // Rear  Right
 
-    public static final double turningEncoderDistancePerPulse =
-        // Assumes the encoders are on a 1:1 reduction with the module shaft.
-        (2 * Math.PI) / (double) encoderCPR;
+        // Angular offsets of the modules relative to the chassis in radians
+        // add 90 degrees to change the X and Y axis
+        public static final double FRONT_LEFT_CHASSIS_ANGULAR_OFFSET = Math.toRadians(180+90);
+        public static final double FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET = Math.toRadians(-90+90);
+        public static final double BACK_LEFT_CHASSIS_ANGULAR_OFFSET = Math.toRadians(90+90);
+        public static final double BACK_RIGHT_CHASSIS_ANGULAR_OFFSET = Math.toRadians(0+90);
 
-    public static final double kPModuleTurningController = 1;
+        // Driving motors CAN IDs (EVEN)
+        public static final int FRONT_LEFT_DRIVING_CAN_ID = 3;
+        public static final int REAR_LEFT_DRIVING_CAN_ID = 5;
+        public static final int FRONT_RIGHT_DRIVING_CAN_ID = 1;
+        public static final int REAR_RIGHT_DRIVING_CAN_ID = 7;
 
-    public static final double kPModuleDriveController = 1;
-  }
+        // Turning motors CAN IDs (ODD)
+        public static final int FRONT_LEFT_TURNING_CAN_ID = 4;
+        public static final int REAR_LEFT_TURNING_CAN_ID = 6;
+        public static final int FRONT_RIGHT_TURNING_CAN_ID = 2;
+        public static final int REAR_RIGHT_TURNING_CAN_ID = 8;
 
-  public static final class OIConstants {
-    public static final int driverControllerPort = 0;
-  }
+        public static final boolean GYRO_REVERSED = true;
+        public static final double LOOP_PERIOD = 0.02;
+    }
 
-  public static final class AutoConstants {
-    public static final double maxSpeedMetersPerSecond = 3;
-    public static final double maxAccelerationMetersPerSecondSquared = 3;
-    public static final double maxAngularSpeedRadiansPerSecond = Math.PI;
-    public static final double maxAngularSpeedRadiansPerSecondSquared = Math.PI;
+    public static final class ModuleConstants {
+        // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
+        // This changes the drive speed of the module (a pinion gear with more teeth will result in a
+        // robot that drives faster).
+        public static final int DRIVING_MOTOR_PINION_TEETH = 12;
 
-    public static final double kPXController = 1;
-    public static final double kPYController = 1;
-    public static final double kPThetaController = 1;
+        // Invert the turning encoder, since the output shaft rotates in the opposite direction of
+        // the steering motor in the MAXSwerve Module.
+        public static final boolean TURNING_ENCODER_INVERTED = true;
 
-    // Constraint for the motion profiled robot angle controller
-    public static final TrapezoidProfile.Constraints thetaControllerConstraints =
-        new TrapezoidProfile.Constraints(
-            maxAngularSpeedRadiansPerSecond, maxAngularSpeedRadiansPerSecondSquared);
-  }
+        // Calculations required for driving motor conversion factors and feed forward
+        public static final double DRIVING_MOTOR_FREE_SPEED_RPS = NeoMotorConstants.FREE_SPEED_RPM / 60;
+        public static final double WHEEL_DIAMETER_METERS = 0.0762;
+        public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
+        // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
+        public static final double DRIVING_MOTOR_REDUCTION = (45.0 * 22) / (DRIVING_MOTOR_PINION_TEETH * 15);
+        public static final double DRIVE_WHEEL_FREE_SPEED_RPS = (DRIVING_MOTOR_FREE_SPEED_RPS * WHEEL_CIRCUMFERENCE_METERS)
+                / DRIVING_MOTOR_REDUCTION;
+
+        public static final double DRIVING_ENCODER_POSITION_FACTOR = (WHEEL_DIAMETER_METERS * Math.PI)
+                / DRIVING_MOTOR_REDUCTION; // meters
+        public static final double DRIVING_ENCODER_VELOCITY_FACTOR = ((WHEEL_DIAMETER_METERS * Math.PI)
+                / DRIVING_MOTOR_REDUCTION) / 60.0; // meters per second
+
+        public static final double TURNING_ENCODER_POSITION_FACTOR = (2 * Math.PI); // radians
+        public static final double TURNING_ENCODER_VELOCITY_FACTOR = (2 * Math.PI) / 60.0; // radians per second
+
+        public static final double TURNING_ENCODER_POSITION_PID_MIN_INPUT = 0; // radians
+        public static final double TURNING_ENCODER_POSITION_PID_MAX_INPUT = TURNING_ENCODER_POSITION_FACTOR; // radians
+
+        public static final double DRIVING_P = 0.04;
+        public static final double DRIVING_I = 0;
+        public static final double DRIVING_D = 0;
+        public static final double DRIVING_FF = 1 / DRIVE_WHEEL_FREE_SPEED_RPS;
+        public static final double DRIVING_MIN_OUTPUT = -1;
+        public static final double DRIVING_MAX_OUTPUT = 1;
+
+        public static final double TURNING_P = 1;
+        public static final double TURNING_I = 0;
+        public static final double TURNING_D = 0;
+        public static final double TURNING_FF = 0;
+        public static final double TURNING_MIN_OUTPUT = -1;
+        public static final double TURNING_MAX_OUTPUT = 1;
+
+        public static final int DRIVING_MOTOR_CURRENT_LIMIT = 50; // amps
+        public static final int TURNING_MOTOR_CURRENT_LIMIT = 20; // amps
+    }
+
+    public static final class NeoMotorConstants {
+        public static final double FREE_SPEED_RPM = 5676;
+
+        public static ArrayList<CANSparkMax> motors = new ArrayList<>();
+    }
+    
 }

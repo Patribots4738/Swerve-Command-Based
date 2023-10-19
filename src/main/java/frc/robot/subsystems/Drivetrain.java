@@ -33,47 +33,31 @@ public class Drivetrain extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public Drivetrain() {
-    frontLeft =
-      new SwerveModule(
-          DriveConstants.frontLeftDriveMotorPort,
-          DriveConstants.frontLeftTurningMotorPort,
-          DriveConstants.frontLeftDriveEncoderPorts,
-          DriveConstants.frontLeftTurningEncoderPorts,
-          DriveConstants.frontLeftDriveEncoderReversed,
-          DriveConstants.frontLeftTurningEncoderReversed);
+    frontLeft = new SwerveModule(
+      DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
+      DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
+      DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
-    rearLeft =
-      new SwerveModule(
-          DriveConstants.rearLeftDriveMotorPort,
-          DriveConstants.rearLeftTurningMotorPort,
-          DriveConstants.rearLeftDriveEncoderPorts,
-          DriveConstants.rearLeftTurningEncoderPorts,
-          DriveConstants.rearLeftDriveEncoderReversed,
-          DriveConstants.rearLeftTurningEncoderReversed);
+    frontRight = new SwerveModule(
+      DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
+      DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
+      DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
-    frontRight =
-      new SwerveModule(
-          DriveConstants.frontRightDriveMotorPort,
-          DriveConstants.frontRightTurningMotorPort,
-          DriveConstants.frontRightDriveEncoderPorts,
-          DriveConstants.frontRightTurningEncoderPorts,
-          DriveConstants.frontRightDriveEncoderReversed,
-          DriveConstants.frontRightTurningEncoderReversed);
+    rearLeft = new SwerveModule(
+      DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
+      DriveConstants.REAR_LEFT_TURNING_CAN_ID,
+      DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
-    rearRight =
-      new SwerveModule(
-          DriveConstants.rearRightDriveMotorPort,
-          DriveConstants.rearRightTurningMotorPort,
-          DriveConstants.rearRightDriveEncoderPorts,
-          DriveConstants.rearRightTurningEncoderPorts,
-          DriveConstants.rearRightDriveEncoderReversed,
-          DriveConstants.rearRightTurningEncoderReversed);
+    rearRight = new SwerveModule(
+      DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
+      DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
+      DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
     gyro = new ADXRS450_Gyro();
 
     odometry =
       new SwerveDriveOdometry(
-          DriveConstants.driveKinematics,
+          DriveConstants.DRIVE_KINEMATICS,
           gyro.getRotation2d(),
           new SwerveModulePosition[] {
             frontLeft.getPosition(),
@@ -134,15 +118,16 @@ public class Drivetrain extends SubsystemBase {
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
     var swerveModuleStates =
-        DriveConstants.driveKinematics.toSwerveModuleStates(
+        DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             discretize(
                 fieldRelative
                     ? ChassisSpeeds.fromFieldRelativeSpeeds(
                         xSpeed, ySpeed, rot, gyro.getRotation2d())
                     : new ChassisSpeeds(xSpeed, ySpeed, rot),
-                DriveConstants.drivePeriod));
+                DriveConstants.LOOP_PERIOD));
+                
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.maxSpeedMetersPerSecond);
+        swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     frontLeft.setDesiredState(swerveModuleStates[0]);
     frontRight.setDesiredState(swerveModuleStates[1]);
     rearLeft.setDesiredState(swerveModuleStates[2]);
@@ -156,7 +141,7 @@ public class Drivetrain extends SubsystemBase {
    */
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        desiredStates, DriveConstants.maxSpeedMetersPerSecond);
+        desiredStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     frontLeft.setDesiredState(desiredStates[0]);
     frontRight.setDesiredState(desiredStates[1]);
     rearLeft.setDesiredState(desiredStates[2]);
@@ -191,7 +176,7 @@ public class Drivetrain extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return gyro.getRate() * (DriveConstants.GYRO_REVERSED ? -1.0 : 1.0);
   }
 
   /** Credit: WPIlib 2024

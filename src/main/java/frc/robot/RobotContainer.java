@@ -11,6 +11,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.Drivetrain;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
@@ -23,10 +24,10 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 public class RobotContainer {
     private final SendableChooser<Command> autoSelector;
     // The robot's subsystems
-    private final Drivetrain robotDrive;
+    private final Drivetrain drive;
 
     // The driver's controller
-    private final XboxController driverController;
+    private final CmdPatriBoxController driver;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -34,28 +35,30 @@ public class RobotContainer {
     public RobotContainer() {
         autoSelector = new SendableChooser<>();
 
-        robotDrive = new Drivetrain();
+        drive = new Drivetrain();
 
-        driverController = new XboxController(OIConstants.driverControllerPort);
+        driver = new CmdPatriBoxController(
+            OIConstants.driverControllerPort, 
+            OIConstants.driverDeadband
+        );
         
         // Configure the button bindings
         configureButtonBindings();
 
         // Configure default commands
-        robotDrive.setDefaultCommand(
+        drive.setDefaultCommand(
                 // The left stick controls translation of the robot.
                 // Turning is controlled by the X axis of the right stick.
                 new RunCommand(
-                        () -> robotDrive.drive(
+                        () -> drive.drive(
                                 // Multiply by max speed to map the joystick unitless inputs to actual units.
                                 // This will map the [-1, 1] to [max speed backwards, max speed forwards],
                                 // converting them to actual units.
-                                driverController.getLeftY() * DriveConstants.maxSpeedMetersPerSecond,
-                                driverController.getLeftX() * DriveConstants.maxSpeedMetersPerSecond,
-                                driverController.getRightX()
-                                        * ModuleConstants.maxModuleAngularSpeedRadiansPerSecond,
+                                driver.getLeftY(),
+                                driver.getLeftX(),
+                                driver.getRightX(),
                                 true),
-                        robotDrive));
+                        drive));
     }
 
     /**
