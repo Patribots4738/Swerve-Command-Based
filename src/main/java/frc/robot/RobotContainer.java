@@ -5,9 +5,11 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.Drivetrain;
+import io.github.oblarg.oblog.annotations.Log;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -26,6 +28,8 @@ public class RobotContainer {
     // The driver's controller
     private final CmdPatriBoxController driver;
 
+    @Log
+    private final Field2d field;
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
@@ -38,9 +42,6 @@ public class RobotContainer {
             OIConstants.driverControllerPort, 
             OIConstants.driverDeadband
         );
-        
-        // Configure the button bindings
-        configureButtonBindings();
 
         // Configure default commands
         drive.setDefaultCommand(
@@ -56,6 +57,18 @@ public class RobotContainer {
                                 driver.getRightX(),
                                 true),
                         drive));
+
+                        
+        field = new Field2d();
+        
+        field.setRobotPose(drive.getPose());
+
+        // Configure the button bindings
+        configureButtonBindings();
+
+    }
+    public void periodic() {
+        field.setRobotPose(drive.getPose());
     }
 
     /**
@@ -85,4 +98,14 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoSelector.getSelected();
     }
+
+    public void onDisabled() {
+        drive.scheduleConfigCommands();
+    }
+
+    public void onEnabled() {
+        drive.resetEncoders();
+    }
+
+    
 }
