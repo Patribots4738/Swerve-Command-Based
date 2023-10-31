@@ -1,6 +1,7 @@
 package frc.robot;
 
-import frc.robot.commands.auto.AutoPathStorage.AutoPose;
+import com.pathplanner.lib.PathPlannerTrajectory;
+
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import io.github.oblarg.oblog.Loggable;
@@ -14,7 +15,7 @@ public class DriverUI implements Loggable {
     // Be sure to look through https://oblog-docs.readthedocs.io/en/latest :')
 
     @Log(name="Select Auto:", rowIndex = 0, columnIndex = 4, height = 1, width = 2)
-    public static SendableChooser<AutoPose> autoChooser = new SendableChooser<>();
+    public static SendableChooser<PathPlannerTrajectory> autoChooser = new SendableChooser<>();
     
     @BooleanBox(name = "Fresh Code", rowIndex = 0, columnIndex = 10, height = 1, width = 1, colorWhenTrue = "lime")
     public static boolean freshCode = true;
