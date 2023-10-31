@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -14,10 +13,8 @@ import frc.robot.commands.Drive;
 import frc.robot.subsystems.Swerve;
 import frc.robot.util.PatriBoxController;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.LEDConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.Constants.OIConstants;
-import frc.robot.util.Constants.PlacementConstants;
 
 public class RobotContainer {
 
@@ -77,7 +74,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        
+
         // TODO: Add auto commands here
         return null;
     }
