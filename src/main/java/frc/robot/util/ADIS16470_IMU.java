@@ -352,7 +352,7 @@ public class ADIS16470_IMU implements AutoCloseable, NTSendable {
                 return;
             }
 
-            // Let the user know the IMU was initiallized successfully
+            // Let the user know the IMU was initialized successfully
             DriverStation.reportWarning("ADIS16470 IMU Successfully Initialized!", false);
 
             // Drive "Ready" LED low
@@ -563,7 +563,7 @@ public class ADIS16470_IMU implements AutoCloseable, NTSendable {
             return 2;
         }
         if (m_reg > 1999) {
-            DriverStation.reportError("Attempted to write an invalid deimation value.", false);
+            DriverStation.reportError("Attempted to write an invalid decimation value.", false);
             m_reg = 1999;
         }
         m_scaled_sample_rate = (((m_reg + 1.0) / 2000.0) * 1000000.0);
