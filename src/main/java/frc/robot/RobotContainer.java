@@ -39,22 +39,27 @@ public class RobotContainer {
             driver::getLeftX,
             () -> -driver.getRightX(),
             () -> !driver.y().getAsBoolean(),
-            () -> !driver.y().getAsBoolean()
+            () -> !driver.y().getAsBoolean(),
+            () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE == Alliance.Blue)
         ));
 
         incinerateMotors();
         configureButtonBindings();
 
-        // Wait wait wait wait for the DS to connect
-        // then assign our alliance color
-        while (DriverStation.getAlliance() == Alliance.Invalid) {
-            DriverStation.refreshData();
-        }
+        Commands.runOnce( () -> DriverStation.refreshData()).repeatedly()
+            .until(() -> DriverStation.getAlliance() != Alliance.Invalid).schedule();
 
-        FieldConstants.ALLIANCE = DriverStation.getAlliance();
+        setAlliance();
     }
 
-    private void configureButtonBindings() {
+    private void configureButtonBindings(){
+        configureDriverBindings();
+        configureOperatorBindings();
+    }
+
+    private void configureOperatorBindings() { }
+
+    private void configureDriverBindings() {
 
         driver.start().or(driver.back()).onTrue(
             Commands.runOnce(() -> swerve.resetOdometry(
@@ -74,13 +79,27 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-
         // TODO: Add auto commands here
         return null;
     }
 
-    public Command getDisabledCommand() {
-        return Commands.run(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance()).ignoringDisable(true);
+    public void onDisabled() {
+        Commands.sequence(
+            Commands.run(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance())
+            .andThen(swerve.getConfigCommands()))
+        .ignoringDisable(true).schedule();
+        
+    }
+
+    public void onEnabled() {
+        swerve.resetEncoders();
+    }
+
+    public void periodic() {
+    }    
+
+    public void setAlliance() {
+        Commands.runOnce(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance());
     }
 
     private void incinerateMotors() {
@@ -90,5 +109,6 @@ public class RobotContainer {
             Timer.delay(0.005);
         }
         Timer.delay(0.25);
-    }    
+    }
+
 }

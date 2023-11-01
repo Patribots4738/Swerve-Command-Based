@@ -34,7 +34,6 @@ import frc.robot.util.SwerveUtils;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.PlacementConstants;
 
 public class Swerve extends SubsystemBase {
 
@@ -180,9 +179,9 @@ public class Swerve extends SubsystemBase {
                                         getPose().getY(),
                                         Math.hypot(
                                                 getRoll().getSin()
-                                                        * PlacementConstants.ROBOT_LENGTH_METERS / 2.0,
+                                                        * DriveConstants.ROBOT_LENGTH_METERS / 2.0,
                                                 getPitch().getSin() *
-                                                        PlacementConstants.ROBOT_LENGTH_METERS / 2.0)),
+                                                        DriveConstants.ROBOT_LENGTH_METERS / 2.0)),
                                 new Rotation3d(getRoll().getRadians(), getPitch().getRadians(),
                                         getYaw().getRadians()))));
     }
@@ -519,19 +518,19 @@ public class Swerve extends SubsystemBase {
     }
     
     public Command getAutoAlignmentCommand(Supplier<ChassisSpeeds> autoSpeeds, Supplier<ChassisSpeeds> controllerSpeeds) {
-        return new Drive(this, () -> {
-            ChassisSpeeds controllerSpeedsGet = controllerSpeeds.get();
-            ChassisSpeeds autoSpeedsGet = autoSpeeds.get();
-            return new ChassisSpeeds(
-                controllerSpeedsGet.vxMetersPerSecond + autoSpeedsGet.vxMetersPerSecond,
-                controllerSpeedsGet.vyMetersPerSecond + autoSpeedsGet.vyMetersPerSecond,
-                controllerSpeedsGet.omegaRadiansPerSecond + autoSpeedsGet.omegaRadiansPerSecond
-            );
-        }, () -> false, () -> false);
+      return new Drive(this, () -> {
+        ChassisSpeeds controllerSpeedsGet = controllerSpeeds.get();
+        ChassisSpeeds autoSpeedsGet = autoSpeeds.get();
+        return new ChassisSpeeds(
+            controllerSpeedsGet.vxMetersPerSecond + autoSpeedsGet.vxMetersPerSecond,
+            controllerSpeedsGet.vyMetersPerSecond + autoSpeedsGet.vyMetersPerSecond,
+            controllerSpeedsGet.omegaRadiansPerSecond + autoSpeedsGet.omegaRadiansPerSecond
+        );
+    }, () -> false, () -> false, () -> false);
     }
 
     public Command getDriveCommand(Supplier<ChassisSpeeds> speeds, boolean fieldRelative, boolean rateLimit) {
-        return new Drive(this, speeds, () -> fieldRelative, () -> rateLimit);
+      return new Drive(this, speeds, () -> fieldRelative, () -> rateLimit, () -> false);
     }
 
     public Rotation2d getClosest180Rotation2d() {
@@ -544,5 +543,13 @@ public class Swerve extends SubsystemBase {
 
     public Trigger getTiltedTrigger() {
         return new Trigger(() -> Math.abs(getPitch().getDegrees()) > 35);
+    }
+
+    public Command[] getConfigCommands() {
+        Command[] configCommands = new Command[swerveModules.length];
+        for(int i = 0; i < swerveModules.length; i++) {
+            configCommands[i] = swerveModules[i].getConfigCommand();
+        }
+        return configCommands;
     }
 }

@@ -5,6 +5,7 @@ import com.revrobotics.REVPhysicsSim;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import io.github.oblarg.oblog.Logger;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -15,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
 
     private Command autonomousCommand;
-    private Command disabledCommand;
 
     private RobotContainer robotContainer;
 
@@ -23,6 +23,9 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() { 
         robotContainer = new RobotContainer();
+
+        Logger.configureLoggingAndConfig(robotContainer, false);
+
     }
 
     /**
@@ -34,16 +37,14 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
+        Logger.updateEntries();
         CommandScheduler.getInstance().run();
+        robotContainer.periodic();
     }
 
     @Override
     public void disabledInit() {
-        disabledCommand = robotContainer.getDisabledCommand();
-        
-        if (disabledCommand != null) {
-            disabledCommand.schedule();
-        }
+        robotContainer.onDisabled();
     }
 
     @Override
@@ -51,13 +52,11 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() { 
+        robotContainer.onEnabled();
         autonomousCommand = robotContainer.getAutonomousCommand();
         
         if (autonomousCommand != null) {
             autonomousCommand.schedule();
-        }
-        if (disabledCommand != null) {
-            disabledCommand.cancel();
         }
     }
 
@@ -69,9 +68,6 @@ public class Robot extends TimedRobot {
         // Stop our autonomous command if it is still running.
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
-        }
-        if (disabledCommand != null) {
-            disabledCommand.cancel();
         }
     }
 

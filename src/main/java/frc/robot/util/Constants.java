@@ -8,8 +8,12 @@ import java.util.ArrayList;
 
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.controller.HolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Robot;
@@ -48,6 +52,9 @@ public final class Constants {
         // Distance between front and back wheels on robot
         public static final double WHEEL_BASE = Units.inchesToMeters(21.5);
 
+        public static final double ROBOT_LENGTH_METERS = Units.inchesToMeters(25);
+        public static final double BUMPER_LENGTH_METERS = Units.inchesToMeters(2.75);
+
         public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
                 // Front Positive, Left Positive
                 new Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2), // Front Left
@@ -75,6 +82,52 @@ public final class Constants {
         public static final int REAR_RIGHT_TURNING_CAN_ID = 8;
 
         public static final boolean GYRO_REVERSED = true;
+    }
+
+    public static final class AutoConstants {
+
+        public static final double MAX_SPEED_METERS_PER_SECOND = 3; // 2.5 has worked very well for us so far
+        public static final double MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5; // 2.5; (2.5vel and 2.5accel output
+                                                                                     // 3s runtime on _1_A)
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND = 2 * Math.PI;
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED = 9;// Math.PI/1.7;
+
+        public static final double PX_CONTROLLER = 1;
+        public static final double PY_CONTROLLER = 1;
+        public static final double P_THETA_CONTROLLER = 1;
+
+        public static final double X_CORRECTION_P = 2.5;// 7;
+        public static final double X_CORRECTION_I = 0;
+        public static final double X_CORRECTION_D = 0.2;
+
+        public static final double Y_CORRECTION_P = 2.5;// 6.03;
+        public static final double Y_CORRECTION_I = 0;
+        public static final double Y_CORRECTION_D = 0.2;
+
+        public static final double ROTATION_CORRECTION_P = .63;
+        public static final double ROTATION_CORRECTION_I = 0;
+        public static final double ROTATION_CORRECTION_D = 0.0025;
+
+        // Constraint for the motion-profiled robot angle controller
+        public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS = new TrapezoidProfile.Constraints(
+                MAX_ANGULAR_SPEED_RADIANS_PER_SECOND, MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
+
+        public static final HolonomicDriveController HDC = new HolonomicDriveController(
+                new PIDController(
+                        AutoConstants.X_CORRECTION_P,
+                        AutoConstants.X_CORRECTION_I,
+                        AutoConstants.X_CORRECTION_D),
+                new PIDController(
+                        AutoConstants.Y_CORRECTION_P,
+                        AutoConstants.Y_CORRECTION_I,
+                        AutoConstants.Y_CORRECTION_D),
+                new ProfiledPIDController(
+                        AutoConstants.ROTATION_CORRECTION_P,
+                        AutoConstants.ROTATION_CORRECTION_I,
+                        AutoConstants.ROTATION_CORRECTION_D,
+                        new TrapezoidProfile.Constraints(
+                                AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND,
+                                AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED)));
     }
 
     public static final class ModuleConstants {
