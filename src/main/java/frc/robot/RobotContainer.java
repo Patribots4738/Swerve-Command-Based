@@ -17,8 +17,9 @@ import frc.robot.util.PatriBoxController;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.Constants.OIConstants;
+import monologue.Logged;
 
-public class RobotContainer {
+public class RobotContainer implements Logged {
 
     private final PatriBoxController driver;
     @SuppressWarnings("unused")

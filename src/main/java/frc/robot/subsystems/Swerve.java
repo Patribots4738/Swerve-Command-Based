@@ -36,6 +36,7 @@ import frc.robot.util.SwerveUtils;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
+import monologue.Monologue.LogNT;
 
 public class Swerve extends SubsystemBase {
 
@@ -74,6 +75,9 @@ public class Swerve extends SubsystemBase {
 
     private double[] desiredModuleStates = new double[6];
     private double[] realModuleStates = new double[6];
+
+    @LogNT
+    Pose3d robotPose3d;
 
     
 
@@ -168,10 +172,8 @@ public class Swerve extends SubsystemBase {
 
         SmartDashboard.putNumberArray("Swerve/DesiredStates", desiredModuleStates);
         SmartDashboard.putNumber("Swerve/RobotRotation", getYaw().getRadians());
-
-        SmartDashboard.putNumberArray("RobotPose3d",
-                Pose3dLogger.composePose3ds(
-                        new Pose3d(
+        
+        robotPose3d = new Pose3d(
                                 new Translation3d(
                                         getPose().getX(),
                                         getPose().getY(),
@@ -181,7 +183,10 @@ public class Swerve extends SubsystemBase {
                                                 getPitch().getSin() *
                                                         DriveConstants.ROBOT_LENGTH_METERS / 2.0)),
                                 new Rotation3d(getRoll().getRadians(), getPitch().getRadians(),
-                                        getYaw().getRadians()))));
+                                        getYaw().getRadians()));
+        SmartDashboard.putNumberArray("RobotPose3d",
+                Pose3dLogger.composePose3ds(robotPose3d));
+        
     }
 
     /**

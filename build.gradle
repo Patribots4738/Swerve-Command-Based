@@ -3,6 +3,10 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2024.1.1"
 }
 
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -66,6 +70,8 @@ dependencies {
     nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
+
+    implementation 'com.github.shueja:Monologue:v1.0.0-alpha2'
 }
 
 test {
