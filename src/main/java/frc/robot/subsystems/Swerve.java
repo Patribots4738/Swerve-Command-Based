@@ -5,9 +5,11 @@
 package frc.robot.subsystems;
 
 import java.util.function.Supplier;
-
-import edu.wpi.first.math.MatBuilder;
-import edu.wpi.first.math.Nat;
+// import edu.wpi.first.math.MatBuilder;
+// import edu.wpi.first.math.Matrix;
+// import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
+// import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -98,15 +100,11 @@ public class Swerve extends SubsystemBase {
             // This is because we assume that the IMU is very accurate.
             // You can visualize these graphs working together here:
             // https://www.desmos.com/calculator/a0kszyrwfe
-            new MatBuilder<>(
-                    Nat.N3(),
-                    Nat.N1()).fill(0.1, 0.1, 0.05),
+            VecBuilder.fill(0.1, 0.1, 0.05),
             // State measurement
             // standard deviations
             // X, Y, theta
-            new MatBuilder<>(
-                    Nat.N3(),
-                    Nat.N1()).fill(0.6, 0.6, 2)
+            VecBuilder.fill(0.6, 0.6, 2)
     // Vision measurement
     // standard deviations
     // X, Y, theta

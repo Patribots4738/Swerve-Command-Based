@@ -7,7 +7,7 @@ package frc.robot.util;
 import java.util.ArrayList;
 
 import com.revrobotics.CANSparkMax;
-
+import java.util.Optional;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -219,7 +219,7 @@ public final class Constants {
 
         public static final double CHARGE_PAD_CORRECTION_P = 0.05;
 
-        public static Alliance ALLIANCE = Alliance.Invalid;
+        public static Optional<Alliance> ALLIANCE = Optional.empty();
 
         public static enum GameMode {
             DISABLED,

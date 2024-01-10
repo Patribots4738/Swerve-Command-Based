@@ -2,6 +2,8 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax;
 
+import java.util.Optional;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -40,14 +42,14 @@ public class RobotContainer {
             () -> -driver.getRightX(),
             () -> !driver.y().getAsBoolean(),
             () -> !driver.y().getAsBoolean(),
-            () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE == Alliance.Blue)
+            () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Blue)))
         ));
 
         incinerateMotors();
         configureButtonBindings();
 
         Commands.runOnce( () -> DriverStation.refreshData()).repeatedly()
-            .until(() -> DriverStation.getAlliance() != Alliance.Invalid).schedule();
+            .until(() -> DriverStation.getAlliance().isEmpty()).schedule();
 
         setAlliance();
     }
@@ -66,7 +68,7 @@ public class RobotContainer {
                 new Pose2d(
                     swerve.getPose().getTranslation(), 
                     Rotation2d.fromDegrees(
-                        FieldConstants.ALLIANCE == Alliance.Red 
+                        FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Red)) 
                         ? 0 
                         : 180))
             ), swerve)

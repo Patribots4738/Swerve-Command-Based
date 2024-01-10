@@ -1,7 +1,7 @@
 package frc.robot.util;
 
 import java.util.function.DoubleSupplier;
-
+import java.util.Optional;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -37,7 +37,7 @@ public class PatriBoxController extends CommandXboxController {
         Translation2d driverLeftAxis = toCircle(MathUtil.applyDeadband(super.getLeftX(), deadband),
                 MathUtil.applyDeadband(super.getLeftY(), deadband));
 
-        if (FieldConstants.ALLIANCE == Alliance.Blue) {
+        if (FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Blue))) {
             driverLeftAxis = driverLeftAxis.unaryMinus();
         }
 

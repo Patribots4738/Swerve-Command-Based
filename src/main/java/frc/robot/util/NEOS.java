@@ -19,7 +19,7 @@ import java.util.List;
 
 public class NEOS extends CANSparkMax {
     public final RelativeEncoder encoder;
-    public final SparkMaxPIDController pidController;
+    public final SparkPIDController pidController;
 
     private List<NEOS> followers = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public class NEOS extends CANSparkMax {
      * @param mode The idle mode of the motor. If true, the motor will brake when not powered. If false, the motor will coast when not powered.
      */
     public NEOS(int id, boolean reversed, CANSparkMax.IdleMode mode) {
-        super(id, CANSparkMaxLowLevel.MotorType.kBrushless);
+        super(id, CANSparkLowLevel.MotorType.kBrushless);
 
         // restoreFactoryDefaults();
         // Timer.delay(0.050);
@@ -82,7 +82,7 @@ public class NEOS extends CANSparkMax {
      */
     public synchronized void setTargetPosition(double position, double arbitraryFeedForward, int slot) {
         if (!FieldConstants.IS_SIMULATION) {
-            pidController.setReference(position, ControlType.kPosition, slot, arbitraryFeedForward, SparkMaxPIDController.ArbFFUnits.kVoltage);
+            pidController.setReference(position, ControlType.kPosition, slot, arbitraryFeedForward, SparkPIDController.ArbFFUnits.kVoltage);
         }
         targetPosition = position;
         controlType = ControlLoopType.POSITION;
