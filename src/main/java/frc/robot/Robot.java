@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 //import io.github.oblarg.oblog.Logger;
+import monologue.Monologue;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -19,13 +20,11 @@ public class Robot extends TimedRobot {
 
     private RobotContainer robotContainer;
 
-
     @Override
     public void robotInit() { 
         robotContainer = new RobotContainer();
 
-        //Logger.configureLoggingAndConfig(robotContainer, false);
-
+        Monologue.setupLogging(robotContainer, "/Robot");
     }
 
     /**
@@ -38,6 +37,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         //Logger.updateEntries();
+        Monologue.update();
         CommandScheduler.getInstance().run();
         robotContainer.periodic();
     }
@@ -65,6 +65,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void teleopInit() {
+        robotContainer.onEnabled();
         // Stop our autonomous command if it is still running.
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
@@ -76,6 +77,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void testInit() { 
+        robotContainer.onEnabled();
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
     }

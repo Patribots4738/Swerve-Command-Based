@@ -1,9 +1,8 @@
 package frc.robot;
 
-import com.revrobotics.CANSparkMax;
-
 import java.util.Optional;
 
+import com.revrobotics.CANSparkBase;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -17,8 +16,9 @@ import frc.robot.util.PatriBoxController;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.Constants.OIConstants;
+import monologue.Logged;
 
-public class RobotContainer {
+public class RobotContainer implements Logged {
 
     private final PatriBoxController driver;
     @SuppressWarnings("unused")
@@ -31,6 +31,7 @@ public class RobotContainer {
     public RobotContainer() {
         driver = new PatriBoxController(OIConstants.DRIVER_CONTROLLER_PORT, OIConstants.DRIVER_DEADBAND);
         operator = new PatriBoxController(OIConstants.OPERATOR_CONTROLLER_PORT, OIConstants.OPERATOR_DEADBAND);
+        DriverStation.silenceJoystickConnectionWarning(true);
 
         swerve = new Swerve();
         driverUI = new DriverUI();
@@ -45,13 +46,15 @@ public class RobotContainer {
             () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Blue)))
         ));
 
+        swerve.configurateMotors();
+
         incinerateMotors();
         configureButtonBindings();
 
-        Commands.runOnce( () -> DriverStation.refreshData()).repeatedly()
-            .until(() -> DriverStation.getAlliance().isEmpty()).schedule();
-
-        setAlliance();
+        Commands.run(DriverStation::refreshData)
+                .until(() -> !DriverStation.getAlliance().equals(Optional.empty()))
+                .andThen(update())
+                .ignoringDisable(true).schedule();
     }
 
     private void configureButtonBindings(){
@@ -77,7 +80,6 @@ public class RobotContainer {
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
 
         driver.leftStick().toggleOnTrue(swerve.toggleSpeed());
-
     }
 
     public Command getAutonomousCommand() {
@@ -86,11 +88,7 @@ public class RobotContainer {
     }
 
     public void onDisabled() {
-        Commands.sequence(
-            Commands.run(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance())
-            .andThen(swerve.getConfigCommands()))
-        .ignoringDisable(true).schedule();
-        
+        update().ignoringDisable(true).repeatedly().schedule();
     }
 
     public void onEnabled() {
@@ -100,13 +98,15 @@ public class RobotContainer {
     public void periodic() {
     }    
 
-    public void setAlliance() {
-        Commands.runOnce(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance());
+    public Command update() {
+        return Commands.runOnce(() -> {
+            FieldConstants.ALLIANCE = DriverStation.getAlliance();
+        });
     }
 
     private void incinerateMotors() {
         Timer.delay(0.25);
-        for (CANSparkMax neo : NeoMotorConstants.motors) {
+        for (CANSparkBase neo : NeoMotorConstants.motors) {
             neo.burnFlash();
             Timer.delay(0.005);
         }

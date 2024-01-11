@@ -5,7 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
@@ -13,15 +13,16 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.util.NEOS;
+import frc.robot.util.Neo;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.ModuleConstants;
 
 public class MAXSwerveModule {
-    private final NEOS drivingSparkMax;
-    private final NEOS turningSparkMax;
+    private final Neo drivingSpark;
+    private final Neo turningSpark;
 
     private final RelativeEncoder drivingEncoder;
     private final AbsoluteEncoder turningEncoder;
@@ -39,13 +40,13 @@ public class MAXSwerveModule {
      * Encoder.
      */
     public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
-        drivingSparkMax = new NEOS(drivingCANId);
-        turningSparkMax = new NEOS(turningCANId);
+        drivingSpark = new Neo(drivingCANId);
+        turningSpark = new Neo(turningCANId);
         
-        drivingEncoder = drivingSparkMax.getEncoder();
-        turningEncoder = turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
-        drivingPIDController = drivingSparkMax.getPIDController();
-        turningPIDController = turningSparkMax.getPIDController();
+        drivingEncoder = drivingSpark.getEncoder();
+        turningEncoder = turningSpark.getAbsoluteEncoder(Type.kDutyCycle);
+        drivingPIDController = drivingSpark.getPIDController();
+        turningPIDController = turningSpark.getPIDController();
         
         getConfigCommand().schedule();
 
@@ -72,8 +73,8 @@ public class MAXSwerveModule {
     public SwerveModuleState getSimState() {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
-        return new SwerveModuleState(drivingSparkMax.getVelocity(),
-                new Rotation2d(turningSparkMax.getPosition() - chassisAngularOffset));
+        return new SwerveModuleState(drivingSpark.getVelocity(),
+                new Rotation2d(turningSpark.getPosition() - chassisAngularOffset));
 
     }
 
@@ -97,8 +98,8 @@ public class MAXSwerveModule {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
         return new SwerveModulePosition(
-                drivingSparkMax.getPosition(),
-                new Rotation2d(turningSparkMax.getPosition() - chassisAngularOffset));
+                drivingSpark.getPosition(),
+                new Rotation2d(turningSpark.getPosition() - chassisAngularOffset));
     }
 
     /**
@@ -118,12 +119,12 @@ public class MAXSwerveModule {
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
         if (FieldConstants.IS_SIMULATION) {
-            drivingSparkMax.setTargetVelocity(correctedDesiredState.speedMetersPerSecond);
-            turningSparkMax.setTargetPosition(correctedDesiredState.angle.getRadians());
+            drivingSpark.setTargetVelocity(correctedDesiredState.speedMetersPerSecond);
+            turningSpark.setTargetPosition(correctedDesiredState.angle.getRadians());
         }
         else {
-            turningPIDController.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
-            drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+            turningPIDController.setReference(optimizedDesiredState.angle.getRadians(), CANSparkBase.ControlType.kPosition);
+            drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkBase.ControlType.kVelocity);
         }
 
         this.desiredState = desiredState;
@@ -140,31 +141,28 @@ public class MAXSwerveModule {
      * Set the motor to coast mode
      */
     public void setCoastMode() {
-        drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kCoast);
-        turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kCoast);
+        drivingSpark.setIdleMode(CANSparkBase.IdleMode.kCoast);
+        turningSpark.setIdleMode(CANSparkBase.IdleMode.kCoast);
     }
 
     /**
      * Set the motor to brake mode
      */
     public void setBrakeMode() {
-        drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        drivingSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
+        turningSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
     }
 
     public void tick() {
-        drivingSparkMax.tick();
-        turningSparkMax.tick();
+        drivingSpark.tick();
+        turningSpark.tick();
     }
 
-    //TODO: check if this is correct, as to not undo factory defults
     public Command getConfigCommand() {
-        return Commands.run( () -> {
-            // Factory reset, so we get the SPARKS MAX to a known state before configuring
-            // them. This is useful in case a SPARK MAX is swapped out.
-            drivingSparkMax.restoreFactoryDefaults();
-            turningSparkMax.restoreFactoryDefaults();
-
+        turningSpark.restoreFactoryDefaults();
+        drivingSpark.restoreFactoryDefaults();
+        Timer.delay(0.25);
+        return Commands.runOnce(() -> {
             // Setup encoders and PID controllers for the driving and turning SPARKS MAX.
             drivingPIDController.setFeedbackDevice(drivingEncoder);
             turningPIDController.setFeedbackDevice(turningEncoder);
@@ -211,15 +209,15 @@ public class MAXSwerveModule {
             turningPIDController.setOutputRange(ModuleConstants.TURNING_MIN_OUTPUT,
                     ModuleConstants.TURNING_MAX_OUTPUT);
 
-            drivingSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
-            turningSparkMax.setIdleMode(CANSparkMax.IdleMode.kBrake);
-            drivingSparkMax.setSmartCurrentLimit(ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
-            turningSparkMax.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
+            drivingSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
+            turningSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
+            drivingSpark.setSmartCurrentLimit(ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
+            turningSpark.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
             
-            // See https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces#periodic-status-5-default-rate-200ms
-            drivingSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
-            turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
-            turningSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 20);
+            // See https://docs.revrobotics.com/Spark/operating-modes/control-interfaces#periodic-status-5-default-rate-200ms
+            drivingSpark.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
+            turningSpark.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
+            turningSpark.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 20);
         });
     }
 }

@@ -6,7 +6,7 @@ package frc.robot.util;
 
 import java.util.ArrayList;
 
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase;
 import java.util.Optional;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -201,7 +201,7 @@ public final class Constants {
     public static final class NeoMotorConstants {
         public static final double FREE_SPEED_RPM = 5676;
 
-        public static ArrayList<CANSparkMax> motors = new ArrayList<>();
+        public static ArrayList<CANSparkBase> motors = new ArrayList<>();
     }
 
     public static final class FieldConstants {
