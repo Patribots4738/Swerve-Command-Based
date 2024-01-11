@@ -65,6 +65,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void teleopInit() {
+        robotContainer.onEnabled();
         // Stop our autonomous command if it is still running.
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
@@ -76,6 +77,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void testInit() { 
+        robotContainer.onEnabled();
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
     }

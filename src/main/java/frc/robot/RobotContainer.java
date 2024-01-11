@@ -51,10 +51,10 @@ public class RobotContainer implements Logged {
         incinerateMotors();
         configureButtonBindings();
 
-        Commands.sequence(Commands.runOnce(DriverStation::refreshData).repeatedly()
-                .until(DriverStation.getAlliance()::isPresent), update(),
-                Commands.runOnce(() -> System.out
-                        .println("\n\n\n\nAlliance: " + FieldConstants.ALLIANCE))).ignoringDisable(true).schedule();
+        Commands.run(DriverStation::refreshData)
+                .until(() -> !DriverStation.getAlliance().equals(Optional.empty()))
+                .andThen(update())
+                .ignoringDisable(true).schedule();
     }
 
     private void configureButtonBindings(){
@@ -88,8 +88,7 @@ public class RobotContainer implements Logged {
     }
 
     public void onDisabled() {
-        Commands.run(this::update)
-        .ignoringDisable(true).schedule();
+        update().ignoringDisable(true).repeatedly().schedule();
     }
 
     public void onEnabled() {
@@ -100,7 +99,9 @@ public class RobotContainer implements Logged {
     }    
 
     public Command update() {
-        return Commands.runOnce(() -> FieldConstants.ALLIANCE = DriverStation.getAlliance());
+        return Commands.runOnce(() -> {
+            FieldConstants.ALLIANCE = DriverStation.getAlliance();
+        });
     }
 
     private void incinerateMotors() {
