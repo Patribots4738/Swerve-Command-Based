@@ -81,6 +81,7 @@ public final class Constants {
         public static final int FRONT_RIGHT_TURNING_CAN_ID = 2;
         public static final int REAR_RIGHT_TURNING_CAN_ID = 8;
 
+        public static final int GYRO_CAN_ID = 9;
         public static final boolean GYRO_REVERSED = true;
     }
 
