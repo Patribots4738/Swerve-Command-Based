@@ -17,11 +17,11 @@ import java.util.List;
  * Original source published at https://github.com/FRC3005/Rapid-React-2022-Public/tree/d499655448ed592c85f9cfbbd78336d8841f46e2
  */
 
-public class NEO extends CANSparkMax {
+public class Neo extends CANSparkMax {
     public final RelativeEncoder encoder;
     public final SparkPIDController pidController;
 
-    private List<NEO> followers = new ArrayList<>();
+    private List<Neo> followers = new ArrayList<>();
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
     private double targetPosition = 0;
@@ -31,7 +31,7 @@ public class NEO extends CANSparkMax {
      * Creates a new NEOS motor
      * @param id CANID of the SparkMax the NEOS is connected to.
      */
-    public NEO(int id) {
+    public Neo(int id) {
         this(id, false);
     }
 
@@ -40,7 +40,7 @@ public class NEO extends CANSparkMax {
      * @param id CANID of the SparkMax the NEOS is connected to.
      * @param mode The idle mode of the motor. If true, the motor will brake when not powered. If false, the motor will coast when not powered.
      */
-    public NEO(int id, CANSparkBase.IdleMode mode) {
+    public Neo(int id, CANSparkBase.IdleMode mode) {
         this(id, false, mode);
     }
 
@@ -50,7 +50,7 @@ public class NEO extends CANSparkMax {
      * @param reversed Whether the motor is reversed or not.
      * @param mode The idle mode of the motor. If true, the motor will brake when not powered. If false, the motor will coast when not powered.
      */
-    public NEO(int id, boolean reversed, CANSparkBase.IdleMode mode) {
+    public Neo(int id, boolean reversed, CANSparkBase.IdleMode mode) {
         super(id, CANSparkLowLevel.MotorType.kBrushless);
 
         // restoreFactoryDefaults();
@@ -71,7 +71,7 @@ public class NEO extends CANSparkMax {
      * @param id CANID of the SparkMax the NEOS is connected to.
      * @param reversed Whether the motor is reversed or not.
      */
-    public NEO(int id, boolean reversed) {
+    public Neo(int id, boolean reversed) {
         this(id, reversed, CANSparkBase.IdleMode.kBrake);
     }
 
@@ -197,11 +197,11 @@ public class NEO extends CANSparkMax {
         return targetVelocity;
     }
 
-    public void addFollower(NEO follower) {
+    public void addFollower(Neo follower) {
         addFollower(follower, false);
     }
 
-    public void addFollower(NEO follower, boolean invert) {
+    public void addFollower(Neo follower, boolean invert) {
         followers.add(follower);
         follower.follow(this);
     }

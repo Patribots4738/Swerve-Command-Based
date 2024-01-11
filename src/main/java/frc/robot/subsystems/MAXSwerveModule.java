@@ -16,13 +16,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.util.NEO;
+import frc.robot.util.Neo;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.ModuleConstants;
 
 public class MAXSwerveModule {
-    private final NEO drivingSparkMax;
-    private final NEO turningSparkMax;
+    private final Neo drivingSparkMax;
+    private final Neo turningSparkMax;
 
     private final RelativeEncoder drivingEncoder;
     private final AbsoluteEncoder turningEncoder;
@@ -40,8 +40,8 @@ public class MAXSwerveModule {
      * Encoder.
      */
     public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
-        drivingSparkMax = new NEO(drivingCANId);
-        turningSparkMax = new NEO(turningCANId);
+        drivingSparkMax = new Neo(drivingCANId);
+        turningSparkMax = new Neo(turningCANId);
         
         drivingEncoder = drivingSparkMax.getEncoder();
         turningEncoder = turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
