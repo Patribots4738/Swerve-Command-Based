@@ -42,11 +42,8 @@ public class RobotContainer implements Logged {
             driver::getLeftX,
             () -> -driver.getRightX(),
             () -> !driver.y().getAsBoolean(),
-            () -> !driver.y().getAsBoolean(),
             () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Blue)))
         ));
-
-        swerve.configurateMotors();
 
         incinerateMotors();
         configureButtonBindings();

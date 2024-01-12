@@ -18,7 +18,6 @@ public class Drive extends Command {
     private final DoubleSupplier ySupplier;
     private final DoubleSupplier rotationSupplier;
     private final BooleanSupplier fieldRelativeSupplier;
-    private final BooleanSupplier rateLimitSupplier;
     private final BooleanSupplier shouldMirror;
     
     public Drive(
@@ -26,7 +25,6 @@ public class Drive extends Command {
             DoubleSupplier xSupplier,
             DoubleSupplier ySupplier,
             DoubleSupplier rotationsSupplier, 
-            BooleanSupplier rateLimitSupplier, 
             BooleanSupplier fieldRelativeSupplier,
             BooleanSupplier shouldMirror) 
     {
@@ -38,13 +36,12 @@ public class Drive extends Command {
         this.rotationSupplier = rotationsSupplier;
 
         this.fieldRelativeSupplier = fieldRelativeSupplier;
-        this.rateLimitSupplier = rateLimitSupplier;
         this.shouldMirror = shouldMirror;
 
         addRequirements(swerve);
     }
 
-    public Drive (Swerve swerve, Supplier<ChassisSpeeds> speeds, BooleanSupplier rateLimitSupplier, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
+    public Drive (Swerve swerve, Supplier<ChassisSpeeds> speeds, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
         
         this.swerve = swerve;
         
@@ -53,7 +50,6 @@ public class Drive extends Command {
         this.rotationSupplier = () -> speeds.get().omegaRadiansPerSecond;
 
         this.fieldRelativeSupplier = fieldRelativeSupplier;
-        this.rateLimitSupplier = rateLimitSupplier;
         this.shouldMirror = shouldMirror;
 
         addRequirements(swerve);
@@ -74,14 +70,13 @@ public class Drive extends Command {
             x,
             y,
             rotationSupplier.getAsDouble(), 
-            fieldRelativeSupplier.getAsBoolean(), 
-            rateLimitSupplier.getAsBoolean()
+            fieldRelativeSupplier.getAsBoolean()
         );
     }
 
     @Override
     public void end(boolean interrupted) {
-        swerve.drive(0, 0, 0, false, false);
+        swerve.drive(0, 0, 0, false);
     }
 
     @Override
