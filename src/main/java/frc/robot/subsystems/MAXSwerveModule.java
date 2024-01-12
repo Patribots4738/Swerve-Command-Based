@@ -211,7 +211,7 @@ public class MAXSwerveModule {
 
             drivingSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
             turningSpark.setIdleMode(CANSparkBase.IdleMode.kBrake);
-            drivingSpark.setSmartCurrentLimit(ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
+            drivingSpark.setSmartCurrentLimit(ModuleConstants.VORTEX_CURRENT_LIMIT);
             turningSpark.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
             
             // See https://docs.revrobotics.com/Spark/operating-modes/control-interfaces#periodic-status-5-default-rate-200ms

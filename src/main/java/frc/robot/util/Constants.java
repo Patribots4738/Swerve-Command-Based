@@ -137,7 +137,7 @@ public final class Constants {
         // This changes the drive speed of the module (a pinion gear with more teeth
         // will result in a
         // robot that drives faster).
-        public static final int DRIVING_MOTOR_PINION_TEETH = 13;
+        public static final int DRIVING_MOTOR_PINION_TEETH = 14;
 
         // Invert the turning encoder, since the output shaft rotates in the opposite
         // direction of
@@ -145,7 +145,7 @@ public final class Constants {
         public static final boolean TURNING_ENCODER_INVERTED = true;
 
         // Calculations required for driving motor conversion factors and feed forward
-        public static final double DRIVING_MOTOR_FREE_SPEED_RPS = NeoMotorConstants.FREE_SPEED_RPM / 60;
+        public static final double DRIVING_MOTOR_FREE_SPEED_RPS = NeoMotorConstants.VORTEX_FREE_SPEED_RPM / 60;
         public static final double WHEEL_DIAMETER_METERS = 0.0762;
         public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
         // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
@@ -180,7 +180,8 @@ public final class Constants {
         public static final double TURNING_MIN_OUTPUT = -1;
         public static final double TURNING_MAX_OUTPUT = 1;
 
-        public static final int DRIVING_MOTOR_CURRENT_LIMIT = 50; // amps
+        public static final int NEO_CURRENT_LIMIT = 50; // amps
+        public static final int VORTEX_CURRENT_LIMIT = 80; // amps
         public static final int TURNING_MOTOR_CURRENT_LIMIT = 20; // amps
     }
 
@@ -200,7 +201,7 @@ public final class Constants {
     }
 
     public static final class NeoMotorConstants {
-        public static final double FREE_SPEED_RPM = 6784;
+        public static final double VORTEX_FREE_SPEED_RPM = 6784;
 
         public static ArrayList<CANSparkBase> motors = new ArrayList<>();
     }
