@@ -317,7 +317,7 @@ public class Swerve extends SubsystemBase implements Logged {
         return positions;
 
     }
-
+  
     public void resetEncoders() {
         for (MAXSwerveModule mSwerveMod : swerveModules) {
             mSwerveMod.resetEncoders();
