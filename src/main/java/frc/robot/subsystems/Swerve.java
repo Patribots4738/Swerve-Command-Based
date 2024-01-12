@@ -29,6 +29,7 @@ import frc.robot.commands.Drive;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
 import monologue.Logged;
+import monologue.Annotations.Log;
 
 public class Swerve extends SubsystemBase implements Logged {
 
@@ -59,7 +60,7 @@ public class Swerve extends SubsystemBase implements Logged {
     private double[] desiredModuleStates = new double[6];
     private double[] realModuleStates = new double[6];
 
-    // @LogNT
+    @Log.NT
     Pose3d robotPose3d = new Pose3d();
 
     // The gyro sensor
@@ -100,7 +101,7 @@ public class Swerve extends SubsystemBase implements Logged {
      */
     public Swerve() {
         configurateMotors();
-        
+
         resetEncoders();
         gyro.setYaw(0);
         setBrakeMode();
@@ -165,7 +166,6 @@ public class Swerve extends SubsystemBase implements Logged {
 
         SmartDashboard.putNumberArray("RobotPose3d",
                 Pose3dLogger.composePose3ds(robotPose3d));
-        
     }
 
     /**
