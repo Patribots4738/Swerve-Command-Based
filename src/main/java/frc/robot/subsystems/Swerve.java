@@ -5,6 +5,9 @@
 package frc.robot.subsystems;
 
 import java.util.function.Supplier;
+
+import com.ctre.phoenix6.hardware.Pigeon2;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -17,7 +20,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.util.ADIS16470_IMU;
 import frc.robot.util.Pose3dLogger;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -65,7 +67,7 @@ public class Swerve extends SubsystemBase implements Logged {
     Pose3d robotPose3d = new Pose3d();
 
     // The gyro sensor
-    private final ADIS16470_IMU gyro = new ADIS16470_IMU();
+    private final Pigeon2 gyro = new Pigeon2(9);
 
     private final MAXSwerveModule[] swerveModules = new MAXSwerveModule[] {
             frontLeft,
@@ -154,19 +156,18 @@ public class Swerve extends SubsystemBase implements Logged {
         SmartDashboard.putNumberArray("Swerve/RealStates", realModuleStates);
 
         SmartDashboard.putNumberArray("Swerve/DesiredStates", desiredModuleStates);
-        SmartDashboard.putNumber("Swerve/RobotRotation", getYaw().getRadians());
+        SmartDashboard.putNumber("Swerve/RobotRotation", gyro.getRotation2d().getRadians());
         
         robotPose3d = new Pose3d(
                                 new Translation3d(
                                         getPose().getX(),
                                         getPose().getY(),
                                         Math.hypot(
-                                                getRoll().getSin()
+                                                Rotation2d.fromDegrees(gyro.getRoll().getValue()).getSin()
                                                         * DriveConstants.ROBOT_LENGTH_METERS / 2.0,
-                                                getPitch().getSin() *
+                                                Rotation2d.fromDegrees(gyro.getPitch().getValue()).getSin() *
                                                         DriveConstants.ROBOT_LENGTH_METERS / 2.0)),
-                                new Rotation3d(getRoll().getRadians(), getPitch().getRadians(),
-                                        getYaw().getRadians()));
+                                gyro.getRotation3d());
         SmartDashboard.putNumberArray("RobotPose3d",
                 Pose3dLogger.composePose3ds(robotPose3d));
         
@@ -252,10 +253,10 @@ public class Swerve extends SubsystemBase implements Logged {
     }
 
     public void setWheelsUp() {
-        frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(getYaw())));
-        frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(getYaw())));
-        rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(getYaw())));
-        rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(getYaw())));
+        frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(gyro.getRotation2d())));
+        frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(gyro.getRotation2d())));
+        rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(gyro.getRotation2d())));
+        rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(90).minus(gyro.getRotation2d())));
     }
 
     /**
@@ -341,28 +342,6 @@ public class Swerve extends SubsystemBase implements Logged {
         return yawRotation2d;
     }
 
-    public Rotation2d getYaw() {
-        return this.getPose().getRotation();
-    }
-
-    public Rotation2d getPitch() {
-
-        Rotation2d pitchRotation2d = Rotation2d
-                .fromDegrees(gyro.getXComplementaryAngle() - ((gyro.getXComplementaryAngle() > 0) ? 180 : -180));
-
-        return pitchRotation2d;
-
-    }
-
-    public Rotation2d getRoll() {
-
-        Rotation2d rollRotation2d = Rotation2d
-                .fromDegrees(gyro.getYComplementaryAngle() - ((gyro.getYComplementaryAngle() > 0) ? 180 : -180));
-
-        return rollRotation2d;
-
-    }
-
     public void resetEncoders() {
         for (MAXSwerveModule mSwerveMod : swerveModules) {
             mSwerveMod.resetEncoders();
@@ -433,18 +412,6 @@ public class Swerve extends SubsystemBase implements Logged {
 
     public Command getDriveCommand(Supplier<ChassisSpeeds> speeds, boolean fieldRelative, boolean rateLimit) {
       return new Drive(this, speeds, () -> fieldRelative, () -> rateLimit, () -> false);
-    }
-
-    public Rotation2d getClosest180Rotation2d() {
-        return Rotation2d.fromDegrees(Math.abs(getYaw().getDegrees()) > 90 ? 180 : 0);
-    }
-
-    public Command resetHDC() {
-        return runOnce(() -> AutoConstants.HDC.getThetaController().reset(getYaw().getRadians()));
-    }
-
-    public Trigger getTiltedTrigger() {
-        return new Trigger(() -> Math.abs(getPitch().getDegrees()) > 35);
     }
 
     public void configurateMotors() {
