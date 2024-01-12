@@ -2,7 +2,9 @@ package frc.robot;
 
 import com.revrobotics.REVPhysicsSim;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 //import io.github.oblarg.oblog.Logger;
@@ -24,7 +26,7 @@ public class Robot extends TimedRobot {
     public void robotInit() { 
         robotContainer = new RobotContainer();
 
-        Monologue.setupLogging(robotContainer, "/Robot");
+        Monologue.setupMonologue(robotContainer, "Robot", false, false);
     }
 
     /**
@@ -37,9 +39,11 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         //Logger.updateEntries();
-        Monologue.update();
+        Monologue.updateAll();
         CommandScheduler.getInstance().run();
         robotContainer.periodic();
+        DriverUI.previousTimestmap = DriverUI.currentTimestamp;
+        DriverUI.currentTimestamp = Timer.getFPGATimestamp();
     }
 
     @Override
