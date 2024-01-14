@@ -289,4 +289,12 @@ public class Neo extends CANSparkMax {
         VELOCITY,
         PERCENT;
     }
+
+    public void setBrakeMode() {
+        this.setIdleMode(CANSparkBase.IdleMode.kCoast);
+    }
+
+    public void setCoastMode() {
+        this.setIdleMode(CANSparkBase.IdleMode.kBrake);
+    }
 }

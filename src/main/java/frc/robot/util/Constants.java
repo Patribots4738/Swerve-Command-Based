@@ -206,6 +206,15 @@ public final class Constants {
         public static ArrayList<CANSparkBase> motors = new ArrayList<>();
     }
 
+    public static final class IntakeConstants {
+        public static final int INTAKE_CAN_ID = 10;
+        public static final double INTAKE_SPEED = 0.5;
+        public static final double OUTTAKE_SPEED = -0.5;
+	public static final double STOP_SPEED = 0;
+        public static final int INTAKE_FREE_LIMIT = 15;
+        public static final int INTAKE_STALL_LIMIT = 7;
+    }
+
     public static final class FieldConstants {
 
         public static boolean IS_SIMULATION = Robot.isSimulation();
@@ -233,4 +242,6 @@ public final class Constants {
         public static GameMode GAME_MODE;
 
     }
+
+
 }
