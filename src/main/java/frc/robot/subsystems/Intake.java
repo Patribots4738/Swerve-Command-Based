@@ -45,8 +45,12 @@ public class Intake extends SubsystemBase {
         return runOnce(() -> intake.set(IntakeConstants.STOP_SPEED));
     }
 
-    public boolean getHasPiece() {
-        return (intake.getOutputCurrent() <= 7.0);
+    public BooleanSupplier getDoesNotHavePiece() {
+        return () -> !(intake.getOutputCurrent() <= 7.0);
+    }
+    
+    public BooleanSupplier getHasPiece() {
+        return () -> (intake.getOutputCurrent() <= 7.0);
     }
         
 }

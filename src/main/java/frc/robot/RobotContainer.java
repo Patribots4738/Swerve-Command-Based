@@ -81,7 +81,7 @@ public class RobotContainer implements Logged {
         driver.leftStick().toggleOnTrue(swerve.toggleSpeed());
         
       
-        driver.a().and(() -> !intake.getHasPiece()).onTrue(intake.inCommand());
+        driver.a().and(intake.getDoesNotHavePiece()).onTrue(intake.inCommand());
 
         driver.y().onTrue(intake.outCommand());
 
