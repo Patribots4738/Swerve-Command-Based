@@ -7,6 +7,7 @@ import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.Neo;
 import frc.robot.util.Constants.IntakeConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
@@ -45,12 +46,8 @@ public class Intake extends SubsystemBase {
         return runOnce(() -> intake.set(IntakeConstants.STOP_SPEED));
     }
 
-    public BooleanSupplier getDoesNotHavePiece() {
-        return () -> !(intake.getOutputCurrent() <= 7.0);
-    }
-    
-    public BooleanSupplier getHasPiece() {
-        return () -> (intake.getOutputCurrent() <= 7.0);
+    public Trigger hasGamePieceTrigger() {
+        return new Trigger(() -> (intake.getOutputCurrent() <= 7.0));
     }
         
 }
