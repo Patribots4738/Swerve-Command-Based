@@ -130,6 +130,15 @@ public final class Constants {
                                 AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED)));
     }
 
+    public static final class ElevatorConstants {
+        public static final double HIGH_LIMIT = 3.0;
+        public static final double ROCK_BOTTOM = 0.0;
+        public static final double AMP_REACH = 0;
+        public static final double SpeakerShootPose = 0;
+        public static final double Speaker_Shoot_Pose = 0;
+        public static final double SPEAKER_SHOOT_POSE = 0;
+    }
+
     public static final class ModuleConstants {
         // The MAXSwerve module can be configured with one of three pinion gears: 12T,
         // 13T, or 14T.

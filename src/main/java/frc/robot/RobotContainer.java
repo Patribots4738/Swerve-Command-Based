@@ -17,12 +17,14 @@ import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.Constants.OIConstants;
 import monologue.Logged;
+import frc.robot.subsystems.Elevator;
 
 public class RobotContainer implements Logged {
 
     private final PatriBoxController driver;
     @SuppressWarnings("unused")
     private final PatriBoxController operator;
+    private final Elevator elevator;
 
     private final Swerve swerve;
     @SuppressWarnings("unused")
@@ -34,6 +36,7 @@ public class RobotContainer implements Logged {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         swerve = new Swerve();
+        elevator = new Elevator();
         driverUI = new DriverUI();
 
         swerve.setDefaultCommand(new Drive(
@@ -62,7 +65,17 @@ public class RobotContainer implements Logged {
         configureOperatorBindings();
     }
 
-    private void configureOperatorBindings() { }
+    private void configureOperatorBindings() {
+
+
+        operator.povUp().onTrue((elevator.toTop()));
+
+        operator.a().onTrue((elevator.toBottom()));
+        
+        operator.povRight().onTrue((elevator.toAmp()));
+
+        operator.povLeft().onTrue((elevator.toShootPosition()));
+     }
 
     private void configureDriverBindings() {
 
@@ -112,5 +125,4 @@ public class RobotContainer implements Logged {
         }
         Timer.delay(0.25);
     }
-
 }
