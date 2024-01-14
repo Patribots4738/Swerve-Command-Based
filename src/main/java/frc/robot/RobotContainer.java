@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.Drive;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.*;
 import frc.robot.util.PatriBoxController;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
@@ -25,6 +25,7 @@ public class RobotContainer implements Logged {
     private final PatriBoxController operator;
 
     private final Swerve swerve;
+    private final Intake intake;
     @SuppressWarnings("unused")
     private final DriverUI driverUI;
     
@@ -33,6 +34,7 @@ public class RobotContainer implements Logged {
         operator = new PatriBoxController(OIConstants.OPERATOR_CONTROLLER_PORT, OIConstants.OPERATOR_DEADBAND);
         DriverStation.silenceJoystickConnectionWarning(true);
 
+        intake = new Intake();
         swerve = new Swerve();
         driverUI = new DriverUI();
 
@@ -77,6 +79,14 @@ public class RobotContainer implements Logged {
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
 
         driver.leftStick().toggleOnTrue(swerve.toggleSpeed());
+        
+      
+        driver.a().and(() -> !intake.getHasPiece()).onTrue(intake.inCommand());
+
+        driver.y().onTrue(intake.outCommand());
+
+        driver.x().onTrue(intake.stopCommand());
+
     }
 
     public Command getAutonomousCommand() {
