@@ -23,26 +23,24 @@ public class Elevator extends SubsystemBase implements Logged {
         elevatorLeft.setInverted(true);
         elevatorRight.setInverted(false);
 
-        elevatorLeft.follow(elevatorRight);
-
     }    
 
-
-    public Command toTop() {
-        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.HIGH_LIMIT));
-    }
-
-    public Command toBottom() {
-        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.ROCK_BOTTOM));
+    public Command toTop(boolean right) {
+        
+       if (right) {
+            return runOnce(() -> elevatorLeft.setPosition(ElevatorConstants.ALMOST_HIGH_LIMIT)).alongWith
+                (runOnce(() -> elevatorRight.setPosition(ElevatorConstants.HIGH_LIMIT)));
+       } 
+       else {
+        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.ALMOST_HIGH_LIMIT)).alongWith
+                (runOnce(() -> elevatorLeft.setPosition(ElevatorConstants.HIGH_LIMIT)));
+       }
+       
     }
     
-    public Command toAmp() {
-        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.AMP_REACH));
-
-    }
-
-    public Command toShootPosition(){
-        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.SPEAKER_SHOOT_POSE));
+    public Command toBottom() {
+        return runOnce(() -> elevatorRight.setPosition(ElevatorConstants.ROCK_BOTTOM)).raceWith
+                (runOnce(() -> elevatorLeft.setPosition(ElevatorConstants.ROCK_BOTTOM)));
     }
     
 }

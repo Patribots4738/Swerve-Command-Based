@@ -137,6 +137,7 @@ public final class Constants {
         public static final double SpeakerShootPose = 0;
         public static final double Speaker_Shoot_Pose = 0;
         public static final double SPEAKER_SHOOT_POSE = 0;
+        public static final double ALMOST_HIGH_LIMIT = 2.5;
     }
 
     public static final class ModuleConstants {

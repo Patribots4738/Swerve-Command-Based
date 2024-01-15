@@ -72,7 +72,7 @@ public class Swerve extends SubsystemBase implements Logged {
             frontRight,
             rearLeft,
             rearRight
-    };
+    };//Yoshishi
 
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
             DriveConstants.DRIVE_KINEMATICS,
@@ -94,7 +94,8 @@ public class Swerve extends SubsystemBase implements Logged {
             VecBuilder.fill(0.6, 0.6, 2)
     // Vision measurement
     // standard deviations
-    // X, Y, theta
+    // X, Y, theta,
+    // and Yoshi
     );
 
     /**
@@ -155,7 +156,7 @@ public class Swerve extends SubsystemBase implements Logged {
 
         SmartDashboard.putNumberArray("Swerve/DesiredStates", desiredModuleStates);
         SmartDashboard.putNumber("Swerve/RobotRotation", getYaw().getRadians());
-        
+        //super Yoshi
         robotPose3d = new Pose3d(
                                 new Translation3d(
                                         getPose().getX(),
@@ -246,7 +247,7 @@ public class Swerve extends SubsystemBase implements Logged {
         rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
         rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     }
-
+//Rin was here
     public Command getSetWheelsX() {
         return runOnce(this::setWheelsX);
     }

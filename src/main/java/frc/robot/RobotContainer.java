@@ -68,13 +68,12 @@ public class RobotContainer implements Logged {
     private void configureOperatorBindings() {
 
 
-        operator.povUp().onTrue((elevator.toTop()));
+        //operator.povUp().onTrue((elevator.toTop()));
 
+        operator.y().onTrue((elevator.toTop(true)));
+        operator.x().onTrue((elevator.toTop(false)));
         operator.a().onTrue((elevator.toBottom()));
         
-        operator.povRight().onTrue((elevator.toAmp()));
-
-        operator.povLeft().onTrue((elevator.toShootPosition()));
      }
 
     private void configureDriverBindings() {

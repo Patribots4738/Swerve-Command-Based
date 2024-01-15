@@ -54,7 +54,7 @@ public class MAXSwerveModule {
         desiredState.angle = new Rotation2d(turningEncoder.getPosition());
         drivingEncoder.setPosition(0);
     }
-
+//Yoshi was here
     /**
      * Returns the current state of the module.
      *
@@ -112,7 +112,7 @@ public class MAXSwerveModule {
         SwerveModuleState correctedDesiredState = new SwerveModuleState();
         correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
         correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(chassisAngularOffset));
-
+        //Frank was here with Yoshi
         // Optimize the reference state to avoid spinning further than 90 degrees.
         SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
                 new Rotation2d(turningEncoder.getPosition()));
@@ -221,3 +221,4 @@ public class MAXSwerveModule {
         });
     }
 }
+//To: Yoshi he was here
