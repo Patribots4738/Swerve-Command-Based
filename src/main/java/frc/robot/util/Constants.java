@@ -6,6 +6,9 @@ package frc.robot.util;
 
 import java.util.ArrayList;
 
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import com.revrobotics.CANSparkBase;
 import java.util.Optional;
 import edu.wpi.first.math.controller.HolonomicDriveController;
@@ -35,10 +38,8 @@ public final class Constants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
         public static double MAX_SPEED_METERS_PER_SECOND = 3;
-        public static double DYNAMIC_MAX_ANGULAR_SPEED = 3 * Math.PI; // radians per second
-        public static final double MIN_ANGULAR_SPEED = 4 * Math.PI; // radians per second
-        // NEEDS TO BE TESTED vvv
-        public static final double MAX_ANGULAR_SPEED = 8 * Math.PI; // radians per second
+
+        public static final double MAX_ANGULAR_SPEED_RADS_PER_SECOND = 4 * Math.PI; // radians per second
 
         public static final double MAX_TELEOP_SPEED_METERS_PER_SECOND = Units.feetToMeters(14.61);
 
@@ -87,27 +88,28 @@ public final class Constants {
 
     public static final class AutoConstants {
 
-        public static final double MAX_SPEED_METERS_PER_SECOND = 3; // 2.5 has worked very well for us so far
-        public static final double MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5; // 2.5; (2.5vel and 2.5accel output
-                                                                                     // 3s runtime on _1_A)
-        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND = 2 * Math.PI;
-        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED = 9;// Math.PI/1.7;
+        // The below values need to be tuned for each new robot.
+        // They are curently set to the values suggested by Choreo
+        public static final double MAX_SPEED_METERS_PER_SECOND = 4.377; 
+        public static final double MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = .00001; 
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND = 10.468;
+        public static final double MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED = 37.053;
 
         public static final double PX_CONTROLLER = 1;
         public static final double PY_CONTROLLER = 1;
         public static final double P_THETA_CONTROLLER = 1;
 
-        public static final double X_CORRECTION_P = 2.5;// 7;
+        public static final double X_CORRECTION_P = 1.6;// 7;
         public static final double X_CORRECTION_I = 0;
-        public static final double X_CORRECTION_D = 0.2;
+        public static final double X_CORRECTION_D = 0;
 
-        public static final double Y_CORRECTION_P = 2.5;// 6.03;
+        public static final double Y_CORRECTION_P = 1.6;// 6.03;
         public static final double Y_CORRECTION_I = 0;
-        public static final double Y_CORRECTION_D = 0.2;
+        public static final double Y_CORRECTION_D = 0;
 
-        public static final double ROTATION_CORRECTION_P = .63;
+        public static final double ROTATION_CORRECTION_P = .063;
         public static final double ROTATION_CORRECTION_I = 0;
-        public static final double ROTATION_CORRECTION_D = 0.0025;
+        public static final double ROTATION_CORRECTION_D = 0.00025;
 
         // Constraint for the motion-profiled robot angle controller
         public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS = new TrapezoidProfile.Constraints(
@@ -129,6 +131,21 @@ public final class Constants {
                         new TrapezoidProfile.Constraints(
                                 AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND,
                                 AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED)));
+
+        public static final HolonomicPathFollowerConfig HPFC = new HolonomicPathFollowerConfig(
+                new PIDConstants(
+                        AutoConstants.X_CORRECTION_P,
+                        AutoConstants.X_CORRECTION_I,
+                        AutoConstants.X_CORRECTION_D),
+                new PIDConstants(
+                        AutoConstants.ROTATION_CORRECTION_P,
+                        AutoConstants.ROTATION_CORRECTION_I,
+                        AutoConstants.ROTATION_CORRECTION_D),
+                MAX_SPEED_METERS_PER_SECOND,
+                Math.hypot(DriveConstants.WHEEL_BASE, DriveConstants.TRACK_WIDTH),
+                new ReplanningConfig()
+        );
+        
     }
 
     public static final class ModuleConstants {
