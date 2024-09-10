@@ -16,28 +16,24 @@ public class Kraken extends TalonFX {
     private double targetPercent = 0.0;
 
     private final TalonFXConfiguration talonFXConfigs;
-    private AnalogInput turnAbsoluteEncoder = null;
 
     private final MotionMagicVoltage positionRequest;
     private final MotionMagicVelocityVoltage velocityRequest;
 
     public Kraken(int id) {
-        this(id, false, false, false);
+        this(id, false, false);
     }
 
     public Kraken(int id, boolean inverted) {
-        this(id, inverted, false, false);
+        this(id, inverted, false);
     }
 
-    public Kraken(int id, boolean inverted, boolean useFOC, boolean useAbsoluteEncoder) {
+    public Kraken(int id, boolean inverted, boolean useFOC) {
         super(id);
         setInverted(inverted);
         talonFXConfigs = new TalonFXConfiguration();
         positionRequest = new MotionMagicVoltage(0, useFOC, 0, 0, false, false, false);
         velocityRequest = new MotionMagicVelocityVoltage(0, 0, useFOC, 0, 0, false, false, false);
-        if (useAbsoluteEncoder) {
-            turnAbsoluteEncoder = new AnalogInput(0);
-        }
     }
 
     public void setTargetPosition(double position) {
@@ -91,11 +87,11 @@ public class Kraken extends TalonFX {
         return targetPercent;
     }
 
-    // TODO: figure out conversion factors
     public double getPositionAsDouble() {
-        return
-            (turnAbsoluteEncoder != null)
-                ? turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V() * 2.0 * Math.PI
-                : super.getPosition().refresh().getValue();        
+        return super.getPosition().refresh().getValue();        
+    }
+
+    public double getVelocityAsDouble() {
+        return super.getVelocity().refresh().getValue();
     }
 }
