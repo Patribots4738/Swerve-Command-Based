@@ -5,15 +5,14 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.wpilibj.AnalogInput;
-
-import edu.wpi.first.wpilibj.RobotController;
-
 public class Kraken extends TalonFX {
 
     private double targetPosition = 0.0;
     private double targetVelocity = 0.0;
     private double targetPercent = 0.0;
+
+    private double positionConversionFactor = 1.0;
+    private double velocityConversionFactor = 1.0;
 
     private final TalonFXConfiguration talonFXConfigs;
 
@@ -49,7 +48,11 @@ public class Kraken extends TalonFX {
     }
 
     public void setTargetPosition(double position, double feedForward, int slot) {
-        setControl(positionRequest.withPosition(position).withFeedForward(feedForward).withSlot(slot));
+        setControl(
+            positionRequest
+                .withPosition(position / positionConversionFactor)
+                .withFeedForward(feedForward)
+                .withSlot(slot));
         targetPosition = position;
     }
 
@@ -66,13 +69,25 @@ public class Kraken extends TalonFX {
     }
 
     public void setTargetVelocity(double velocity, double feedForward, int slot) {
-        setControl(velocityRequest.withVelocity(velocity).withFeedForward(feedForward).withSlot(slot));
+        setControl(
+            velocityRequest
+                .withVelocity(velocity / velocityConversionFactor)
+                .withFeedForward(feedForward)
+                .withSlot(slot));
         targetVelocity = velocity;
     }
 
     public void setPercent(double percent) {
         set(percent);
         targetPercent = percent;
+    }
+
+    public void setPositionConversionFactor(double newFactor) {
+        positionConversionFactor = newFactor;
+    }
+
+    public void setVelocityConversionFactor(double newFactor) {
+        velocityConversionFactor = newFactor;
     }
 
     public double getTargetPosition() {
@@ -88,10 +103,10 @@ public class Kraken extends TalonFX {
     }
 
     public double getPositionAsDouble() {
-        return super.getPosition().refresh().getValue();        
+        return super.getPosition().refresh().getValue() * positionConversionFactor;        
     }
 
     public double getVelocityAsDouble() {
-        return super.getVelocity().refresh().getValue();
+        return super.getVelocity().refresh().getValue() * velocityConversionFactor;
     }
 }
