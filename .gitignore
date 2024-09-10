@@ -1,6 +1,8 @@
 # This gitignore has been specially created by the WPILib team.
 # If you remove items from this file, intellisense might break.
 
+BuildConstants.java
+
 ### C++ ###
 # Prerequisites
 *.d
@@ -12,7 +14,7 @@
 *.obj
 
 # Precompiled Headers
-*.gch
+*.gchs
 *.pch
 
 # Compiled Dynamic libraries

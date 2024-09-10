@@ -1,57 +1,109 @@
 package frc.robot;
 
-import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
-import com.revrobotics.CANSparkBase;
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.commands.Drive;
-import frc.robot.subsystems.*;
-import frc.robot.util.PatriBoxController;
-import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.NeoMotorConstants;
+import frc.robot.commands.drive.Drive;
+import frc.robot.commands.drive.WheelRadiusCharacterization;
+import frc.robot.commands.managers.HDCTuner;
+import frc.robot.subsystems.drive.Swerve;
+import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.OIConstants;
-import monologue.Logged;
+import frc.robot.util.auto.PathPlannerStorage;
+import frc.robot.util.custom.PatriBoxController;
+import frc.robot.util.motor.rev.Neo;
 
-public class RobotContainer implements Logged {
+public class RobotContainer {
+
+    private PowerDistribution pdh;
+
+    private EventLoop testButtonBindingLoop = new EventLoop();
 
     private final PatriBoxController driver;
     @SuppressWarnings("unused")
     private final PatriBoxController operator;
 
+    private boolean fieldRelativeToggle = true;
+    private final BooleanSupplier robotRelativeSupplier;
+
     private final Swerve swerve;
-    @SuppressWarnings("unused")
-    private final DriverUI driverUI;
+
+    public static Field2d field2d = new Field2d();
+
+    private PathPlannerStorage pathPlannerStorage;
+    private static HDCTuner HDCTuner;
+
+    // Draggables
+    @AutoLogOutput (key = "Draggables/FreshCode")
+    public static boolean freshCode = true;
+    @AutoLogOutput (key = "Draggables/RobotPose2d")
+    public static Pose2d robotPose2d = new Pose2d();
+    @AutoLogOutput (key = "Draggables/RobotPose3d")
+    public static Pose3d robotPose3d = new Pose3d();
+    @AutoLogOutput (key = "Draggables/SwerveMeasuredStates")
+    public static SwerveModuleState[] swerveMeasuredStates;
+    @AutoLogOutput (key = "Draggables/SwerveDesiredStates")
+    public static SwerveModuleState[] swerveDesiredStates;
+    @AutoLogOutput (key = "Draggables/GameModeStart")
+    public static double gameModeStart = 0;
     
     public RobotContainer() {
+
+        System.out.println("Constructing Robot Container...");
+
         driver = new PatriBoxController(OIConstants.DRIVER_CONTROLLER_PORT, OIConstants.DRIVER_DEADBAND);
         operator = new PatriBoxController(OIConstants.OPERATOR_CONTROLLER_PORT, OIConstants.OPERATOR_DEADBAND);
-        DriverStation.silenceJoystickConnectionWarning(true);
+
+        pdh = new PowerDistribution(30, ModuleType.kRev);
+        pdh.setSwitchableChannel(false);
 
         swerve = new Swerve();
-        driverUI = new DriverUI();
+
+        SmartDashboard.putData(field2d);
+
+        driver.back().toggleOnTrue(
+            Commands.runOnce(() -> fieldRelativeToggle = !fieldRelativeToggle)
+        );
+        robotRelativeSupplier = () -> fieldRelativeToggle;
 
         swerve.setDefaultCommand(new Drive(
             swerve,
             driver::getLeftY,
             driver::getLeftX,
-            () -> -driver.getRightX(),
-            () -> !driver.y().getAsBoolean(),
-            () -> (driver.y().getAsBoolean() && FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Blue)))
+            () -> -driver.getRightX()/1.6,
+            robotRelativeSupplier,
+            () -> (robotRelativeSupplier.getAsBoolean() && Robot.isRedAlliance())
         ));
 
-        incinerateMotors();
-        configureButtonBindings();
+        HDCTuner = new HDCTuner(
+            AutoConstants.HDC.getXController(),
+            AutoConstants.HDC.getThetaController());
 
-        Commands.run(DriverStation::refreshData)
-                .until(() -> !DriverStation.getAlliance().equals(Optional.empty()))
-                .andThen(update())
-                .ignoringDisable(true).schedule();
+        Neo.incinerateMotors();
+        configureButtonBindings();
+        configureTimedEvents();
+
+        pathPlannerStorage = new PathPlannerStorage(swerve);
+
+        pathPlannerStorage.configureAutoChooser();
+        pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",
+            swerve.setWheelsOCommand()
+            .andThen(new WheelRadiusCharacterization(swerve)));
+        
+        prepareNamedCommands();
+
     }
 
     private void configureButtonBindings(){
@@ -59,7 +111,9 @@ public class RobotContainer implements Logged {
         configureOperatorBindings();
     }
 
-    private void configureOperatorBindings() { }
+    private void configureTimedEvents() {}
+
+    private void configureOperatorBindings() {}
 
     private void configureDriverBindings() {
 
@@ -68,46 +122,59 @@ public class RobotContainer implements Logged {
                 new Pose2d(
                     swerve.getPose().getTranslation(), 
                     Rotation2d.fromDegrees(
-                        FieldConstants.ALLIANCE.equals(Optional.of(Alliance.Red)) 
+                        Robot.isRedAlliance() 
                         ? 0 
                         : 180))
             ), swerve)
         );
 
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
-
-        driver.leftStick().toggleOnTrue(swerve.toggleSpeed());
     }
 
     public Command getAutonomousCommand() {
-        // TODO: Add auto commands here
-        return null;
+        return pathPlannerStorage.getSelectedAuto();
+    }
+
+    private void configureHDCBindings(PatriBoxController controller) {
+        controller.pov(0, 270, testButtonBindingLoop)
+            .onTrue(HDCTuner.controllerDecrementCommand());
+
+        controller.pov(0, 90, testButtonBindingLoop)
+            .onTrue(HDCTuner.controllerIncrementCommand());
+
+        controller.pov(0, 0, testButtonBindingLoop)
+            .onTrue(HDCTuner.increaseCurrentConstantCommand(.1));
+
+        controller.pov(0, 180, testButtonBindingLoop)
+            .onTrue(HDCTuner.increaseCurrentConstantCommand(-.1));
+
+        controller.rightBumper(testButtonBindingLoop)
+            .onTrue(HDCTuner.constantIncrementCommand());
+
+        controller.leftBumper(testButtonBindingLoop)
+            .onTrue(HDCTuner.constantDecrementCommand());
+
+        controller.a(testButtonBindingLoop)
+            .onTrue(HDCTuner.logCommand());
+
+        controller.x(testButtonBindingLoop)
+            .onTrue(HDCTuner.multiplyPIDCommand(2));
+
+        controller.b(testButtonBindingLoop)
+            .onTrue(HDCTuner.multiplyPIDCommand(.5));
     }
 
     public void onDisabled() {
-        update().ignoringDisable(true).repeatedly().schedule();
+        swerve.stopDriving();
+        pathPlannerStorage.updatePathViewerCommand().schedule();
     }
 
     public void onEnabled() {
-        swerve.resetEncoders();
+        gameModeStart = Robot.currentTimestamp;
+        pathPlannerStorage.updatePathViewerCommand().schedule();
+        freshCode = false;
     }
 
-    public void periodic() {
-    }    
-
-    public Command update() {
-        return Commands.runOnce(() -> {
-            FieldConstants.ALLIANCE = DriverStation.getAlliance();
-        });
-    }
-
-    private void incinerateMotors() {
-        Timer.delay(0.25);
-        for (CANSparkBase neo : NeoMotorConstants.motors) {
-            neo.burnFlash();
-            Timer.delay(0.005);
-        }
-        Timer.delay(0.25);
-    }
+    private void prepareNamedCommands() {}
 
 }
