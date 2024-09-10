@@ -4,14 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.Slot2Configs;
+import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.Pair;
+import frc.robot.util.custom.PatrIDConstants;
 
 public class Kraken extends TalonFX {
 
@@ -24,12 +29,14 @@ public class Kraken extends TalonFX {
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
 
-    private final MotionMagicVoltage positionRequest;
-    private final MotionMagicVelocityVoltage velocityRequest;
+    private final PositionVoltage positionRequest;
+    private final VelocityVoltage velocityRequest;
 
     List<Pair<Kraken, Boolean>> followers = new ArrayList<Pair<Kraken, Boolean>>();
 
     private int id;
+
+    private ControlLoopType controlType = ControlLoopType.PERCENT;
 
     public Kraken(int id) {
         this(id, false, false);
@@ -41,11 +48,12 @@ public class Kraken extends TalonFX {
 
     public Kraken(int id, boolean inverted, boolean useFOC) {
         super(id);
-        setInverted(inverted);
         configurator = getConfigurator();
-        positionRequest = new MotionMagicVoltage(0, useFOC, 0, 0, false, false, false);
-        velocityRequest = new MotionMagicVelocityVoltage(0, 0, useFOC, 0, 0, false, false, false);
+        positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
+        velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
         this.id = id;
+        setInverted(inverted);
+        setBrakeMode();
     }
 
     public void setTargetPosition(double position) {
@@ -68,6 +76,7 @@ public class Kraken extends TalonFX {
                 .withSlot(slot));
         runFollowers();
         targetPosition = position;
+        controlType = ControlLoopType.POSITION;
     }
 
     public void setTargetVelocity(double velocity) {
@@ -93,6 +102,7 @@ public class Kraken extends TalonFX {
         }
         runFollowers();
         targetVelocity = velocity;
+        controlType = ControlLoopType.VELOCITY;
     }
 
     @Override
@@ -108,6 +118,7 @@ public class Kraken extends TalonFX {
         }
         runFollowers();
         targetPercent = percent;
+        controlType = ControlLoopType.PERCENT;
     }
 
     public void setPositionConversionFactor(double newFactor) {
@@ -116,6 +127,14 @@ public class Kraken extends TalonFX {
 
     public void setVelocityConversionFactor(double newFactor) {
         velocityConversionFactor = newFactor;
+    }
+
+    public void resetEncoder(double position) {
+        setPosition(position);
+    }
+
+    public void resetEncoder() {
+        setPosition(0);
     }
 
     public void setBrakeMode() {
@@ -173,4 +192,64 @@ public class Kraken extends TalonFX {
     public int getID() {
         return id;
     }
+
+    public void applySlot0Configs(Slot0Configs configs) {
+        configurator.apply(configs);
+    }
+
+    public void applySlot1Configs(Slot1Configs configs) {
+        configurator.apply(configs);
+    }
+
+    public void applySlot2Configs(Slot2Configs configs) {
+        configurator.apply(configs);
+    }
+
+    public void applySlotConfigs(SlotConfigs configs, int slot) {
+        configs.SlotNumber = slot;
+        configurator.apply(configs);
+    }
+
+    // Velocity control gains
+    public void applyGainConfigs(double P, double I, double D, double S, double V, double G, int slot)  {
+        SlotConfigs configs = new SlotConfigs();
+        configs.kP = P;
+        configs.kI = I;
+        configs.kD = D;
+        configs.kS = S;
+        configs.kV = V;
+        applySlotConfigs(configs, slot);
+    }
+
+    public void applyGainConfigs(double P, double I, double D, double S, double V, double G) {
+        applyGainConfigs(P, I, D, S, V, G, 0);
+    }
+
+    // Position control gains
+    public void applyPIDConfigs(double P, double I, double D, int slot) {
+        SlotConfigs configs = new SlotConfigs();
+        configs.kP = P;
+        configs.kI = I;
+        configs.kD = D;
+        applySlotConfigs(configs, slot);
+    }
+
+    public void applyPIDConfigs(double P, double I, double D) {
+        applyPIDConfigs(P, I , D, 0);
+    }
+
+    public void applyPIDConfigs(PatrIDConstants constants, int slot) {
+        applyPIDConfigs(constants.getP(), constants.getI(), constants.getD(), slot);
+    }
+
+    public void applyPIDConfigs(PatrIDConstants constants) {
+        applyPIDConfigs(constants, 0);
+    }
+
+    public enum ControlLoopType {
+        POSITION,
+        VELOCITY,
+        PERCENT;
+    }
+
 }
