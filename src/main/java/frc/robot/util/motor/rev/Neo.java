@@ -7,15 +7,9 @@ import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Robot;
-import frc.robot.RobotContainer;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.custom.PatrIDConstants;
-
 /*
  * Some of this is adapted from 3005's 2022 Code
  * Original source published at https://github.com/FRC3005/Rapid-React-2022-Public/tree/d499655448ed592c85f9cfbbd78336d8841f46e2
@@ -23,10 +17,6 @@ import frc.robot.util.custom.PatrIDConstants;
 public class Neo extends SafeSpark {
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
-
-    private Trigger possessionSupplier;
-    private double possessionTimestamp = 0;
-    private double possessionPercent = -2;
     
     private double targetPosition = 0;
     private double targetVelocity = 0;
@@ -228,9 +218,6 @@ public class Neo extends SafeSpark {
      */
     public void set(double percent) {
         targetPercent = percent;
-        if (percent == possessionPercent) {
-            possessionTimestamp = Robot.currentTimestamp;
-        }
         super.set(percent);
         controlType = ControlLoopType.PERCENT;
     }
@@ -478,29 +465,4 @@ public class Neo extends SafeSpark {
         }
     }
 
-    public Trigger getPossessionTrigger() {
-        if (possessionSupplier == null) {
-            DriverStation.reportError(
-                "PossessionSupplier for motor " 
-                + canID 
-                + " (" + NeoMotorConstants.CAN_ID_MAP.get(canID) + ") " 
-                + "has not yet been created.", 
-                true);
-            return new Trigger(() -> false);
-        }
-        return possessionSupplier;
-    }
-
-    public boolean hasNote() {
-        if (possessionSupplier == null) {
-            DriverStation.reportError(
-                "PossessionSupplier for motor " 
-                + canID 
-                + " (" + NeoMotorConstants.CAN_ID_MAP.get(canID) + ") " 
-                + "has not yet been created.", 
-                true);
-            return false;
-        }
-        return possessionSupplier.getAsBoolean();
-    }
 }
