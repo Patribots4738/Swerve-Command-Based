@@ -1,9 +1,17 @@
 package frc.robot.util.motor.phoenix;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.math.Pair;
 
 public class Kraken extends TalonFX {
 
@@ -11,13 +19,17 @@ public class Kraken extends TalonFX {
     private double targetVelocity = 0.0;
     private double targetPercent = 0.0;
 
+    TalonFXConfigurator configurator;
+
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
 
-    private final TalonFXConfiguration talonFXConfigs;
-
     private final MotionMagicVoltage positionRequest;
     private final MotionMagicVelocityVoltage velocityRequest;
+
+    List<Pair<Kraken, Boolean>> followers = new ArrayList<Pair<Kraken, Boolean>>();
+
+    private int id;
 
     public Kraken(int id) {
         this(id, false, false);
@@ -30,9 +42,10 @@ public class Kraken extends TalonFX {
     public Kraken(int id, boolean inverted, boolean useFOC) {
         super(id);
         setInverted(inverted);
-        talonFXConfigs = new TalonFXConfiguration();
+        configurator = getConfigurator();
         positionRequest = new MotionMagicVoltage(0, useFOC, 0, 0, false, false, false);
         velocityRequest = new MotionMagicVelocityVoltage(0, 0, useFOC, 0, 0, false, false, false);
+        this.id = id;
     }
 
     public void setTargetPosition(double position) {
@@ -53,6 +66,7 @@ public class Kraken extends TalonFX {
                 .withPosition(position / positionConversionFactor)
                 .withFeedForward(feedForward)
                 .withSlot(slot));
+        runFollowers();
         targetPosition = position;
     }
 
@@ -74,11 +88,25 @@ public class Kraken extends TalonFX {
                 .withVelocity(velocity / velocityConversionFactor)
                 .withFeedForward(feedForward)
                 .withSlot(slot));
+        if (velocity == 0) {
+            setVoltage(0);
+        }
+        runFollowers();
         targetVelocity = velocity;
+    }
+
+    @Override
+    public void setVoltage(double voltage) {
+        setVoltage(voltage);
+        runFollowers();
     }
 
     public void setPercent(double percent) {
         set(percent);
+        if (percent == 0) {
+            setVoltage(0);
+        }
+        runFollowers();
         targetPercent = percent;
     }
 
@@ -88,6 +116,34 @@ public class Kraken extends TalonFX {
 
     public void setVelocityConversionFactor(double newFactor) {
         velocityConversionFactor = newFactor;
+    }
+
+    public void setBrakeMode() {
+        MotorOutputConfigs config = new MotorOutputConfigs();
+        config.NeutralMode = NeutralModeValue.Brake;
+        configurator.apply(config);
+    }
+
+    public void setCoastMode() {
+        MotorOutputConfigs config = new MotorOutputConfigs();
+        config.NeutralMode = NeutralModeValue.Coast;
+        configurator.apply(config);
+    }
+
+    public void addFollower(Kraken motor, boolean invert) {
+        followers.add(Pair.of(motor, invert));
+    }
+
+    public void addFollower(Kraken motor) {
+        addFollower(motor, false);
+    }
+
+    public void runFollowers() {
+        for (Pair<Kraken, Boolean> pair : followers) {
+            Kraken motor = pair.getFirst();
+            boolean invert = pair.getSecond();
+            motor.setControl(new Follower(id, invert));
+        }
     }
 
     public double getTargetPosition() {
@@ -108,5 +164,13 @@ public class Kraken extends TalonFX {
 
     public double getVelocityAsDouble() {
         return super.getVelocity().refresh().getValue() * velocityConversionFactor;
+    }
+
+    public double getVoltageAsDouble() {
+        return super.getMotorVoltage().refresh().getValue();
+    }
+
+    public int getID() {
+        return id;
     }
 }
