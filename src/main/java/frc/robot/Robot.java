@@ -16,8 +16,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
+import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.Constants.LoggingConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
+import frc.robot.util.motor.phoenix.Kraken;
 import frc.robot.util.motor.rev.Neo;
 import frc.robot.util.motor.rev.NeoPhysicsSim;
 
@@ -187,6 +189,10 @@ public class Robot extends LoggedRobot {
 
         for (Neo neo : NeoMotorConstants.NEO_MOTOR_MAP.values()) {
             neo.tick();
+        }
+
+        for (Kraken kraken : KrakenMotorConstants.KRAKEN_MOTOR_MAP.values()) {
+            kraken.tick();
         }
     }
 

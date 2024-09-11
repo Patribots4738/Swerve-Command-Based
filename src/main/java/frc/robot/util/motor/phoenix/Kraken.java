@@ -15,8 +15,14 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.custom.PatrIDConstants;
 
@@ -26,7 +32,7 @@ public class Kraken extends TalonFX {
     private double targetVelocity = 0.0;
     private double targetPercent = 0.0;
 
-    TalonFXConfigurator configurator;
+    private TalonFXConfigurator configurator;
 
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
@@ -37,8 +43,11 @@ public class Kraken extends TalonFX {
     List<Pair<Kraken, Boolean>> followers = new ArrayList<Pair<Kraken, Boolean>>();
 
     private int canID;
+    private boolean useFOC;
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
+
+    private DCMotorSim motorSimModel;
 
     public Kraken(int id) {
         this(id, false, false);
@@ -50,10 +59,11 @@ public class Kraken extends TalonFX {
 
     public Kraken(int id, boolean inverted, boolean useFOC) {
         super(id);
+        this.canID = id;
+        this.useFOC = useFOC;
         configurator = getConfigurator();
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
-        this.canID = id;
         setInverted(inverted);
         setBrakeMode();
         register();
@@ -183,6 +193,14 @@ public class Kraken extends TalonFX {
         }
     }
 
+    public double getPositionConversionFactor() {
+        return positionConversionFactor;
+    }
+
+    public double getVelocityConversionFactor() {
+        return velocityConversionFactor;
+    }
+
     public double getTargetPosition() {
         return targetPosition;
     }
@@ -207,12 +225,42 @@ public class Kraken extends TalonFX {
         return super.getMotorVoltage().refresh().getValue();
     }
 
+    public double getSupplyCurrentAsDouble() {
+        return super.getSupplyCurrent().refresh().getValue();
+    }
+
+    public double getStatorCurrentAsDouble() {
+        return super.getStatorCurrent().refresh().getValue();
+    }
+
+    public double getTorqueCurrentAsDouble() {
+        return super.getTorqueCurrent().refresh().getValue();
+    }
+
     public int getCANID() {
         return canID;
     }
 
     public void register() {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(canID, this);
+
+        if (FieldConstants.IS_SIMULATION) {
+            motorSimModel = new DCMotorSim(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 1, 0.001);
+        }
+    }
+
+    public void tick() {
+        TalonFXSimState sim = getSimState();
+
+        sim.setSupplyVoltage(RobotController.getBatteryVoltage());
+
+        double motorVoltage = sim.getMotorVoltage();
+  
+        motorSimModel.setInputVoltage(motorVoltage);
+        motorSimModel.update(0.020);
+
+        sim.setRawRotorPosition(motorSimModel.getAngularPositionRotations());
+        sim.setRotorVelocity(Units.radiansToRotations(motorSimModel.getAngularVelocityRadPerSec()));
     }
 
     public void applySlot0Configs(Slot0Configs configs) {

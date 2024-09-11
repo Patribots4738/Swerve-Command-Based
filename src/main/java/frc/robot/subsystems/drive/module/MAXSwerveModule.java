@@ -176,7 +176,7 @@ public class MAXSwerveModule implements ModuleIO {
 
         // drive motor
         inputs.drivePositionRads = (driveMotor.getPosition() / ModuleConstants.WHEEL_CIRCUMFERENCE_METERS) * 2 * Math.PI;
-        inputs.driveVelocityRotationsPerSec = driveMotor.getVelocity();
+        inputs.driveVelocityRPS = driveMotor.getVelocity();
         inputs.driveAppliedVolts = driveMotor.getAppliedOutput();
         inputs.driveSupplyCurrentAmps = driveMotor.getOutputCurrent();
 
@@ -184,7 +184,7 @@ public class MAXSwerveModule implements ModuleIO {
         // turning motor
         inputs.turnAppliedVolts = turnMotor.getAppliedOutput();
         inputs.turnPosition = turnMotor.getPosition();
-        inputs.turnVelocityRotationsPerSec = turnMotor.getVelocity();
+        inputs.turnVelocityRPS = turnMotor.getVelocity();
         inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent();
     }
 }

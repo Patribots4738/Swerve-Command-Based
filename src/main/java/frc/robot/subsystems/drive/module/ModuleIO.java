@@ -11,13 +11,13 @@ public interface ModuleIO {
     class ModuleIOInputs {
 
         public double drivePositionRads = 0.0; 
-        public double driveVelocityRotationsPerSec = 0.0;
+        public double driveVelocityRPS = 0.0;
         public double driveAppliedVolts = 0.0;
         public double driveSupplyCurrentAmps = 0.0;
 
 
         public double turnPosition = 0.0;
-        public double turnVelocityRotationsPerSec = 0.0;
+        public double turnVelocityRPS = 0.0;
         public double turnAppliedVolts = 0.0;
         public double turnSupplyCurrentAmps = 0.0;
 
