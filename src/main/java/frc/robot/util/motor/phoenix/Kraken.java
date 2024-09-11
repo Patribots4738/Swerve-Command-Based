@@ -3,6 +3,7 @@ package frc.robot.util.motor.phoenix;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -133,6 +134,11 @@ public class Kraken extends TalonFX {
         runFollowers();
         targetPercent = percent;
         controlType = ControlLoopType.PERCENT;
+    }
+
+    @Override 
+    public void stopMotor() {
+        set(0);
     }
 
     public void setPositionConversionFactor(double newFactor) {
