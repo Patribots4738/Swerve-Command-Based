@@ -131,9 +131,17 @@ public class RobotContainer {
             ), swerve)
         );
 
-        driver.a()
-            .onTrue(krakenTest.setPosition(5.0))
+        driver.povLeft()
+            .onTrue(krakenTest.setVelocity(500))
+            .onFalse(krakenTest.setVelocity(0));
+
+        driver.povUp()
+            .onTrue(krakenTest.setPosition(50))
             .onFalse(krakenTest.setPosition(0));
+        
+        driver.povRight()
+            .onTrue(krakenTest.setPercent(1.0))
+            .onFalse(krakenTest.setPercent(0));
 
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
     }

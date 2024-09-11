@@ -22,6 +22,8 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
         updateInputs(inputs);
         Logger.processInputs("SubsystemInputs/KrakenTest", inputs);
         Logger.recordOutput("Subsystems/KrakenTest/Position", inputs.positionRotations);
+        Logger.recordOutput("Subsystems/KrakenTest/Velocity", inputs.velocityRPS);
+        Logger.recordOutput("Subsystems/KrakenTest/TargetPercent", inputs.targetPercent);
     }
 
     public Command setPosition(double position) {

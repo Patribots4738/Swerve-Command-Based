@@ -32,7 +32,7 @@ public class Kraken extends TalonFX {
     private double targetVelocity = 0.0;
     private double targetPercent = 0.0;
 
-    private TalonFXConfigurator configurator;
+    private final TalonFXConfigurator configurator;
 
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
