@@ -22,6 +22,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
 import frc.robot.util.custom.PatrIDConstants;
+import frc.robot.util.motor.phoenix.Kraken;
 import frc.robot.util.motor.rev.Neo;
 
 /**
@@ -338,7 +339,7 @@ public final class Constants {
         public static final int MAX_PERIODIC_STATUS_TIME_MS = 32766;
         public static final int FAST_PERIODIC_STATUS_TIME_MS = 15;
         // This gets filled out as motors are created on the robot
-        public static final HashMap<Integer, Neo> MOTOR_MAP = new HashMap<Integer, Neo>();
+        public static final HashMap<Integer, Neo> NEO_MOTOR_MAP = new HashMap<Integer, Neo>();
 
         public static final HashMap<Integer, String> CAN_ID_MAP = new HashMap<Integer, String>() {{
             /*  1  */ put(DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID, "FrontRightDrive");
@@ -351,23 +352,50 @@ public final class Constants {
             /*  8  */ put(DriveConstants.REAR_RIGHT_TURNING_CAN_ID, "RearRightTurn");
         }};
 
-        public static final HashMap<String, List<Neo>> MOTOR_GROUPS = new HashMap<String, List<Neo>>();
+        public static final HashMap<String, List<Neo>> NEO_MOTOR_GROUPS = new HashMap<String, List<Neo>>();
 
         public static Map<String, List<Neo>> initializeMotorGroupMap() {
-            MOTOR_GROUPS.put("Drive", new ArrayList<Neo>() {{
-                add(MOTOR_MAP.get(DriveConstants.FRONT_LEFT_DRIVING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.REAR_LEFT_DRIVING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.REAR_RIGHT_DRIVING_CAN_ID));
+            // NEO_MOTOR_GROUPS.put("Drive", new ArrayList<Neo>() {{
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.FRONT_LEFT_DRIVING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.REAR_LEFT_DRIVING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.REAR_RIGHT_DRIVING_CAN_ID));
+            // }});
+            // NEO_MOTOR_GROUPS.put("Turn", new ArrayList<Neo>() {{
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.FRONT_LEFT_TURNING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_TURNING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.REAR_LEFT_TURNING_CAN_ID));
+            //     add(NEO_MOTOR_MAP.get(DriveConstants.REAR_RIGHT_TURNING_CAN_ID));
+            // }});
+
+            return NEO_MOTOR_GROUPS;
+        }
+
+    }
+
+    public static final class KrakenMotorConstants {
+        public static final double KrakenX60_FREE_SPEED_RPM = 6000;
+        public static final double KrakenX60_FREE_SPEED_RPM_FOC = 5800;
+
+        public static final HashMap<Integer, Kraken> KRAKEN_MOTOR_MAP = new HashMap<Integer, Kraken>();
+
+        public static final HashMap<String, List<Kraken>> KRAKEN_MOTOR_GROUPS = new HashMap<String, List<Kraken>>();
+
+        public static Map<String, List<Kraken>> initializeMotorGroupMap() {
+            KRAKEN_MOTOR_GROUPS.put("Drive", new ArrayList<Kraken>() {{
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.FRONT_LEFT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.REAR_LEFT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.REAR_RIGHT_DRIVING_CAN_ID));
             }});
-            MOTOR_GROUPS.put("Turn", new ArrayList<Neo>() {{
-                add(MOTOR_MAP.get(DriveConstants.FRONT_LEFT_TURNING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_TURNING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.REAR_LEFT_TURNING_CAN_ID));
-                add(MOTOR_MAP.get(DriveConstants.REAR_RIGHT_TURNING_CAN_ID));
+            KRAKEN_MOTOR_GROUPS.put("Turn", new ArrayList<Kraken>() {{
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.FRONT_LEFT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.FRONT_RIGHT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.REAR_LEFT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(DriveConstants.REAR_RIGHT_TURNING_CAN_ID));
             }});
 
-            return MOTOR_GROUPS;
+            return KRAKEN_MOTOR_GROUPS;
         }
 
     }

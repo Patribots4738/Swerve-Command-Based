@@ -3,6 +3,7 @@ package frc.robot.util.motor.phoenix;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
@@ -16,6 +17,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.Pair;
+import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.custom.PatrIDConstants;
 
 public class Kraken extends TalonFX {
@@ -34,7 +36,7 @@ public class Kraken extends TalonFX {
 
     List<Pair<Kraken, Boolean>> followers = new ArrayList<Pair<Kraken, Boolean>>();
 
-    private int id;
+    private int canID;
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
 
@@ -51,9 +53,10 @@ public class Kraken extends TalonFX {
         configurator = getConfigurator();
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
-        this.id = id;
+        this.canID = id;
         setInverted(inverted);
         setBrakeMode();
+        register();
     }
 
     public void setTargetPosition(double position) {
@@ -111,7 +114,8 @@ public class Kraken extends TalonFX {
         runFollowers();
     }
 
-    public void setPercent(double percent) {
+    @Override
+    public void set(double percent) {
         set(percent);
         if (percent == 0) {
             setVoltage(0);
@@ -127,6 +131,20 @@ public class Kraken extends TalonFX {
 
     public void setVelocityConversionFactor(double newFactor) {
         velocityConversionFactor = newFactor;
+    }
+
+    public void setSupplyCurrentLimit(double currentLimit) {
+        CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
+        configs.SupplyCurrentLimit = currentLimit;
+        configs.SupplyCurrentLimitEnable = true;
+        configurator.apply(configs);
+    }
+
+    public void setStatorCurrentLimit(double currentLimit) {
+        CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
+        configs.StatorCurrentLimit = currentLimit;
+        configs.StatorCurrentLimitEnable = true;
+        configurator.apply(configs);
     }
 
     public void resetEncoder(double position) {
@@ -161,7 +179,7 @@ public class Kraken extends TalonFX {
         for (Pair<Kraken, Boolean> pair : followers) {
             Kraken motor = pair.getFirst();
             boolean invert = pair.getSecond();
-            motor.setControl(new Follower(id, invert));
+            motor.setControl(new Follower(canID, invert));
         }
     }
 
@@ -189,8 +207,12 @@ public class Kraken extends TalonFX {
         return super.getMotorVoltage().refresh().getValue();
     }
 
-    public int getID() {
-        return id;
+    public int getCANID() {
+        return canID;
+    }
+
+    public void register() {
+        KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(canID, this);
     }
 
     public void applySlot0Configs(Slot0Configs configs) {
@@ -226,7 +248,7 @@ public class Kraken extends TalonFX {
     }
 
     // Position control gains
-    public void applyPIDConfigs(double P, double I, double D, int slot) {
+    public void setPID(double P, double I, double D, int slot) {
         SlotConfigs configs = new SlotConfigs();
         configs.kP = P;
         configs.kI = I;
@@ -234,16 +256,16 @@ public class Kraken extends TalonFX {
         applySlotConfigs(configs, slot);
     }
 
-    public void applyPIDConfigs(double P, double I, double D) {
-        applyPIDConfigs(P, I , D, 0);
+    public void setPID(double P, double I, double D) {
+        setPID(P, I , D, 0);
     }
 
-    public void applyPIDConfigs(PatrIDConstants constants, int slot) {
-        applyPIDConfigs(constants.getP(), constants.getI(), constants.getD(), slot);
+    public void setPID(PatrIDConstants constants, int slot) {
+        setPID(constants.getP(), constants.getI(), constants.getD(), slot);
     }
 
-    public void applyPIDConfigs(PatrIDConstants constants) {
-        applyPIDConfigs(constants, 0);
+    public void setPID(PatrIDConstants constants) {
+        setPID(constants, 0);
     }
 
     public enum ControlLoopType {

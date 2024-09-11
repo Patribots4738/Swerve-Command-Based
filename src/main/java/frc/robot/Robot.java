@@ -185,7 +185,7 @@ public class Robot extends LoggedRobot {
         NeoPhysicsSim.getInstance().run();
         Robot.alliance = DriverStation.getAlliance();
 
-        for (Neo neo : NeoMotorConstants.MOTOR_MAP.values()) {
+        for (Neo neo : NeoMotorConstants.NEO_MOTOR_MAP.values()) {
             neo.tick();
         }
     }

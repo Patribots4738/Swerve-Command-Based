@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.WheelRadiusCharacterization;
 import frc.robot.commands.managers.HDCTuner;
+import frc.robot.subsystems.KrakenTest;
 import frc.robot.subsystems.drive.Swerve;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.OIConstants;
@@ -39,6 +40,7 @@ public class RobotContainer {
     private final BooleanSupplier robotRelativeSupplier;
 
     private final Swerve swerve;
+    private final KrakenTest krakenTest;
 
     public static Field2d field2d = new Field2d();
 
@@ -70,6 +72,7 @@ public class RobotContainer {
         pdh.setSwitchableChannel(false);
 
         swerve = new Swerve();
+        krakenTest = new KrakenTest();
 
         SmartDashboard.putData(field2d);
 
@@ -127,6 +130,10 @@ public class RobotContainer {
                         : 180))
             ), swerve)
         );
+
+        driver.a()
+            .onTrue(krakenTest.setPosition(5.0))
+            .onFalse(krakenTest.setPosition(0));
 
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
     }

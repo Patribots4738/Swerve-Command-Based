@@ -245,7 +245,7 @@ public class Neo extends SafeSpark {
      * if in simulation.
      */
     public void register() {
-        NeoMotorConstants.MOTOR_MAP.put(canID, this);
+        NeoMotorConstants.NEO_MOTOR_MAP.put(canID, this);
         
         if (FieldConstants.IS_SIMULATION) {
             DCMotor motor = isSparkFlex ? DCMotor.getNeoVortex(1) : DCMotor.getNeo550(1);
@@ -460,7 +460,7 @@ public class Neo extends SafeSpark {
     }
 
     public static void incinerateMotors() {
-        for (Neo neo : NeoMotorConstants.MOTOR_MAP.values()) {
+        for (Neo neo : NeoMotorConstants.NEO_MOTOR_MAP.values()) {
             neo.burnFlash();
         }
     }

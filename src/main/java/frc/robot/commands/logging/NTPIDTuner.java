@@ -140,7 +140,7 @@ public class NTPIDTuner extends Command {
                     break;
             }
         }
-        System.err.println("Updated " + getKeyByValue(NeoMotorConstants.MOTOR_GROUPS, motorList) + "'s " + name + " to " + NTValue);
+        System.err.println("Updated " + getKeyByValue(NeoMotorConstants.NEO_MOTOR_GROUPS, motorList) + "'s " + name + " to " + NTValue);
     }
 
     /**
