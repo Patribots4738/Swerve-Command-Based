@@ -1,0 +1,168 @@
+package frc.robot.subsystems.drive.module;
+
+import org.littletonrobotics.junction.Logger;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.util.Constants.FieldConstants;
+import frc.robot.util.Constants.MAXSwerveModuleConstants;
+import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.motor.phoenix.Kraken;
+
+public class MK4cSwerveModule implements ModuleIO {
+
+    private final Kraken driveMotor;
+    private final Kraken turnMotor;
+
+    private final int canCoderId;
+
+    private final int index;
+
+    private double chassisAngularOffset = 0;
+
+    private SwerveModuleState desiredState = new SwerveModuleState(0.0, new Rotation2d());
+
+    private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
+
+    public MK4cSwerveModule(int drivingCANId, int turningCANId, int canCoderId, double chassisAngularOffset, int index) {
+        driveMotor = new Kraken(drivingCANId, false, true);
+        turnMotor = new Kraken(turningCANId, MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true);
+        this.canCoderId = canCoderId;
+        this.index = index;
+        this.chassisAngularOffset = chassisAngularOffset;
+        resetEncoders();
+        configMotors();
+        desiredState.angle = new Rotation2d(turnMotor.getPositionAsDouble());
+    }
+
+    @Override
+    public void updateInputs() {
+        inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
+        inputs.driveVelocityMPS = driveMotor.getVelocityAsDouble();
+        inputs.driveAppliedVolts = driveMotor.getVoltageAsDouble();
+        inputs.driveSupplyCurrentAmps = driveMotor.getSupplyCurrentAsDouble();
+        inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
+        
+        inputs.turnPositionRads = turnMotor.getPositionAsDouble();
+        inputs.turnVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
+        inputs.turnAppliedVolts = turnMotor.getVoltageAsDouble();
+        inputs.turnSupplyCurrentAmps = turnMotor.getSupplyCurrentAsDouble();
+        inputs.turnStatorCurrentAmps = turnMotor.getStatorCurrentAsDouble();
+
+        inputs.position = new SwerveModulePosition(
+            inputs.drivePositionMeters,
+            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
+        
+        inputs.state = new SwerveModuleState(inputs.driveVelocityMPS,
+            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
+    }
+
+    @Override
+    public void processInputs() {
+        Logger.processInputs("SubsystemInputs/Swerve/MK4cSwerveModule" + index, inputs);
+    }
+
+    @Override
+    public void setDesiredState(SwerveModuleState desiredState) {
+        // Apply chassis angular offset to the desired state.
+        SwerveModuleState correctedDesiredState = new SwerveModuleState();
+        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+        correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(chassisAngularOffset));
+
+        // Optimize the reference state to avoid spinning further than 90 degrees.
+        if (!FieldConstants.IS_SIMULATION) {
+            correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
+                    new Rotation2d(inputs.turnPositionRads));
+        }
+
+        // Command driving and turning TalonFX towards their respective setpoints.
+        driveMotor.setTargetVelocity(correctedDesiredState.speedMetersPerSecond);
+        turnMotor.setTargetPosition(correctedDesiredState.angle.getRadians());
+
+        Logger.recordOutput("Subsystems/Swerve/Module" + index + "TargetVelocity", correctedDesiredState.speedMetersPerSecond);
+
+        this.desiredState = correctedDesiredState;
+    }
+
+    @Override
+    public void resetEncoders()  {
+        driveMotor.resetEncoder();
+    }
+
+    @Override
+    public void setCoastMode() {
+        driveMotor.setCoastMode();
+        turnMotor.setCoastMode();
+    }
+
+    @Override
+    public void setBrakeMode() {
+        driveMotor.setBrakeMode();
+        turnMotor.setBrakeMode();
+    }
+
+    public void configMotors() {
+
+        // Apply position and velocity conversion factors for the driving encoder. The
+        // native units for position and velocity are rotations and RPM, respectively,
+        // but we want meters and meters per second to use with WPILib's swerve APIs.
+        driveMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
+        driveMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
+
+        // Apply position and velocity conversion factors for the turning encoder. We
+        // want these in radians and radians per second to use with WPILib's swerve
+        // APIs.
+        turnMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+
+        turnMotor.setEncoder(this.canCoderId);
+
+        turnMotor.setPositionPIDWrappingEnabled(true);
+
+        // TODO: ADD NEW FF CONSTANTS TO CONFIG KRAKENS WITH
+
+        driveMotor.setGains(
+            MK4cSwerveModuleConstants.DRIVING_P, 
+            MK4cSwerveModuleConstants.DRIVING_I, 
+            MK4cSwerveModuleConstants.DRIVING_D, 
+            MK4cSwerveModuleConstants.DRIVING_S, 
+            MK4cSwerveModuleConstants.DRIVING_V);
+
+        turnMotor.setPID(
+            MK4cSwerveModuleConstants.TURNING_P, 
+            MK4cSwerveModuleConstants.TURNING_I, 
+            MK4cSwerveModuleConstants.TURNING_D);
+
+        driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
+        turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);
+
+        driveMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_SUPPLY_LIMIT_AMPS);
+        turnMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_SUPPLY_LIMIT_AMPS);
+
+        setBrakeMode();
+    }
+
+    @Override
+    public SwerveModuleState getState() {
+        return inputs.state;
+    }
+
+    @Override
+    public SwerveModuleState getDesiredState() {
+        return desiredState;
+    }
+
+    @Override
+    public SwerveModulePosition getPosition() {
+        return inputs.position;
+    }
+
+    // gets the rotations of the wheel converted to radians
+    // We need to undo the position conversion factor
+    @Override
+    public double getDrivePositionRadians() {
+        return inputs.drivePositionMeters * 2 * Math.PI / MK4cSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
+    }
+    
+}

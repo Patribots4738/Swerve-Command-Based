@@ -40,9 +40,12 @@ import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
 import frc.robot.subsystems.drive.module.MAXSwerveModule;
+import frc.robot.subsystems.drive.module.MK4cSwerveModule;
+import frc.robot.subsystems.drive.module.ModuleIO;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
+import frc.robot.util.Constants.MK4cSwerveModuleConstants;
 
 public class Swerve extends SubsystemBase {
 
@@ -52,11 +55,11 @@ public class Swerve extends SubsystemBase {
     @AutoLogOutput(key = "Subsystems/Swerve/AlignedToAmp")
     private boolean isAlignedToAmp = false;
 
-    private final MAXSwerveModule frontLeft, frontRight, rearLeft, rearRight;
+    private final ModuleIO frontLeft, frontRight, rearLeft, rearRight;
     // The gyro sensor
     private final Gyro gyro;
 
-    private final MAXSwerveModule[] swerveModules;
+    private final ModuleIO[] swerveModules;
 
     private SwerveDrivePoseEstimator poseEstimator;
 
@@ -65,27 +68,35 @@ public class Swerve extends SubsystemBase {
      */
     public Swerve() {
 
-        frontLeft = new MAXSwerveModule(
-            DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
-            DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
-            DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
+        frontLeft = new MK4cSwerveModule(
+            MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
+            MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
+            MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
+            DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET,
+            DriveConstants.FRONT_LEFT_INDEX);
 
-        frontRight = new MAXSwerveModule(
-            DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
-            DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
-            DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
+        frontRight = new MK4cSwerveModule(
+            MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
+            MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
+            MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
+            DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET,
+            DriveConstants.FRONT_RIGHT_INDEX);
 
-        rearLeft = new MAXSwerveModule(
-            DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
-            DriveConstants.REAR_LEFT_TURNING_CAN_ID,
-            DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
+        rearLeft = new MK4cSwerveModule(
+            MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
+            MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
+            MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
+            DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET,
+            DriveConstants.REAR_LEFT_INDEX);
 
-        rearRight = new MAXSwerveModule(
-            DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
-            DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
-            DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);     
+        rearRight = new MK4cSwerveModule(
+            MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
+            MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
+            MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
+            DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET,
+            DriveConstants.REAR_RIGHT_INDEX);     
 
-        swerveModules = new MAXSwerveModule[] {
+        swerveModules = new ModuleIO[] {
             frontLeft,
             frontRight,
             rearLeft,
@@ -373,8 +384,8 @@ public class Swerve extends SubsystemBase {
     }
     
     public void resetEncoders() {
-        for (MAXSwerveModule mSwerveMod : swerveModules) {
-            mSwerveMod.resetEncoders();
+        for (ModuleIO swerveMod : swerveModules) {
+            swerveMod.resetEncoders();
         }
     }
 
@@ -389,8 +400,8 @@ public class Swerve extends SubsystemBase {
      * (This is the default mode)
      */
     public void setBrakeMode() {
-        for (MAXSwerveModule mSwerveMod : swerveModules) {
-            mSwerveMod.setBrakeMode();
+        for (ModuleIO swerveMod : swerveModules) {
+            swerveMod.setBrakeMode();
         }
     }
 
@@ -400,8 +411,8 @@ public class Swerve extends SubsystemBase {
      * So we can freely move the robot around
      */
     public void setCoastMode() {
-        for (MAXSwerveModule mSwerveMod : swerveModules) {
-            mSwerveMod.setCoastMode();
+        for (ModuleIO swerveMod : swerveModules) {
+            swerveMod.setCoastMode();
         }
     }
 
@@ -457,9 +468,9 @@ public class Swerve extends SubsystemBase {
     }
 
     public void updateAndProcessSwerveModuleInputs() {
-        for (MAXSwerveModule swerveModule : swerveModules) {
-            swerveModule.updateInputs();
-            swerveModule.processInputs();
+        for (ModuleIO swerveMod : swerveModules) {
+            swerveMod.updateInputs();
+            swerveMod.processInputs();
         }
     }
 

@@ -3,8 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems.drive.module;
-
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.SparkPIDController;
@@ -13,16 +11,19 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.ModuleConstants;
+import frc.robot.util.Constants.MAXSwerveModuleConstants;
 import frc.robot.util.motor.rev.Neo;
 
 public class MAXSwerveModule implements ModuleIO {
     private final Neo driveMotor;
     private final Neo turnMotor;
 
+    private final int index;
+
     private double chassisAngularOffset = 0;
 
     private SwerveModuleState desiredState = new SwerveModuleState(0.0, new Rotation2d());
+
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
     /**
      * Constructs a MAXSwerveModule and configures the driving and turning motor,
@@ -30,15 +31,16 @@ public class MAXSwerveModule implements ModuleIO {
      * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
      * Encoder.
      */
-    public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
+    public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset, int index) {
         driveMotor = new Neo(drivingCANId, true);
         
         // Invert the turning encoder, since the output shaft rotates in the opposite
         // direction of
         // the steering motor in the MAXSwerve Module.
 
-        turnMotor = new Neo(turningCANId, false, ModuleConstants.TURNING_ENCODER_INVERTED, true);
+        turnMotor = new Neo(turningCANId, false, MAXSwerveModuleConstants.TURNING_ENCODER_INVERTED, true);
         this.chassisAngularOffset = chassisAngularOffset;
+        this.index = index;
         resetEncoders();
         configMotors();
         desiredState.angle = new Rotation2d(turnMotor.getPosition());
@@ -49,6 +51,7 @@ public class MAXSwerveModule implements ModuleIO {
      *
      * @return The current state of the module.
      */
+    @Override
     public SwerveModuleState getState() {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
@@ -68,6 +71,7 @@ public class MAXSwerveModule implements ModuleIO {
      *
      * @return The current position of the module.
      */
+    @Override
     public SwerveModulePosition getPosition() {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
@@ -76,8 +80,9 @@ public class MAXSwerveModule implements ModuleIO {
 
     // gets the rotations of the wheel converted to radians
     // We need to undo the position conversion factor
+    @Override
     public double getDrivePositionRadians() {
-        return inputs.drivePositionRads;
+        return inputs.drivePositionMeters * 2 * Math.PI / MAXSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
     }
 
     /**
@@ -85,6 +90,7 @@ public class MAXSwerveModule implements ModuleIO {
      *
      * @param desiredState Desired state with speed and angle.
      */
+    @Override
     public void setDesiredState(SwerveModuleState desiredState) {
         // Apply chassis angular offset to the desired state.
         SwerveModuleState correctedDesiredState = new SwerveModuleState();
@@ -94,7 +100,7 @@ public class MAXSwerveModule implements ModuleIO {
         // Optimize the reference state to avoid spinning further than 90 degrees.
         if (!FieldConstants.IS_SIMULATION) {
             correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                    new Rotation2d(turnMotor.getPosition()));
+                    new Rotation2d(inputs.turnPositionRads));
         }
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
@@ -104,6 +110,7 @@ public class MAXSwerveModule implements ModuleIO {
         this.desiredState = correctedDesiredState;
     }
 
+    @Override
     public SwerveModuleState getDesiredState() {
         return desiredState;
     }
@@ -111,6 +118,7 @@ public class MAXSwerveModule implements ModuleIO {
     /**
      * Zeroes this driving motor's encoder.
      */
+    @Override
     public void resetEncoders() {
         driveMotor.resetEncoder();
     }
@@ -118,6 +126,7 @@ public class MAXSwerveModule implements ModuleIO {
     /**
      * Set the full module to coast mode
      */
+    @Override
     public void setCoastMode() {
         driveMotor.setCoastMode();
         turnMotor.setCoastMode();
@@ -126,6 +135,7 @@ public class MAXSwerveModule implements ModuleIO {
     /**
      * Set the full module to brake mode
      */
+    @Override
     public void setBrakeMode() {
         driveMotor.setBrakeMode();
         turnMotor.setBrakeMode();
@@ -135,14 +145,14 @@ public class MAXSwerveModule implements ModuleIO {
         // Apply position and velocity conversion factors for the driving encoder. The
         // native units for position and velocity are rotations and RPM, respectively,
         // but we want meters and meters per second to use with WPILib's swerve APIs.
-        driveMotor.setPositionConversionFactor(ModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
-        driveMotor.setVelocityConversionFactor(ModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
+        driveMotor.setPositionConversionFactor(MAXSwerveModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
+        driveMotor.setVelocityConversionFactor(MAXSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
 
         // Apply position and velocity conversion factors for the turning encoder. We
         // want these in radians and radians per second to use with WPILib's swerve
         // APIs.
-        turnMotor.setPositionConversionFactor(ModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
-        turnMotor.setVelocityConversionFactor(ModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+        turnMotor.setPositionConversionFactor(MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnMotor.setVelocityConversionFactor(MAXSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
 
         // Enable PID wrap around for the turning motor. This will allow the PID
         // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
@@ -150,41 +160,44 @@ public class MAXSwerveModule implements ModuleIO {
         // longer route.
         turnMotor.setPositionPIDWrappingEnabled(true);
         turnMotor.setPositionPIDWrappingBounds(
-            ModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT,
-            ModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
+            MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT,
+            MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
 
-        driveMotor.setPID(ModuleConstants.DRIVING_PID);
-        turnMotor.setPID(ModuleConstants.TURNING_PID);
+        driveMotor.setPID(MAXSwerveModuleConstants.DRIVING_PID);
+        turnMotor.setPID(MAXSwerveModuleConstants.TURNING_PID);
 
-        driveMotor.setSmartCurrentLimit(ModuleConstants.NEO_CURRENT_LIMIT);
-        turnMotor.setSmartCurrentLimit(ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
+        driveMotor.setSmartCurrentLimit(MAXSwerveModuleConstants.NEO_CURRENT_LIMIT);
+        turnMotor.setSmartCurrentLimit(MAXSwerveModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
         setBrakeMode();
     }
     
+    @Override
     public void processInputs() {
-        Logger.processInputs("SubsystemInputs/MAXSwerveModule", inputs);
+        Logger.processInputs("SubsystemInputs/Swerve/MAXSwerveModule" + index, inputs);
     }
+    
+    @Override
     public void updateInputs() {
         // swerve module position and state
 
-        inputs.position = new SwerveModulePosition(
-            driveMotor.getPosition(),
-            new Rotation2d(turnMotor.getPosition() - chassisAngularOffset));
-        
-        inputs.state = new SwerveModuleState(driveMotor.getVelocity(),
-            new Rotation2d(turnMotor.getPosition() - chassisAngularOffset));
-
         // drive motor
-        inputs.drivePositionRads = (driveMotor.getPosition() / ModuleConstants.WHEEL_CIRCUMFERENCE_METERS) * 2 * Math.PI;
-        inputs.driveVelocityRPS = driveMotor.getVelocity();
+        inputs.drivePositionMeters = driveMotor.getPosition();
+        inputs.driveVelocityMPS = driveMotor.getVelocity();
         inputs.driveAppliedVolts = driveMotor.getAppliedOutput();
         inputs.driveSupplyCurrentAmps = driveMotor.getOutputCurrent();
 
 
         // turning motor
         inputs.turnAppliedVolts = turnMotor.getAppliedOutput();
-        inputs.turnPosition = turnMotor.getPosition();
-        inputs.turnVelocityRPS = turnMotor.getVelocity();
+        inputs.turnPositionRads = turnMotor.getPosition();
+        inputs.turnVelocityRadsPerSec = turnMotor.getVelocity();
         inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent();
+
+        inputs.position = new SwerveModulePosition(
+            inputs.drivePositionMeters,
+            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
+        
+        inputs.state = new SwerveModuleState(inputs.driveVelocityMPS,
+            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
     }
 }

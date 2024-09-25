@@ -9,12 +9,12 @@ import frc.robot.util.motor.phoenix.Kraken;
 
 public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     
-    private Kraken motor = new Kraken(10, false, true);
+    private Kraken motor = new Kraken(20, false, true);
     KrakenTestIOInputsAutoLogged inputs = new KrakenTestIOInputsAutoLogged();
 
     public KrakenTest() {
-        motor.setStatorCurrentLimit(20.0);
-        motor.setPID(0.5, 0, 0.2);
+        motor.setGains(0.11, 0, 0, 0.1, 0.12);
+        motor.setVelocityConversionFactor(60.0);
     }
 
     @Override
@@ -22,7 +22,8 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
         updateInputs(inputs);
         Logger.processInputs("SubsystemInputs/KrakenTest", inputs);
         Logger.recordOutput("Subsystems/KrakenTest/Position", inputs.positionRotations);
-        Logger.recordOutput("Subsystems/KrakenTest/Velocity", inputs.velocityRPS);
+        Logger.recordOutput("Subsystems/KrakenTest/Velocity", inputs.velocityRPM);
+        Logger.recordOutput("Subsystems/KrakenTest/TargetVelocity", inputs.targetVelocityRPM);
         Logger.recordOutput("Subsystems/KrakenTest/TargetPercent", inputs.targetPercent);
     }
 
@@ -41,12 +42,11 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     public void updateInputs(KrakenTestIOInputs inputs) {
         inputs.positionRotations = motor.getPositionAsDouble();
         inputs.targetPositionRotations = motor.getTargetPosition();
-        inputs.velocityRPS = motor.getVelocityAsDouble();
-        inputs.targetVelocityRPS = motor.getTargetVelocity();
+        inputs.velocityRPM = motor.getVelocityAsDouble();
+        inputs.targetVelocityRPM = motor.getTargetVelocity();
         inputs.appliedVolts = motor.getVoltageAsDouble();
         inputs.targetPercent = motor.getTargetPercent();
         inputs.statorCurrentAmps = motor.getStatorCurrentAsDouble();
-
     }
 
 }

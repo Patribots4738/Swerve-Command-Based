@@ -120,7 +120,7 @@ public class RobotContainer {
 
     private void configureDriverBindings() {
 
-        driver.start().or(driver.back()).onTrue(
+        driver.start().onTrue(
             Commands.runOnce(() -> swerve.resetOdometry(
                 new Pose2d(
                     swerve.getPose().getTranslation(), 
@@ -132,11 +132,11 @@ public class RobotContainer {
         );
 
         driver.povLeft()
-            .onTrue(krakenTest.setVelocity(500))
+            .onTrue(krakenTest.setVelocity(1000))
             .onFalse(krakenTest.setVelocity(0));
 
         driver.povUp()
-            .onTrue(krakenTest.setPosition(50))
+            .onTrue(krakenTest.setPosition(500))
             .onFalse(krakenTest.setPosition(0));
         
         driver.povRight()

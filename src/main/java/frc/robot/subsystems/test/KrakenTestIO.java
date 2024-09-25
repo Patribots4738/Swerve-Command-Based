@@ -9,8 +9,8 @@ public interface KrakenTestIO {
 
         public double positionRotations = 0.0;
         public double targetPositionRotations = 0.0;
-        public double velocityRPS = 0.0;
-        public double targetVelocityRPS = 0.0;
+        public double velocityRPM = 0.0;
+        public double targetVelocityRPM = 0.0;
         public double appliedVolts = 0.0;
         public double targetPercent = 0.0;
         public double statorCurrentAmps = 0.0;

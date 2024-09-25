@@ -1,10 +1,8 @@
 package frc.robot.util.motor.phoenix;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
@@ -18,7 +16,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
@@ -34,6 +31,9 @@ public class Kraken extends TalonFX {
     private double targetPercent = 0.0;
 
     private final TalonFXConfigurator configurator;
+    private final TalonFXSimState sim;
+
+    private DCMotorSim motorSimModel;
 
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
@@ -41,14 +41,9 @@ public class Kraken extends TalonFX {
     private final PositionVoltage positionRequest;
     private final VelocityVoltage velocityRequest;
 
-    List<Pair<Kraken, Boolean>> followers = new ArrayList<Pair<Kraken, Boolean>>();
-
-    private int canID;
     private boolean useFOC;
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
-
-    private DCMotorSim motorSimModel;
 
     public Kraken(int id) {
         this(id, false, false);
@@ -60,9 +55,9 @@ public class Kraken extends TalonFX {
 
     public Kraken(int id, boolean inverted, boolean useFOC) {
         super(id);
-        this.canID = id;
         this.useFOC = useFOC;
         configurator = getConfigurator();
+        sim = getSimState();
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
         setInverted(inverted);
@@ -88,7 +83,6 @@ public class Kraken extends TalonFX {
                 .withPosition(position / positionConversionFactor)
                 .withFeedForward(feedForward)
                 .withSlot(slot));
-        runFollowers();
         targetPosition = position;
         controlType = ControlLoopType.POSITION;
     }
@@ -114,24 +108,16 @@ public class Kraken extends TalonFX {
         if (velocity == 0) {
             setVoltage(0);
         }
-        runFollowers();
         targetVelocity = velocity;
         controlType = ControlLoopType.VELOCITY;
     }
 
     @Override
-    public void setVoltage(double voltage) {
-        setVoltage(voltage);
-        runFollowers();
-    }
-
-    @Override
     public void set(double percent) {
-        set(percent);
+        super.set(percent);
         if (percent == 0) {
             setVoltage(0);
         }
-        runFollowers();
         targetPercent = percent;
         controlType = ControlLoopType.PERCENT;
     }
@@ -183,20 +169,25 @@ public class Kraken extends TalonFX {
         configurator.apply(config);
     }
 
+    public void setEncoder(int canCoderId) {
+        FeedbackConfigs configs = new FeedbackConfigs();
+        configs.FeedbackRemoteSensorID = canCoderId;
+        configs.SensorToMechanismRatio = 1.0;
+        configurator.apply(configs);
+    }
+
+    public void setPositionPIDWrappingEnabled(boolean enabled) {
+        ClosedLoopGeneralConfigs configs = new ClosedLoopGeneralConfigs();
+        configs.ContinuousWrap = enabled;
+        configurator.apply(configs);
+    }
+
     public void addFollower(Kraken motor, boolean invert) {
-        followers.add(Pair.of(motor, invert));
+        motor.setControl(new Follower(getDeviceID(), invert));
     }
 
     public void addFollower(Kraken motor) {
         addFollower(motor, false);
-    }
-
-    public void runFollowers() {
-        for (Pair<Kraken, Boolean> pair : followers) {
-            Kraken motor = pair.getFirst();
-            boolean invert = pair.getSecond();
-            motor.setControl(new Follower(canID, invert));
-        }
     }
 
     public double getPositionConversionFactor() {
@@ -243,12 +234,8 @@ public class Kraken extends TalonFX {
         return super.getTorqueCurrent().refresh().getValue();
     }
 
-    public int getCANID() {
-        return canID;
-    }
-
     public void register() {
-        KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(canID, this);
+        KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
 
         if (FieldConstants.IS_SIMULATION) {
             motorSimModel = new DCMotorSim(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 1, 0.001);
@@ -256,7 +243,6 @@ public class Kraken extends TalonFX {
     }
 
     public void tick() {
-        TalonFXSimState sim = getSimState();
 
         sim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
@@ -267,38 +253,43 @@ public class Kraken extends TalonFX {
 
         sim.setRawRotorPosition(motorSimModel.getAngularPositionRotations());
         sim.setRotorVelocity(Units.radiansToRotations(motorSimModel.getAngularVelocityRadPerSec()));
+
     }
 
-    public void applySlot0Configs(Slot0Configs configs) {
+    public void applySlot0Gains(Slot0Configs configs) {
         configurator.apply(configs);
     }
 
-    public void applySlot1Configs(Slot1Configs configs) {
+    public void applySlot1Gains(Slot1Configs configs) {
         configurator.apply(configs);
     }
 
-    public void applySlot2Configs(Slot2Configs configs) {
+    public void applySlot2Gains(Slot2Configs configs) {
         configurator.apply(configs);
     }
 
-    public void applySlotConfigs(SlotConfigs configs, int slot) {
+    public void applySlotGains(SlotConfigs configs, int slot) {
         configs.SlotNumber = slot;
         configurator.apply(configs);
     }
 
     // Velocity control gains
-    public void applyGainConfigs(double P, double I, double D, double S, double V, double G, int slot)  {
+    public void setGains(double P, double I, double D, double S, double V, double G, int slot)  {
         SlotConfigs configs = new SlotConfigs();
         configs.kP = P;
         configs.kI = I;
         configs.kD = D;
         configs.kS = S;
         configs.kV = V;
-        applySlotConfigs(configs, slot);
+        applySlotGains(configs, slot);
     }
 
-    public void applyGainConfigs(double P, double I, double D, double S, double V, double G) {
-        applyGainConfigs(P, I, D, S, V, G, 0);
+    public void setGains(double P, double I, double D, double S, double V, double G) {
+        setGains(P, I, D, S, V, G, 0);
+    }
+
+    public void setGains(double P, double I, double D, double S, double V) {
+        setGains(P, I, D, S, V, 0, 0);
     }
 
     // Position control gains
@@ -307,7 +298,7 @@ public class Kraken extends TalonFX {
         configs.kP = P;
         configs.kI = I;
         configs.kD = D;
-        applySlotConfigs(configs, slot);
+        applySlotGains(configs, slot);
     }
 
     public void setPID(double P, double I, double D) {

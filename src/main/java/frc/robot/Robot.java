@@ -91,7 +91,8 @@ public class Robot extends LoggedRobot {
         Robot.currentTimestamp = Timer.getFPGATimestamp();
         CommandScheduler.getInstance().run();
     }
-@Override
+
+    @Override
     public void disabledInit() {
         Robot.gameMode = GameMode.DISABLED;
         robotContainer.onDisabled();
