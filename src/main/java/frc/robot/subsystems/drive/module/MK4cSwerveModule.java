@@ -25,6 +25,15 @@ public class MK4cSwerveModule implements ModuleIO {
 
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
+    /**
+     * Creates new MK4c swerve module.
+     * 
+     * @param drivingCANId CAN ID of the driving motor
+     * @param turningCANId CAN ID of the turning motor
+     * @param canCoderId CAN ID of the modules encoder
+     * @param chassisAngularOffset angular offset of module to the chasis
+     * @param index
+     */
     public MK4cSwerveModule(int drivingCANId, int turningCANId, int canCoderId, double chassisAngularOffset, int index) {
         driveMotor = new Kraken(drivingCANId, false, true);
         turnMotor = new Kraken(turningCANId, MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true);
@@ -36,6 +45,9 @@ public class MK4cSwerveModule implements ModuleIO {
         desiredState.angle = new Rotation2d(turnMotor.getPositionAsDouble());
     }
 
+    /**
+     * Updates the inputs sent to the Mk4c module.
+     */
     @Override
     public void updateInputs() {
         inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
@@ -58,11 +70,19 @@ public class MK4cSwerveModule implements ModuleIO {
             new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
     }
 
+    /**
+     * Logs the inputs sent to MK4c module.
+     */
     @Override
     public void processInputs() {
         Logger.processInputs("SubsystemInputs/Swerve/MK4cSwerveModule" + index, inputs);
     }
 
+    /**
+     * Corrects the rotation2d and speed of the MK4c 
+     * 
+     * @param desiredState stored rotation 2d and speed 
+     */
     @Override
     public void setDesiredState(SwerveModuleState desiredState) {
         // Apply chassis angular offset to the desired state.
@@ -85,23 +105,35 @@ public class MK4cSwerveModule implements ModuleIO {
         this.desiredState = correctedDesiredState;
     }
 
+    /**
+     * Resets MK4c module encoders to 0.
+     */
     @Override
     public void resetEncoders()  {
         driveMotor.resetEncoder();
     }
 
+    /**
+     * Sets the MK4c module to coast mode and the motors can spin freely.
+     */
     @Override
     public void setCoastMode() {
         driveMotor.setCoastMode();
         turnMotor.setCoastMode();
     }
 
+    /**
+     * Sets the MK4c module to brake mode.
+     */
     @Override
     public void setBrakeMode() {
         driveMotor.setBrakeMode();
         turnMotor.setBrakeMode();
     }
 
+    /**
+     * Configures MK4c module's encoders, conversion factor, PID, and current limit.
+     */
     public void configMotors() {
 
         // Apply position and velocity conversion factors for the driving encoder. The
@@ -143,23 +175,40 @@ public class MK4cSwerveModule implements ModuleIO {
         setBrakeMode();
     }
 
+    /**
+     * Obtains current state of the MK4c module.
+     * 
+     * @return current module state
+     */
     @Override
     public SwerveModuleState getState() {
         return inputs.state;
     }
 
+    /**
+     * Obtains the desired state of MK4c the module.
+     * 
+     * @return desired module state
+     */
     @Override
     public SwerveModuleState getDesiredState() {
         return desiredState;
     }
 
+    /**
+     * Obtains the current position of the MK4c module.
+     * 
+     * @return current module position
+     */
     @Override
     public SwerveModulePosition getPosition() {
         return inputs.position;
     }
 
-    // gets the rotations of the wheel converted to radians
-    // We need to undo the position conversion factor
+    /** 
+     * Gets the rotations of the wheel converted to radians.
+     */
+    //We need to undo the position conversion factor
     @Override
     public double getDrivePositionRadians() {
         return inputs.drivePositionMeters * 2 * Math.PI / MK4cSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
