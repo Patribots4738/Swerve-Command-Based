@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package frc.robot.util.motor.rev;
+package frc.robot.util.hardware.rev;
 import java.util.ArrayList;
 import edu.wpi.first.math.system.plant.DCMotor;
 

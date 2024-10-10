@@ -1,6 +1,6 @@
 // Developed in tandem with Reza from 1622
 
-package frc.robot.util.motor.rev;
+package frc.robot.util.hardware.rev;
 
 import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.SparkPIDController.ArbFFUnits;

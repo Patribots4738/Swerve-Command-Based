@@ -22,8 +22,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
 import frc.robot.util.custom.PatrIDConstants;
-import frc.robot.util.motor.phoenix.Kraken;
-import frc.robot.util.motor.rev.Neo;
+import frc.robot.util.hardware.phoenix.Kraken;
+import frc.robot.util.hardware.rev.Neo;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide

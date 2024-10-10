@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MAXSwerveModuleConstants;
-import frc.robot.util.motor.rev.Neo;
+import frc.robot.util.hardware.rev.Neo;
 
 public class MAXSwerveModule implements ModuleIO {
     private final Neo driveMotor;

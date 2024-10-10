@@ -8,7 +8,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MAXSwerveModuleConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
-import frc.robot.util.motor.phoenix.Kraken;
+import frc.robot.util.hardware.phoenix.Kraken;
 
 public class MK4cSwerveModule implements ModuleIO {
 
@@ -35,8 +35,8 @@ public class MK4cSwerveModule implements ModuleIO {
      * @param index
      */
     public MK4cSwerveModule(int drivingCANId, int turningCANId, int canCoderId, double chassisAngularOffset, int index) {
-        driveMotor = new Kraken(drivingCANId, false, true);
-        turnMotor = new Kraken(turningCANId, MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true);
+        driveMotor = new Kraken(drivingCANId, "rio", false, true);
+        turnMotor = new Kraken(turningCANId, "rio", MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true);
         this.canCoderId = canCoderId;
         this.index = index;
         this.chassisAngularOffset = chassisAngularOffset;

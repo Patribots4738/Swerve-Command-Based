@@ -1,5 +1,6 @@
-package frc.robot.util.motor.phoenix;
+package frc.robot.util.hardware.phoenix;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -41,6 +42,13 @@ public class Kraken extends TalonFX {
     private final PositionVoltage positionRequest;
     private final VelocityVoltage velocityRequest;
 
+    private StatusSignal<Double> positionSignal;
+    private StatusSignal<Double> velocitySignal;
+    private StatusSignal<Double> voltageSignal;
+    private StatusSignal<Double> supplyCurrentSignal;
+    private StatusSignal<Double> statorCurrentSignal;   
+    private StatusSignal<Double> torqueCurrentSignal;
+
     private boolean useFOC;
 
     private ControlLoopType controlType = ControlLoopType.PERCENT;
@@ -49,9 +57,30 @@ public class Kraken extends TalonFX {
      * Creates new Kraken motor.
      * 
      * @param id ID of Kraken motor
+     * @param canBus CANivore Kraken is connected to
+     */
+    public Kraken(int id, String canBus) {
+        this(id, canBus, false, false);
+    }
+
+    /**
+     * Creates new Kraken motor.
+     * 
+     * @param id ID of Kraken motor
      */
     public Kraken(int id) {
-        this(id, false, false);
+        this(id, "rio");
+    }
+
+    /**
+     * Creates new Kraken motor that can be inverted.
+     * 
+     * @param id ID of Kraken motor
+     * @param canBus CANivore Kraken is connected to
+     * @param inverted inverts input given to motor when set to true
+     */
+    public Kraken(int id, String canBus, boolean inverted) {
+        this(id, canBus, inverted, false);
     }
 
     /**
@@ -61,7 +90,7 @@ public class Kraken extends TalonFX {
      * @param inverted inverts input given to motor when set to true
      */
     public Kraken(int id, boolean inverted) {
-        this(id, inverted, false);
+        this(id, "rio", inverted);
     }
 
     /**
@@ -72,12 +101,26 @@ public class Kraken extends TalonFX {
      * @param useFOC uses FOC to enhance motor communication when set to true
      */
     public Kraken(int id, boolean inverted, boolean useFOC) {
-        super(id);
+        this(id, "rio", inverted, useFOC);
+    }
+
+    /**
+     * Creates a new Kraken motor that can be inverted and use FOC.
+     * 
+     * @param id ID of Kraken motor
+     * @param inverted inverts input given to motor when set to true
+     * @param canBus CANivore Kraken is connected to
+     * @param useFOC uses FOC to enhance motor communication when set to true
+     */
+    public Kraken(int id, String canBus, boolean inverted, boolean useFOC) {
+        super(id, canBus);
         this.useFOC = useFOC;
         configurator = getConfigurator();
         sim = getSimState();
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
+        setStatusSignals();
+        optimizeBusUtilization();
         setInverted(inverted);
         setBrakeMode();
         register();
@@ -370,7 +413,7 @@ public class Kraken extends TalonFX {
      * @return current position
      */
     public double getPositionAsDouble() {
-        return super.getPosition().refresh().getValue() * positionConversionFactor;        
+        return super.getPosition().getValue() * positionConversionFactor;        
     }
 
     /**
@@ -379,7 +422,7 @@ public class Kraken extends TalonFX {
      * @return current velocity
      */
     public double getVelocityAsDouble() {
-        return super.getVelocity().refresh().getValue() * velocityConversionFactor;
+        return super.getVelocity().getValue() * velocityConversionFactor;
     }
 
     /**
@@ -388,7 +431,7 @@ public class Kraken extends TalonFX {
      * @return current voltage
      */
     public double getVoltageAsDouble() {
-        return super.getMotorVoltage().refresh().getValue();
+        return super.getMotorVoltage().getValue();
     }
 
     /**
@@ -397,7 +440,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to Kraken
      */
     public double getSupplyCurrentAsDouble() {
-        return super.getSupplyCurrent().refresh().getValue();
+        return super.getSupplyCurrent().getValue();
     }
 
     /**
@@ -406,7 +449,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to stator
      */
     public double getStatorCurrentAsDouble() {
-        return super.getStatorCurrent().refresh().getValue();
+        return super.getStatorCurrent().getValue();
     }
 
     /**
@@ -415,7 +458,25 @@ public class Kraken extends TalonFX {
      * @return torque current
      */
     public double getTorqueCurrentAsDouble() {
-        return super.getTorqueCurrent().refresh().getValue();
+        return super.getTorqueCurrent().getValue();
+    }
+
+    public void setStatusSignals() {
+        positionSignal = super.getPosition();
+        velocitySignal = super.getVelocity();
+        voltageSignal = super.getMotorVoltage();
+        supplyCurrentSignal = super.getSupplyCurrent();
+        statorCurrentSignal = super.getStatorCurrent();
+        torqueCurrentSignal = super.getTorqueCurrent();
+    }
+
+    public void refreshStatusSignals() {
+        positionSignal.refresh();
+        velocitySignal.refresh();
+        voltageSignal.refresh();
+        supplyCurrentSignal.refresh();
+        statorCurrentSignal.refresh();
+        torqueCurrentSignal.refresh();
     }
 
     /**

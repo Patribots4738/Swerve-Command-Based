@@ -11,7 +11,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.Constants.NeoMotorConstants;
-import frc.robot.util.motor.rev.Neo;
+import frc.robot.util.hardware.rev.Neo;
 
 public class NTPIDTuner extends Command {
     

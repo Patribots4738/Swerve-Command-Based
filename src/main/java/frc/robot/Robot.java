@@ -19,9 +19,9 @@ import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.Constants.LoggingConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
-import frc.robot.util.motor.phoenix.Kraken;
-import frc.robot.util.motor.rev.Neo;
-import frc.robot.util.motor.rev.NeoPhysicsSim;
+import frc.robot.util.hardware.phoenix.Kraken;
+import frc.robot.util.hardware.rev.Neo;
+import frc.robot.util.hardware.rev.NeoPhysicsSim;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to

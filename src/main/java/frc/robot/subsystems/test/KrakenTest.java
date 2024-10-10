@@ -5,11 +5,11 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.motor.phoenix.Kraken;
+import frc.robot.util.hardware.phoenix.Kraken;
 
 public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     
-    private Kraken motor = new Kraken(20, false, true);
+    private Kraken motor = new Kraken(20, "rio", false, true);
     KrakenTestIOInputsAutoLogged inputs = new KrakenTestIOInputsAutoLogged();
 
     public KrakenTest() {
