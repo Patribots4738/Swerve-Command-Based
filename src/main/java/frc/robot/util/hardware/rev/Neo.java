@@ -9,7 +9,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
-import frc.robot.util.custom.PatrIDConstants;
+import frc.robot.util.custom.GainConstants;
 /*
  * Some of this is adapted from 3005's 2022 Code
  * Original source published at https://github.com/FRC3005/Rapid-React-2022-Public/tree/d499655448ed592c85f9cfbbd78336d8841f46e2
@@ -344,7 +344,7 @@ public class Neo extends SafeSpark {
      * @param maxOutput  the maximum output value
      */
     public void setPID(double P, double I, double D, double minOutput, double maxOutput) {
-        setPID(new PatrIDConstants(P, I, D, minOutput, maxOutput));
+        setPID(new GainConstants(P, I, D, minOutput, maxOutput));
     }
 
     /**
@@ -352,7 +352,7 @@ public class Neo extends SafeSpark {
      * 
      * @param constants the PID constants to set
      */
-    public void setPID(PatrIDConstants constants) {
+    public void setPID(GainConstants constants) {
         setPID(constants, 0);
     }
 
@@ -362,7 +362,7 @@ public class Neo extends SafeSpark {
      * @param constants the PID constants to set
      * @param slotID    the slot ID of the PID controller
      */
-    public void setPID(PatrIDConstants constants, int slot) {
+    public void setPID(GainConstants constants, int slot) {
         setPID(
             constants.getP(), 
             constants.getI(), 
@@ -418,8 +418,8 @@ public class Neo extends SafeSpark {
         return getPIDController().getD();
     }
 
-    public PatrIDConstants getPID() {
-        return new PatrIDConstants(getPIDController().getP(), getPIDController().getI(), getPIDController().getD());
+    public GainConstants getPID() {
+        return new GainConstants(getPIDController().getP(), getPIDController().getI(), getPIDController().getD());
     }
 
     /**

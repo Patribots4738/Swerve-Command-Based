@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.MAXSwerveModuleConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
 import frc.robot.util.hardware.phoenix.Kraken;
 
@@ -50,6 +49,9 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public void updateInputs() {
+        driveMotor.refreshStatusSignals();
+        turnMotor.refreshStatusSignals();
+        
         inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
         inputs.driveVelocityMPS = driveMotor.getVelocityAsDouble();
         inputs.driveAppliedVolts = driveMotor.getVoltageAsDouble();
@@ -152,19 +154,8 @@ public class MK4cSwerveModule implements ModuleIO {
 
         turnMotor.setPositionPIDWrappingEnabled(true);
 
-        // TODO: ADD NEW FF CONSTANTS TO CONFIG KRAKENS WITH
-
-        driveMotor.setGains(
-            MK4cSwerveModuleConstants.DRIVING_P, 
-            MK4cSwerveModuleConstants.DRIVING_I, 
-            MK4cSwerveModuleConstants.DRIVING_D, 
-            MK4cSwerveModuleConstants.DRIVING_S, 
-            MK4cSwerveModuleConstants.DRIVING_V);
-
-        turnMotor.setPID(
-            MK4cSwerveModuleConstants.TURNING_P, 
-            MK4cSwerveModuleConstants.TURNING_I, 
-            MK4cSwerveModuleConstants.TURNING_D);
+        driveMotor.setGains(MK4cSwerveModuleConstants.DRIVING_GAINS);
+        turnMotor.setPID(MK4cSwerveModuleConstants.TURNING_GAINS);
 
         driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
         turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);

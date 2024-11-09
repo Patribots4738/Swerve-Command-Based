@@ -10,20 +10,24 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
+import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.rev.Neo;
 
-public class NTPIDTuner extends Command {
+public class NTGainTuner extends Command {
     
     NetworkTable table = NetworkTableInstance.getDefault().getTable("Calibration");
-    Map<List<Neo>, Map<NetworkTableEntry, Double>> entries = new HashMap<>();
+    Map<List<Neo>, Map<NetworkTableEntry, Double>> neoEntries = new HashMap<>();
+    Map<List<Kraken>, Map<NetworkTableEntry, Double>> krakenEntries = new HashMap<>();
 
-    public NTPIDTuner() {
+    public NTGainTuner() {
         // Initialize the motor group map
-        Map<String, List<Neo>> motorGroups = NeoMotorConstants.initializeMotorGroupMap();
+        Map<String, List<Neo>> neoMotorGroups = NeoMotorConstants.initializeMotorGroupMap();
+        Map<String, List<Kraken>> krakenMotorGroups = KrakenMotorConstants.initializeMotorGroupMap();
 
         // Initialize the NetworkTableEntries for the PID values of each motor group
-        initializeMotorEntries(motorGroups);
+        initializeMotorEntries(neoMotorGroups, krakenMotorGroups);
     }
 
     @Override
@@ -31,12 +35,12 @@ public class NTPIDTuner extends Command {
         return true;
     }
 
-    private void initializeMotorEntries(Map<String, List<Neo>> motorGroups) {
+    private void initializeMotorEntries(Map<String, List<Neo>> neoMotorGroups, Map<String, List<Kraken>> krakenMotorGroups) {
         // Loop through each motor group
-        for (int i = 0; i < motorGroups.size(); i++) {
+        for (int i = 0; i < neoMotorGroups.size(); i++) {
 
             // Get the name of the current motor group
-            String groupName = motorGroups.keySet().toArray()[i].toString();
+            String groupName = neoMotorGroups.keySet().toArray()[i].toString();
 
             // Get the NetworkTableEntries for the PID values of the current motor group
             NetworkTableEntry pEntry = table.getEntry(groupName + "/0-P");
@@ -46,7 +50,7 @@ public class NTPIDTuner extends Command {
             NetworkTableEntry iZoneEntry = table.getEntry(groupName + "/4-IZone");
 
             // Get the first motor of the current motor group
-            List<Neo> motorGroup = motorGroups.get(groupName);
+            List<Neo> motorGroup = neoMotorGroups.get(groupName);
             Neo motor = motorGroup.get(0);
 
             // Get the PID values of the first motor
@@ -72,19 +76,68 @@ public class NTPIDTuner extends Command {
             motorEntries.put(iZoneEntry, iZoneValue);
 
             // Add the motor group and its corresponding NetworkTableEntries to the entries map
-            entries.put(motorGroup, motorEntries);
+            neoEntries.put(motorGroup, motorEntries);
+        }
+
+        for (int i = 0; i < krakenMotorGroups.size(); i++) {
+
+            // Get the name of the current motor group
+            String groupName = krakenMotorGroups.keySet().toArray()[i].toString();
+
+            // Get the NetworkTableEntries for the gain values of the current motor group
+            NetworkTableEntry pEntry = table.getEntry(groupName + "/0-P");
+            NetworkTableEntry iEntry = table.getEntry(groupName + "/1-I");
+            NetworkTableEntry dEntry = table.getEntry(groupName + "/2-D");
+            NetworkTableEntry sEntry = table.getEntry(groupName + "/3-S");
+            NetworkTableEntry vEntry = table.getEntry(groupName + "/4-V");
+            NetworkTableEntry gEntry = table.getEntry(groupName + "/5-G");
+
+            // Get the first motor of the current motor group
+            List<Kraken> motorGroup = krakenMotorGroups.get(groupName);
+            Kraken motor = motorGroup.get(0);
+
+            // Get the gain values of the first motor
+            double pValue = motor.getP();
+            double iValue = motor.getI();
+            double dValue = motor.getD();
+            double sValue = motor.getS();
+            double vValue = motor.getV();
+            double gValue = motor.getG();
+
+            // Set the gain values in the NetworkTableEntries
+            pEntry.setDouble(pValue);
+            iEntry.setDouble(iValue);
+            dEntry.setDouble(dValue);
+            sEntry.setDouble(sValue);
+            vEntry.setDouble(vValue);
+            gEntry.setDouble(gValue);
+
+            // Create a map of NetworkTableEntries and their corresponding gain values
+            Map<NetworkTableEntry, Double> motorEntries = new HashMap<>();
+            motorEntries.put(pEntry, pValue);
+            motorEntries.put(iEntry, iValue);
+            motorEntries.put(dEntry, dValue);
+            motorEntries.put(sEntry, sValue);
+            motorEntries.put(vEntry, vValue);
+            motorEntries.put(gEntry, gValue);
+
+            // Add the motor group and its corresponding NetworkTableEntries to the entries map
+            krakenEntries.put(motorGroup, motorEntries);
         }
     }
     
     @Override
     public void execute() {
         // Loop through all of the entries and update the values
-        for (Map.Entry<List<Neo>, Map<NetworkTableEntry, Double>> entry : entries.entrySet()) {
-            updateValues(entry);
+        for (Map.Entry<List<Neo>, Map<NetworkTableEntry, Double>> entry : neoEntries.entrySet()) {
+            updateNeoValues(entry);
+        }
+        for (Map.Entry<List<Kraken>, Map<NetworkTableEntry, Double>> entry : krakenEntries.entrySet()) {
+            updateKrakenValues(entry);
         }
     }
 
-    private void updateValues(Map.Entry<List<Neo>, Map<NetworkTableEntry, Double>> entry) {
+    private void updateNeoValues(Map.Entry<List<Neo>, Map<NetworkTableEntry, Double>> entry) {
         for (Map.Entry<NetworkTableEntry, Double> entry2 : entry.getValue().entrySet()) {
             double NTValue = entry2.getKey().getDouble(entry2.getValue());
             if (NTValue != entry2.getValue()) {
@@ -107,7 +160,23 @@ public class NTPIDTuner extends Command {
 
                 // Update the last known value for future comparisons
                 entry2.setValue(NTValue);
-                updateController(entry.getKey(), lastPart, NTValue);
+                updateSpark(entry.getKey(), lastPart, NTValue);
+            }
+        }
+    }
+
+    private void updateKrakenValues(Map.Entry<List<Kraken>, Map<NetworkTableEntry, Double>> entry) {
+        for (Map.Entry<NetworkTableEntry, Double> entry2 : entry.getValue().entrySet()) {
+            double NTValue = entry2.getKey().getDouble(entry2.getValue());
+            if (NTValue != entry2.getValue()) {
+                String entryPath = entry2.getKey().getName();
+                // We are given a full path like "/Calibration//FrontLeftTurn/3-FF"
+                // We just want that "FF" part
+                String lastPart = entryPath.substring(entryPath.lastIndexOf("-") + 1);
+
+                // Update the last known value for future comparisons
+                entry2.setValue(NTValue);
+                updateTalon(entry.getKey(), lastPart, NTValue);
             }
         }
     }
@@ -119,7 +188,7 @@ public class NTPIDTuner extends Command {
      * @param name      the name of the PID value to update
      * @param NTValue   the new value to set
      */
-    private void updateController(List<Neo> motorList, String name, double NTValue) {
+    private void updateSpark(List<Neo> motorList, String name, double NTValue) {
         // Find out if it was P, I, D, FF, or IZone and update the value
         for (Neo motor : motorList) {
             switch (name) {
@@ -141,6 +210,32 @@ public class NTPIDTuner extends Command {
             }
         }
         System.err.println("Updated " + getKeyByValue(NeoMotorConstants.NEO_MOTOR_GROUPS, motorList) + "'s " + name + " to " + NTValue);
+    }
+
+    private void updateTalon(List<Kraken> motorList, String name, double NTValue) {
+        for (Kraken motor : motorList) {
+            switch (name) {
+                case "P":
+                    motor.setP(NTValue);
+                    break;
+                case "I":
+                    motor.setI(NTValue);
+                    break;
+                case "D":
+                    motor.setD(NTValue);
+                    break;
+                case "S":
+                    motor.setS(NTValue);
+                    break;
+                case "V":
+                    motor.setV(NTValue);
+                    break;
+                case "G":
+                    motor.setG(NTValue);
+                    break;
+            }
+        }
+        System.err.println("Updated " + getKeyByValue(KrakenMotorConstants.KRAKEN_MOTOR_GROUPS, motorList) + "'s " + name + " to " + NTValue);
     }
 
     /**

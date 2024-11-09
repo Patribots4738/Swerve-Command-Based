@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.KrakenMotorConstants;
-import frc.robot.util.custom.PatrIDConstants;
+import frc.robot.util.custom.GainConstants;
 
 public class Kraken extends TalonFX {
 
@@ -49,9 +49,11 @@ public class Kraken extends TalonFX {
     private StatusSignal<Double> statorCurrentSignal;   
     private StatusSignal<Double> torqueCurrentSignal;
 
-    private boolean useFOC;
+    private final Slot0Configs slot0Configs = new Slot0Configs();
+    private final Slot1Configs slot1Configs = new Slot1Configs();
+    private final Slot2Configs slot2Configs = new Slot2Configs();
 
-    private ControlLoopType controlType = ControlLoopType.PERCENT;
+    private boolean useFOC;
 
     /**
      * Creates new Kraken motor.
@@ -120,7 +122,7 @@ public class Kraken extends TalonFX {
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
         setStatusSignals();
-        optimizeBusUtilization();
+        // optimizeBusUtilization();
         setInverted(inverted);
         setBrakeMode();
         register();
@@ -169,11 +171,10 @@ public class Kraken extends TalonFX {
                 .withFeedForward(feedForward)
                 .withSlot(slot));
         targetPosition = position;
-        controlType = ControlLoopType.POSITION;
     }
 
     /**
-     * Sets target velocity of the Kraken (mps?)
+     * Sets target velocity of the Kraken (rps)
      * 
      * @param velocity target velocity
      */
@@ -218,7 +219,6 @@ public class Kraken extends TalonFX {
             setVoltage(0);
         }
         targetVelocity = velocity;
-        controlType = ControlLoopType.VELOCITY;
     }
 
     /**
@@ -233,7 +233,6 @@ public class Kraken extends TalonFX {
             setVoltage(0);
         }
         targetPercent = percent;
-        controlType = ControlLoopType.PERCENT;
     }
 
     /**
@@ -519,11 +518,6 @@ public class Kraken extends TalonFX {
         configurator.apply(configs);
     }
 
-    public void applySlotGains(SlotConfigs configs, int slot) {
-        configs.SlotNumber = slot;
-        configurator.apply(configs);
-    }
-
     /**
      * Sets the gains for the specified slot.
      * 
@@ -536,13 +530,29 @@ public class Kraken extends TalonFX {
      * @param slot slot for gains to be added to 
      */
     public void setGains(double P, double I, double D, double S, double V, double G, int slot)  {
-        SlotConfigs configs = new SlotConfigs();
-        configs.kP = P;
-        configs.kI = I;
-        configs.kD = D;
-        configs.kS = S;
-        configs.kV = V;
-        applySlotGains(configs, slot);
+        if (slot == 0) {
+            slot0Configs.kP = P;
+            slot0Configs.kI = I;
+            slot0Configs.kD = D;
+            slot0Configs.kS = S;
+            slot0Configs.kV = V;
+            applySlot0Gains(slot0Configs);
+        } else if (slot == 1) {
+            slot1Configs.kP = P;
+            slot1Configs.kI = I;
+            slot1Configs.kD = D;
+            slot1Configs.kS = S;
+            slot1Configs.kV = V;
+            applySlot1Gains(slot1Configs);
+        } else {
+            slot2Configs.kP = P;
+            slot2Configs.kI = I;
+            slot2Configs.kD = D;
+            slot2Configs.kS = S;
+            slot2Configs.kV = V;
+            applySlot2Gains(slot2Configs);
+        }
+        
     }
 
     /**
@@ -572,6 +582,14 @@ public class Kraken extends TalonFX {
         setGains(P, I, D, S, V, 0, 0);
     }
 
+    public void setGains(GainConstants constants, int slot) {
+        setGains(constants.getP(), constants.getI(), constants.getD(), constants.getS(), constants.getV(), constants.getG(), slot);
+    }
+
+    public void setGains(GainConstants constants) {
+        setGains(constants.getP(), constants.getI(), constants.getD(), constants.getS(), constants.getV(), constants.getG());
+    }
+
     /**
      * Sets the PID gains for the specified slot.
      * 
@@ -581,11 +599,7 @@ public class Kraken extends TalonFX {
      * @param slot slot for gains to be added to 
      */
     public void setPID(double P, double I, double D, int slot) {
-        SlotConfigs configs = new SlotConfigs();
-        configs.kP = P;
-        configs.kI = I;
-        configs.kD = D;
-        applySlotGains(configs, slot);
+        setGains(P, I, D, 0, 0, 0, slot);
     }
 
     /**
@@ -600,28 +614,130 @@ public class Kraken extends TalonFX {
     }
 
     /**
-     * Sets the PID gains for the specified slot using PatriIDConstants.
+     * Sets the PID gains for the specified slot using GainConstants.
      * 
-     * @param constants PID constants from PatriIDConstants
+     * @param constants PID constants from GainConstants
      * @param slot slot for gains to be added to 
      */
-    public void setPID(PatrIDConstants constants, int slot) {
+    public void setPID(GainConstants constants, int slot) {
         setPID(constants.getP(), constants.getI(), constants.getD(), slot);
     }
 
     /**
-     * Sets the PID gains for the slot 0 using PatriIDConstants.
+     * Sets the PID gains for the slot 0 using GainConstants.
      * 
-     * @param constants PID constants from PatriIDConstants
+     * @param constants PID constants from GainConstants
      */
-    public void setPID(PatrIDConstants constants) {
+    public void setPID(GainConstants constants) {
         setPID(constants, 0);
     }
 
-    public enum ControlLoopType {
-        POSITION,
-        VELOCITY,
-        PERCENT;
+    public void setP(double P) {
+        slot0Configs.kP = P;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public void setI(double I) {
+        slot0Configs.kI = I;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public void setD(double D) {
+        slot0Configs.kD = D;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public void setS(double S) {
+        slot0Configs.kS = S;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public void setV(double V) {
+        slot0Configs.kV = V;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public void setG(double G) {
+        slot0Configs.kG = G;
+        applySlot0Gains(slot0Configs);
+    }
+
+    public double getP(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kP;
+        } else if (slot == 1) {
+            return slot1Configs.kP;
+        }
+        return slot2Configs.kP;
+    }
+
+    public double getP() {
+        return getP(0);
+    }
+
+    public double getI(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kI;
+        } else if (slot == 1) {
+            return slot1Configs.kI;
+        }
+        return slot2Configs.kI;
+    }
+
+    public double getI() {
+        return getI(0);
+    }
+
+    public double getD(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kD;
+        } else if (slot == 1) {
+            return slot1Configs.kD;
+        }
+        return slot2Configs.kD;
+    }
+
+    public double getD() {
+        return getD(0);
+    }
+
+    public double getS(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kS;
+        } else if (slot == 1) {
+            return slot1Configs.kS;
+        }
+        return slot2Configs.kS;
+    }
+
+    public double getS() {
+        return getS(0);
+    }
+
+    public double getV(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kV;
+        } else if (slot == 1) {
+            return slot1Configs.kV;
+        }
+        return slot2Configs.kV;
+    }
+
+    public double getV() {
+        return getV(0);
+    }
+
+    public double getG(int slot) {
+        if (slot == 0) {
+            return slot0Configs.kG;
+        } else if (slot == 1) {
+            return slot1Configs.kG;
+        }
+        return slot2Configs.kG;
+    }
+
+    public double getG() {
+        return getG(0);
     }
 
 }

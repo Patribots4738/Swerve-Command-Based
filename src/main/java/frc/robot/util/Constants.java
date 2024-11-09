@@ -21,7 +21,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
-import frc.robot.util.custom.PatrIDConstants;
+import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.rev.Neo;
 
@@ -164,7 +164,7 @@ public final class Constants {
         public static final double XY_CORRECTION_I = 0.0125;
         public static final double XY_CORRECTION_D = 0.0125;
 
-        private static final PIDController XY_PID = new PIDController(
+        public static final PIDController XY_PID = new PIDController(
                 AutoConstants.XY_CORRECTION_P,
                 0,
                 AutoConstants.XY_CORRECTION_D);
@@ -173,7 +173,7 @@ public final class Constants {
         public static final double ROTATION_CORRECTION_I = 0;
         public static final double ROTATION_CORRECTION_D = 0;
 
-        private static final ProfiledPIDController THETA_PID = new ProfiledPIDController(
+        public static final ProfiledPIDController THETA_PID = new ProfiledPIDController(
             AutoConstants.ROTATION_CORRECTION_P,
             AutoConstants.ROTATION_CORRECTION_I,
             AutoConstants.ROTATION_CORRECTION_D,
@@ -291,7 +291,7 @@ public final class Constants {
         public static final double DRIVING_FF = 0.20217;
         public static final double DRIVING_MIN_OUTPUT = -1;
         public static final double DRIVING_MAX_OUTPUT = 1;
-        public static final PatrIDConstants DRIVING_PID = new PatrIDConstants(
+        public static final GainConstants DRIVING_PID = new GainConstants(
             DRIVING_P,
             DRIVING_I,
             DRIVING_D,
@@ -306,7 +306,7 @@ public final class Constants {
         public static final double TURNING_FF = 0;
         public static final double TURNING_MIN_OUTPUT = -1;
         public static final double TURNING_MAX_OUTPUT = 1;
-        public static final PatrIDConstants TURNING_PID = new PatrIDConstants(
+        public static final GainConstants TURNING_PID = new GainConstants(
             TURNING_P,
             TURNING_I,
             TURNING_D,
@@ -384,9 +384,25 @@ public final class Constants {
         public static final double DRIVING_S = 0.1;
         public static final double DRIVING_V = 0.12;
 
+        public static final GainConstants DRIVING_GAINS = new GainConstants(
+            DRIVING_P,
+            DRIVING_I,
+            DRIVING_D,
+            DRIVING_S,
+            DRIVING_V,
+            0,
+            false
+        );
+
         public static final double TURNING_P = 2.5;
         public static final double TURNING_I = 0;
         public static final double TURNING_D = 0.1;
+
+        public static final GainConstants TURNING_GAINS = new GainConstants(
+            TURNING_P,
+            TURNING_I,
+            TURNING_D
+        );
 
     }
 

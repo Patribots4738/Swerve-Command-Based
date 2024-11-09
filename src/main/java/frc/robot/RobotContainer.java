@@ -4,10 +4,14 @@ import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.event.EventLoop;
@@ -15,12 +19,15 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Robot.GameMode;
 import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.WheelRadiusCharacterization;
+import frc.robot.commands.logging.NTGainTuner;
 import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
 import frc.robot.subsystems.test.KrakenTest;
 import frc.robot.util.Constants.AutoConstants;
+import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.OIConstants;
 import frc.robot.util.auto.PathPlannerStorage;
 import frc.robot.util.custom.PatriBoxController;
@@ -104,6 +111,8 @@ public class RobotContainer {
         pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",
             swerve.setWheelsOCommand()
             .andThen(new WheelRadiusCharacterization(swerve)));
+
+        new NTGainTuner().schedule();
         
         prepareNamedCommands();
 
@@ -146,6 +155,61 @@ public class RobotContainer {
         driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
     }
 
+    public void updateNTGains() {
+        double HPFCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0P").getDouble(-1);
+        double HPFCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1I").getDouble(-1);
+        double HPFCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2D").getDouble(-1);
+        double HPFCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0P").getDouble(-1);
+        double HPFCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1I").getDouble(-1);
+        double HPFCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2D").getDouble(-1);
+
+        double HDCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0P").getDouble(-1);
+        double HDCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1I").getDouble(-1);
+        double HDCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2D").getDouble(-1);
+        double HDCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0P").getDouble(-1);
+        double HDCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1I").getDouble(-1);
+        double HDCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2D").getDouble(-1);
+
+        if (HPFCP == -1 || HPFCI == -1 || HPFCD == -1 || HPFCP2 == -1 || HPFCI2 == -1 || HPFCD2 == -1 ||
+            HDCP == -1 || HDCI == -1 || HDCD == -1 || HDCP2 == -1 || HDCI2 == -1 || HDCD2 == -1) {
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0P").setDouble(AutoConstants.XY_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1I").setDouble(AutoConstants.XY_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2D").setDouble(AutoConstants.XY_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
+
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0P").setDouble(AutoConstants.XY_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1I").setDouble(AutoConstants.XY_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2D").setDouble(AutoConstants.XY_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
+            return;
+        } else {
+            AutoConstants.HPFC = new HolonomicPathFollowerConfig(
+                    new PIDConstants(
+                            HPFCP,
+                            HPFCI,
+                            HPFCD),
+                    new PIDConstants(
+                            HPFCP2,
+                            HPFCI2,
+                            HPFCD2),
+                    DriveConstants.MAX_SPEED_METERS_PER_SECOND,
+                    Math.hypot(DriveConstants.WHEEL_BASE, DriveConstants.TRACK_WIDTH) / 2.0,
+                    new ReplanningConfig());
+
+            AutoConstants.XY_PID.setP(HDCP);
+            AutoConstants.XY_PID.setI(HDCI);
+            AutoConstants.XY_PID.setD(HDCD);
+            AutoConstants.THETA_PID.setP(HDCP2);
+            AutoConstants.THETA_PID.setI(HDCI2);
+            AutoConstants.THETA_PID.setD(HDCD2);
+
+        }
+    }
+
     public Command getAutonomousCommand() {
         return pathPlannerStorage.getSelectedAuto();
     }
@@ -182,6 +246,13 @@ public class RobotContainer {
     public void onDisabled() {
         swerve.stopDriving();
         pathPlannerStorage.updatePathViewerCommand().schedule();
+        pathPlannerStorage.configureAutoChooser();
+
+        // TODO: Extract this into a command file
+        Commands.run(this::updateNTGains)
+            .until(() -> Robot.gameMode != GameMode.DISABLED)
+            .ignoringDisable(true)
+            .schedule();
     }
 
     public void onEnabled() {
