@@ -10,7 +10,9 @@ import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -48,6 +50,10 @@ public class Kraken extends TalonFX {
 
     private final PositionVoltage positionRequest;
     private final VelocityVoltage velocityRequest;
+
+    private final PositionTorqueCurrentFOC positionTorqueRequest;
+    private final VelocityTorqueCurrentFOC velocityTorqueRequest;
+
     private final VoltageOut voltageRequest;
     private final DutyCycleOut percentRequest;
 
@@ -63,6 +69,7 @@ public class Kraken extends TalonFX {
     private final GainConstants[] gains;
 
     private final boolean useFOC;
+    private final boolean useTorqueControl;
 
     private TelemetryPreference telemetryPreference;
 
@@ -73,7 +80,7 @@ public class Kraken extends TalonFX {
      * @param canBus CANivore Kraken is connected to
      */
     public Kraken(int id, String canBus) {
-        this(id, canBus, false, false);
+        this(id, canBus, false, false, false);
     }
 
     /**
@@ -93,7 +100,7 @@ public class Kraken extends TalonFX {
      * @param inverted inverts input given to motor when set to true
      */
     public Kraken(int id, String canBus, boolean inverted) {
-        this(id, canBus, inverted, false);
+        this(id, canBus, inverted, false, false);
     }
 
     /**
@@ -113,8 +120,8 @@ public class Kraken extends TalonFX {
      * @param inverted inverts input given to motor when set to true
      * @param useFOC uses FOC to enhance motor communication when set to true
      */
-    public Kraken(int id, boolean inverted, boolean useFOC) {
-        this(id, "rio", inverted, useFOC);
+    public Kraken(int id, boolean inverted, boolean useFOC, boolean useTorqueControl) {
+        this(id, "rio", inverted, useFOC, useTorqueControl);
     }
 
     /**
@@ -125,14 +132,19 @@ public class Kraken extends TalonFX {
      * @param canBus CANivore Kraken is connected to
      * @param useFOC uses FOC to enhance motor communication when set to true
      */
-    public Kraken(int id, String canBus, boolean inverted, boolean useFOC) {
+    public Kraken(int id, String canBus, boolean inverted, boolean useFOC, boolean useTorqueControl) {
 
         super(id, canBus);
 
         this.useFOC = useFOC;
+        this.useTorqueControl = useTorqueControl;
 
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
+
+        positionTorqueRequest = new PositionTorqueCurrentFOC(0);
+        velocityTorqueRequest = new VelocityTorqueCurrentFOC(0);
+
         voltageRequest = new VoltageOut(0).withEnableFOC(useFOC);
         percentRequest = new DutyCycleOut(0).withEnableFOC(useFOC);
 
@@ -273,10 +285,15 @@ public class Kraken extends TalonFX {
      */
     public void setTargetPosition(double position, double feedForward, int slot) {
         setControl(
-            positionRequest
-                .withPosition(position / positionConversionFactor)
-                .withFeedForward(feedForward)
-                .withSlot(slot));
+            useTorqueControl 
+                ? positionTorqueRequest
+                    .withPosition(position / positionConversionFactor)
+                    .withFeedForward(feedForward)
+                    .withSlot(slot)
+                : positionRequest
+                    .withPosition(position / positionConversionFactor)
+                    .withFeedForward(feedForward)
+                    .withSlot(slot));
         targetPosition = position;
     }
 
@@ -318,10 +335,15 @@ public class Kraken extends TalonFX {
      */
     public void setTargetVelocity(double velocity, double feedForward, int slot) {
         setControl(
-            velocityRequest
-                .withVelocity(velocity / velocityConversionFactor)
-                .withFeedForward(feedForward)
-                .withSlot(slot));
+            useTorqueControl 
+                ? velocityTorqueRequest
+                    .withVelocity(velocity / velocityConversionFactor)
+                    .withFeedForward(feedForward)
+                    .withSlot(slot)
+                : velocityRequest
+                    .withVelocity(velocity / velocityConversionFactor)
+                    .withFeedForward(feedForward)
+                    .withSlot(slot));
         if (velocity == 0) {
             setVoltageOutput(0.0);
         }
@@ -425,6 +447,7 @@ public class Kraken extends TalonFX {
      * @param canCoderId new CANCoder ID
      */
     public void setEncoder(int canCoderId) {
+        // TODO: REFACTOR THIS TO FUSEDCANCODER ONCE WE HAVE PHOENIX PRO
         feedbackConfigs.FeedbackRemoteSensorID = canCoderId;
         feedbackConfigs.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
         feedbackConfigs.SensorToMechanismRatio = 1.0;

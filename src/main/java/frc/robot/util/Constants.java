@@ -359,7 +359,7 @@ public final class Constants {
 
         public static final double TURNING_MOTOR_REDUCTION = 1;
 
-        public static final boolean INVERT_TURNING_MOTOR = true;
+        public static final boolean INVERT_TURNING_MOTOR = false;
 
         public static final double DRIVING_MOTOR_FREE_SPEED_RPS = KrakenMotorConstants.KRAKENX60_FREE_SPEED_RPM_FOC / 60;
         public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(4);

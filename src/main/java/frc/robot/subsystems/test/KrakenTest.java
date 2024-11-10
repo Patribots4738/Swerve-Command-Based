@@ -13,7 +13,7 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     KrakenTestIOInputsAutoLogged inputs = new KrakenTestIOInputsAutoLogged();
 
     public KrakenTest() {
-        motor = new Kraken(20, "rio", false, true);
+        motor = new Kraken(20, "rio", false, true, false);
         motor.setGains(0.11, 0, 0, 0.1, 0.12);
         motor.setVelocityConversionFactor(60.0);
     }

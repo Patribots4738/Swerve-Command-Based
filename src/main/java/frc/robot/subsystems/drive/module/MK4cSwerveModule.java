@@ -34,8 +34,9 @@ public class MK4cSwerveModule implements ModuleIO {
      * @param index
      */
     public MK4cSwerveModule(int drivingCANId, int turningCANId, int canCoderId, double chassisAngularOffset, int index) {
-        driveMotor = new Kraken(drivingCANId, "rio", false, true);
-        turnMotor = new Kraken(turningCANId, "rio", MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true);
+        // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
+        driveMotor = new Kraken(drivingCANId, "rio", false, true, false);
+        turnMotor = new Kraken(turningCANId, "rio", MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true, false);
         this.canCoderId = canCoderId;
         this.index = index;
         this.chassisAngularOffset = chassisAngularOffset;
@@ -152,7 +153,10 @@ public class MK4cSwerveModule implements ModuleIO {
         turnMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
         turnMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
 
-        turnMotor.setEncoder(this.canCoderId);
+        // We only want to ask for the abs encoder in real life
+        if (!FieldConstants.IS_SIMULATION) {
+            turnMotor.setEncoder(this.canCoderId);
+        }
 
         turnMotor.setPositionClosedLoopWrappingEnabled(true);
 

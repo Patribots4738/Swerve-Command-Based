@@ -283,8 +283,8 @@ public class Swerve extends SubsystemBase {
         SwerveModuleState[] desiredStates = new SwerveModuleState[] {
             new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
             new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-135))
         };
 
         setModuleStates(desiredStates);
