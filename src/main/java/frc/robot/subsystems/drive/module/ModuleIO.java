@@ -10,17 +10,21 @@ public interface ModuleIO {
     @AutoLog
     class ModuleIOInputs {
 
+        public boolean driverMotorConnected = false;
         public double drivePositionMeters = 0.0; 
         public double driveVelocityMPS = 0.0;
         public double driveAppliedVolts = 0.0;
         public double driveSupplyCurrentAmps = 0.0;
         public double driveStatorCurrentAmps = 0.0;
+        public double driveTempCelcius = 0.0;
 
+        public boolean turnMotorConnected = false;
         public double turnPositionRads = 0.0;
         public double turnVelocityRadsPerSec = 0.0;
         public double turnAppliedVolts = 0.0;
         public double turnSupplyCurrentAmps = 0.0;
         public double turnStatorCurrentAmps = 0.0;
+        public double turnTempCelcius = 0.0;
 
         public SwerveModulePosition position = new SwerveModulePosition();
         public SwerveModuleState state = new SwerveModuleState();

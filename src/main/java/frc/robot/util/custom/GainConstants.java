@@ -8,20 +8,25 @@ package frc.robot.util.custom;
 public class GainConstants {
 
     // Generic
-    private final double P; 
-    private final double I;
-    private final double D;
+    private double P; 
+    private double I;
+    private double D;
 
     // Spark
-    private final double FF;
-    private final double iZone;
-    private final double minOutput;
-    private final double maxOutput;
+    private double FF;
+    private double iZone;
+    private double minOutput;
+    private double maxOutput;
 
     // Talon
-    private final double S;
-    private final double V;
-    private final double G;
+    private double S;
+    private double V;
+    private double G;
+
+    // Generic
+    public GainConstants() {
+        this(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
 
     // Generic
     public GainConstants(double P, double I, double D) {
@@ -100,6 +105,53 @@ public class GainConstants {
 
     public double getG() {
         return G;
+    }
+
+    public GainConstants withP(double P) {
+        this.P = P;
+        return this;
+    }
+
+    public GainConstants withI(double I) {
+        this.I = I;
+        return this;
+    }
+
+    public GainConstants withD(double D) {
+        this.D = D;
+        return this;
+    }
+
+    public GainConstants withS(double S) {
+        this.S = S;
+        return this;
+    }
+
+    public GainConstants withV(double V) {
+        this.V = V;
+        return this;
+    }
+
+    public GainConstants withG(double G) {
+        this.G = G;
+        return this;
+    }
+
+    public GainConstants withGains(double P, double I, double D, double S, double V, double G) {
+        this.P = P;
+        this.I = I;
+        this.D = D;
+        this.S = S;
+        this.V = V;
+        this.G = G;
+        return this;
+    }
+
+    public GainConstants withPID(double P, double I, double D) {
+        this.P = P;
+        this.I = I;
+        this.D = D;
+        return this;
     }
 
 }

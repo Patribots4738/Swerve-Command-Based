@@ -49,20 +49,22 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public void updateInputs() {
-        driveMotor.refreshStatusSignals();
-        turnMotor.refreshStatusSignals();
-        
+
+        inputs.driverMotorConnected = driveMotor.isConnected();
         inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
         inputs.driveVelocityMPS = driveMotor.getVelocityAsDouble();
         inputs.driveAppliedVolts = driveMotor.getVoltageAsDouble();
         inputs.driveSupplyCurrentAmps = driveMotor.getSupplyCurrentAsDouble();
         inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
+        inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
         
+        inputs.turnMotorConnected = turnMotor.isConnected();
         inputs.turnPositionRads = turnMotor.getPositionAsDouble();
         inputs.turnVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
         inputs.turnAppliedVolts = turnMotor.getVoltageAsDouble();
         inputs.turnSupplyCurrentAmps = turnMotor.getSupplyCurrentAsDouble();
         inputs.turnStatorCurrentAmps = turnMotor.getStatorCurrentAsDouble();
+        inputs.turnTempCelcius = turnMotor.getTemperatureAsDouble();
 
         inputs.position = new SwerveModulePosition(
             inputs.drivePositionMeters,
@@ -152,10 +154,10 @@ public class MK4cSwerveModule implements ModuleIO {
 
         turnMotor.setEncoder(this.canCoderId);
 
-        turnMotor.setPositionPIDWrappingEnabled(true);
+        turnMotor.setPositionClosedLoopWrappingEnabled(true);
 
         driveMotor.setGains(MK4cSwerveModuleConstants.DRIVING_GAINS);
-        turnMotor.setPID(MK4cSwerveModuleConstants.TURNING_GAINS);
+        turnMotor.setGains(MK4cSwerveModuleConstants.TURNING_GAINS);
 
         driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
         turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);

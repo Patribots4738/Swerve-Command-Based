@@ -7,6 +7,7 @@ public interface KrakenTestIO {
     @AutoLog
     class KrakenTestIOInputs {
 
+        public boolean krakenConnected = false;
         public double positionRotations = 0.0;
         public double targetPositionRotations = 0.0;
         public double velocityRPM = 0.0;
@@ -14,6 +15,7 @@ public interface KrakenTestIO {
         public double appliedVolts = 0.0;
         public double targetPercent = 0.0;
         public double statorCurrentAmps = 0.0;
+        public double tempCelcius = 0.0;
 
     }
 

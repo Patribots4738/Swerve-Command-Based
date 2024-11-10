@@ -9,10 +9,11 @@ import frc.robot.util.hardware.phoenix.Kraken;
 
 public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     
-    private Kraken motor = new Kraken(20, "rio", false, true);
+    private Kraken motor;
     KrakenTestIOInputsAutoLogged inputs = new KrakenTestIOInputsAutoLogged();
 
     public KrakenTest() {
+        motor = new Kraken(20, "rio", false, true);
         motor.setGains(0.11, 0, 0, 0.1, 0.12);
         motor.setVelocityConversionFactor(60.0);
     }
@@ -40,6 +41,7 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
     }
 
     public void updateInputs(KrakenTestIOInputs inputs) {
+        inputs.krakenConnected = motor.isConnected();
         inputs.positionRotations = motor.getPositionAsDouble();
         inputs.targetPositionRotations = motor.getTargetPosition();
         inputs.velocityRPM = motor.getVelocityAsDouble();
@@ -47,6 +49,7 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
         inputs.appliedVolts = motor.getVoltageAsDouble();
         inputs.targetPercent = motor.getTargetPercent();
         inputs.statorCurrentAmps = motor.getStatorCurrentAsDouble();
+        inputs.tempCelcius = motor.getTemperatureAsDouble();
     }
 
 }

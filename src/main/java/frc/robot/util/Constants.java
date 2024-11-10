@@ -394,7 +394,7 @@ public final class Constants {
             false
         );
 
-        public static final double TURNING_P = 2.5;
+        public static final double TURNING_P = 4.0;
         public static final double TURNING_I = 0;
         public static final double TURNING_D = 0.1;
 
@@ -469,6 +469,9 @@ public final class Constants {
     public static final class KrakenMotorConstants {
         public static final double KRAKENX60_FREE_SPEED_RPM = 6000;
         public static final double KRAKENX60_FREE_SPEED_RPM_FOC = 5800;
+
+        public static final double TALONFX_SLOW_UPDATE_FREQ_HZ = 4;
+        public static final double TALONFX_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
         public static final HashMap<Integer, Kraken> KRAKEN_MOTOR_MAP = new HashMap<Integer, Kraken>();
 

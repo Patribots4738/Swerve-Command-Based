@@ -1,19 +1,20 @@
 package frc.robot.util.hardware.phoenix;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
-import com.ctre.phoenix6.configs.Slot2Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -31,29 +32,39 @@ public class Kraken extends TalonFX {
     private double targetVelocity = 0.0;
     private double targetPercent = 0.0;
 
-    private final TalonFXConfigurator configurator;
-    private final TalonFXSimState sim;
-
-    private DCMotorSim motorSimModel;
-
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
 
+    private final TalonFXConfigurator configurator = getConfigurator();
+    private final TalonFXSimState sim = getSimState();
+
+    private final SlotConfigs slotConfigs = new SlotConfigs();
+    private final CurrentLimitsConfigs currentLimitConfigs = new CurrentLimitsConfigs();
+    private final MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
+    private final ClosedLoopGeneralConfigs closedLoopConfigs = new ClosedLoopGeneralConfigs();
+    private final FeedbackConfigs feedbackConfigs = new FeedbackConfigs();
+
+    private DCMotorSim motorSimModel;
+
     private final PositionVoltage positionRequest;
     private final VelocityVoltage velocityRequest;
+    private final VoltageOut voltageRequest;
+    private final DutyCycleOut percentRequest;
 
-    private StatusSignal<Double> positionSignal;
-    private StatusSignal<Double> velocitySignal;
-    private StatusSignal<Double> voltageSignal;
-    private StatusSignal<Double> supplyCurrentSignal;
-    private StatusSignal<Double> statorCurrentSignal;   
-    private StatusSignal<Double> torqueCurrentSignal;
+    private final StatusSignal<Double> positionSignal;
+    private final StatusSignal<Double> velocitySignal;
+    private final StatusSignal<Double> voltageSignal;
+    private final StatusSignal<Double> percentSignal;
+    private final StatusSignal<Double> supplyCurrentSignal;
+    private final StatusSignal<Double> statorCurrentSignal;   
+    private final StatusSignal<Double> torqueCurrentSignal;
+    private final StatusSignal<Double> temperatureSignal;
 
-    private final Slot0Configs slot0Configs = new Slot0Configs();
-    private final Slot1Configs slot1Configs = new Slot1Configs();
-    private final Slot2Configs slot2Configs = new Slot2Configs();
+    private final GainConstants[] gains;
 
-    private boolean useFOC;
+    private final boolean useFOC;
+
+    private TelemetryPreference telemetryPreference;
 
     /**
      * Creates new Kraken motor.
@@ -115,17 +126,113 @@ public class Kraken extends TalonFX {
      * @param useFOC uses FOC to enhance motor communication when set to true
      */
     public Kraken(int id, String canBus, boolean inverted, boolean useFOC) {
+
         super(id, canBus);
+
         this.useFOC = useFOC;
-        configurator = getConfigurator();
-        sim = getSimState();
+
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
-        setStatusSignals();
-        // optimizeBusUtilization();
+        voltageRequest = new VoltageOut(0).withEnableFOC(useFOC);
+        percentRequest = new DutyCycleOut(0).withEnableFOC(useFOC);
+
+        gains = new GainConstants[] { new GainConstants(), new GainConstants(), new GainConstants() };
+
+        positionSignal = super.getPosition();
+        velocitySignal = super.getVelocity();
+        voltageSignal = super.getMotorVoltage();
+        percentSignal = super.getDutyCycle();
+        supplyCurrentSignal = super.getSupplyCurrent();
+        statorCurrentSignal = super.getStatorCurrent();
+        torqueCurrentSignal = super.getTorqueCurrent();
+        temperatureSignal = super.getDeviceTemp();
+
+        setTelemetryPreference(TelemetryPreference.DEFAULT);
+        optimizeBusUtilization(0, 1.0);
+
         setInverted(inverted);
         setBrakeMode();
         register();
+
+    }
+
+    public enum TelemetryPreference {
+        DEFAULT,
+        ENCODER_ONLY,
+        NO_ENCODER,
+        PERCENT_ONLY
+    }
+
+    /**
+     * Changes the update frequency of certain status fields based on the preference
+     * 
+     * @param newPreference the new telemetry mode to switch to
+     */
+    public void setTelemetryPreference(TelemetryPreference newPreference) {
+        telemetryPreference = newPreference;
+
+        switch(telemetryPreference) {
+            case ENCODER_ONLY:
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                    positionSignal,
+                    velocitySignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    voltageSignal,
+                    percentSignal,
+                    supplyCurrentSignal,
+                    statorCurrentSignal,
+                    torqueCurrentSignal,
+                    temperatureSignal
+                );
+                break;
+            case NO_ENCODER:
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                    voltageSignal,
+                    percentSignal,
+                    supplyCurrentSignal,
+                    statorCurrentSignal,
+                    torqueCurrentSignal,
+                    temperatureSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    positionSignal,
+                    velocitySignal
+                );
+                break;
+            case PERCENT_ONLY:
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                    percentSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    positionSignal,
+                    velocitySignal,
+                    voltageSignal,
+                    supplyCurrentSignal,
+                    statorCurrentSignal,
+                    torqueCurrentSignal,
+                    temperatureSignal
+                );
+                break;
+            default:
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                    positionSignal,
+                    velocitySignal,
+                    voltageSignal,
+                    percentSignal,
+                    supplyCurrentSignal,
+                    statorCurrentSignal,
+                    torqueCurrentSignal,
+                    temperatureSignal
+                );
+        }
     }
 
     /**
@@ -216,31 +323,28 @@ public class Kraken extends TalonFX {
                 .withFeedForward(feedForward)
                 .withSlot(slot));
         if (velocity == 0) {
-            setVoltage(0);
+            setVoltageOutput(0.0);
         }
         targetVelocity = velocity;
     }
 
     /**
-     * Sets the speed of Kraken using percent of its maximum output.
+     * Directly sets the output of Kraken using percent of its maximum output.
      * 
      * @param percent should be between 1.0 to -1.0
      */
-    @Override
-    public void set(double percent) {
-        super.set(percent);
-        if (percent == 0) {
-            setVoltage(0);
-        }
+    public void setPercentOutput(double percent) {
+        setControl(percentRequest.withOutput(percent));
         targetPercent = percent;
     }
 
     /**
-     * Sets the speed of the Kraken to 0.
+     * Directly sets the output of the Kraken using volts
+     * 
+     * @param volts the voltage to set to, automatically capped at the supply voltage
      */
-    @Override 
-    public void stopMotor() {
-        set(0);
+    public void setVoltageOutput(double volts) {
+        setControl(voltageRequest.withOutput(volts));
     }
 
     /**
@@ -267,10 +371,9 @@ public class Kraken extends TalonFX {
      * @param currentLimit maximum allowable current
      */
     public void setSupplyCurrentLimit(double currentLimit) {
-        CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
-        configs.SupplyCurrentLimit = currentLimit;
-        configs.SupplyCurrentLimitEnable = true;
-        configurator.apply(configs);
+        currentLimitConfigs.SupplyCurrentLimit = currentLimit;
+        currentLimitConfigs.SupplyCurrentLimitEnable = true;
+        configurator.apply(currentLimitConfigs);
     }
 
     /**
@@ -279,10 +382,9 @@ public class Kraken extends TalonFX {
      * @param currentLimit maximum allowable current
      */
     public void setStatorCurrentLimit(double currentLimit) {
-        CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
-        configs.StatorCurrentLimit = currentLimit;
-        configs.StatorCurrentLimitEnable = true;
-        configurator.apply(configs);
+        currentLimitConfigs.StatorCurrentLimit = currentLimit;
+        currentLimitConfigs.StatorCurrentLimitEnable = true;
+        configurator.apply(currentLimitConfigs);
     }
 
     /**
@@ -305,30 +407,28 @@ public class Kraken extends TalonFX {
      * Puts the Kraken in brake mode and it can not move.
      */
     public void setBrakeMode() {
-        MotorOutputConfigs config = new MotorOutputConfigs();
-        config.NeutralMode = NeutralModeValue.Brake;
-        configurator.apply(config);
+        outputConfigs.NeutralMode = NeutralModeValue.Brake;
+        configurator.apply(outputConfigs);
     }
 
     /**
      * Puts the Kraken in coast mode and the motor can spin freely.
      */
     public void setCoastMode() {
-        MotorOutputConfigs config = new MotorOutputConfigs();
-        config.NeutralMode = NeutralModeValue.Coast;
-        configurator.apply(config);
+        outputConfigs.NeutralMode = NeutralModeValue.Coast;
+        configurator.apply(outputConfigs);
     }
 
     /**
-     * Sets the ID of the Kraken's encoder.
+     * Sets the ID of the Kraken's CANCoder.
      * 
-     * @param canCoderId new encoder IF
+     * @param canCoderId new CANCoder ID
      */
     public void setEncoder(int canCoderId) {
-        FeedbackConfigs configs = new FeedbackConfigs();
-        configs.FeedbackRemoteSensorID = canCoderId;
-        configs.SensorToMechanismRatio = 1.0;
-        configurator.apply(configs);
+        feedbackConfigs.FeedbackRemoteSensorID = canCoderId;
+        feedbackConfigs.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+        feedbackConfigs.SensorToMechanismRatio = 1.0;
+        configurator.apply(feedbackConfigs);
     }
 
     /**
@@ -336,10 +436,9 @@ public class Kraken extends TalonFX {
      * 
      * @param enabled set to true if wrapping is enabled
      */
-    public void setPositionPIDWrappingEnabled(boolean enabled) {
-        ClosedLoopGeneralConfigs configs = new ClosedLoopGeneralConfigs();
-        configs.ContinuousWrap = enabled;
-        configurator.apply(configs);
+    public void setPositionClosedLoopWrappingEnabled(boolean enabled) {
+        closedLoopConfigs.ContinuousWrap = enabled;
+        configurator.apply(closedLoopConfigs);
     }
 
     /**
@@ -412,7 +511,7 @@ public class Kraken extends TalonFX {
      * @return current position
      */
     public double getPositionAsDouble() {
-        return super.getPosition().getValue() * positionConversionFactor;        
+        return positionSignal.getValue() * positionConversionFactor;        
     }
 
     /**
@@ -421,7 +520,7 @@ public class Kraken extends TalonFX {
      * @return current velocity
      */
     public double getVelocityAsDouble() {
-        return super.getVelocity().getValue() * velocityConversionFactor;
+        return velocitySignal.getValue() * velocityConversionFactor;
     }
 
     /**
@@ -430,7 +529,16 @@ public class Kraken extends TalonFX {
      * @return current voltage
      */
     public double getVoltageAsDouble() {
-        return super.getMotorVoltage().getValue();
+        return voltageSignal.getValue();
+    }
+
+    /**
+     * Obtains the current duty cycle output percentage of the Kraken as a double.
+     * 
+     * @return current percent
+     */
+    public double getPercentAsDouble() {
+        return percentSignal.getValue();
     }
 
     /**
@@ -439,7 +547,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to Kraken
      */
     public double getSupplyCurrentAsDouble() {
-        return super.getSupplyCurrent().getValue();
+        return supplyCurrentSignal.getValue();
     }
 
     /**
@@ -448,7 +556,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to stator
      */
     public double getStatorCurrentAsDouble() {
-        return super.getStatorCurrent().getValue();
+        return statorCurrentSignal.getValue();
     }
 
     /**
@@ -457,25 +565,57 @@ public class Kraken extends TalonFX {
      * @return torque current
      */
     public double getTorqueCurrentAsDouble() {
-        return super.getTorqueCurrent().getValue();
+        return torqueCurrentSignal.getValue();
     }
 
-    public void setStatusSignals() {
-        positionSignal = super.getPosition();
-        velocitySignal = super.getVelocity();
-        voltageSignal = super.getMotorVoltage();
-        supplyCurrentSignal = super.getSupplyCurrent();
-        statorCurrentSignal = super.getStatorCurrent();
-        torqueCurrentSignal = super.getTorqueCurrent();
+    /**
+     * Represents the current motor temperature in celcius as a double.
+     * 
+     * @return motor temp. in celcius
+     */
+    public double getTemperatureAsDouble() {
+        return temperatureSignal.getValue();
     }
 
-    public void refreshStatusSignals() {
-        positionSignal.refresh();
-        velocitySignal.refresh();
-        voltageSignal.refresh();
-        supplyCurrentSignal.refresh();
-        statorCurrentSignal.refresh();
-        torqueCurrentSignal.refresh();
+    /**
+     * Based on the telemetry preference, check if every needed status signal 
+     * is able to be successfully refreshed
+     * 
+     * @return whether the motor is connected or not
+     */
+    public boolean isConnected() {
+        return 
+            switch(telemetryPreference) {
+                case NO_ENCODER -> 
+                    BaseStatusSignal.refreshAll(
+                        voltageSignal,
+                        percentSignal,
+                        supplyCurrentSignal,
+                        statorCurrentSignal,
+                        torqueCurrentSignal,
+                        temperatureSignal
+                    ).isOK();
+                case PERCENT_ONLY ->
+                    BaseStatusSignal.refreshAll(
+                        percentSignal
+                    ).isOK();
+                case ENCODER_ONLY ->
+                    BaseStatusSignal.refreshAll(
+                        positionSignal,
+                        velocitySignal
+                    ).isOK();
+                default ->
+                    BaseStatusSignal.refreshAll(
+                        positionSignal,
+                        velocitySignal,
+                        voltageSignal,
+                        percentSignal,
+                        supplyCurrentSignal,
+                        statorCurrentSignal,
+                        torqueCurrentSignal,
+                        temperatureSignal
+                    ).isOK();
+            };
     }
 
     /**
@@ -506,16 +646,38 @@ public class Kraken extends TalonFX {
 
     }
 
-    public void applySlot0Gains(Slot0Configs configs) {
-        configurator.apply(configs);
+    /**
+     * Given a set of gains and a gain slot, applies them with the TalonFX's configurator
+     * 
+     * @param appliedGains the set of gains to apply
+     * @param slot the gain slot to configure
+     */
+    private void applyGains(GainConstants appliedGains, int slot) {
+        slotConfigs.SlotNumber = slot;
+        slotConfigs.kP = appliedGains.getP();
+        slotConfigs.kI = appliedGains.getI();
+        slotConfigs.kD = appliedGains.getD();
+        slotConfigs.kS = appliedGains.getS();
+        slotConfigs.kV = appliedGains.getV();
+        slotConfigs.kG = appliedGains.getG();
+        configurator.apply(slotConfigs);
     }
 
-    public void applySlot1Gains(Slot1Configs configs) {
-        configurator.apply(configs);
-    }
-
-    public void applySlot2Gains(Slot2Configs configs) {
-        configurator.apply(configs);
+    /**
+     * Configures the slot gains for a given slot
+     * 
+     * @param slot the gain slot to configure
+     */
+    private void applyGains(int slot) {
+        GainConstants appliedGains = gains[slot];
+        slotConfigs.SlotNumber = slot;
+        slotConfigs.kP = appliedGains.getP();
+        slotConfigs.kI = appliedGains.getI();
+        slotConfigs.kD = appliedGains.getD();
+        slotConfigs.kS = appliedGains.getS();
+        slotConfigs.kV = appliedGains.getV();
+        slotConfigs.kG = appliedGains.getG();
+        configurator.apply(slotConfigs);
     }
 
     /**
@@ -530,29 +692,7 @@ public class Kraken extends TalonFX {
      * @param slot slot for gains to be added to 
      */
     public void setGains(double P, double I, double D, double S, double V, double G, int slot)  {
-        if (slot == 0) {
-            slot0Configs.kP = P;
-            slot0Configs.kI = I;
-            slot0Configs.kD = D;
-            slot0Configs.kS = S;
-            slot0Configs.kV = V;
-            applySlot0Gains(slot0Configs);
-        } else if (slot == 1) {
-            slot1Configs.kP = P;
-            slot1Configs.kI = I;
-            slot1Configs.kD = D;
-            slot1Configs.kS = S;
-            slot1Configs.kV = V;
-            applySlot1Gains(slot1Configs);
-        } else {
-            slot2Configs.kP = P;
-            slot2Configs.kI = I;
-            slot2Configs.kD = D;
-            slot2Configs.kS = S;
-            slot2Configs.kV = V;
-            applySlot2Gains(slot2Configs);
-        }
-        
+        applyGains(gains[slot].withGains(P, I, D, S, V, G), slot);
     }
 
     /**
@@ -582,12 +722,24 @@ public class Kraken extends TalonFX {
         setGains(P, I, D, S, V, 0, 0);
     }
 
+    /**
+     * Sets the gains for the specified slot.
+     * 
+     * @param constants the gains to set
+     * @param slot the gain slot to configure
+     */
     public void setGains(GainConstants constants, int slot) {
-        setGains(constants.getP(), constants.getI(), constants.getD(), constants.getS(), constants.getV(), constants.getG(), slot);
+        gains[slot] = constants;
+        applyGains(slot);
     }
 
+    /**
+     * Sets the gains for the specified slot.
+     * 
+     * @param constants the gains to set
+     */
     public void setGains(GainConstants constants) {
-        setGains(constants.getP(), constants.getI(), constants.getD(), constants.getS(), constants.getV(), constants.getG());
+        setGains(constants, 0);
     }
 
     /**
@@ -599,7 +751,7 @@ public class Kraken extends TalonFX {
      * @param slot slot for gains to be added to 
      */
     public void setPID(double P, double I, double D, int slot) {
-        setGains(P, I, D, 0, 0, 0, slot);
+        applyGains(gains[slot].withPID(P, I, D), slot);
     }
 
     /**
@@ -610,132 +762,233 @@ public class Kraken extends TalonFX {
      * @param D derivative gains
      */
     public void setPID(double P, double I, double D) {
-        setPID(P, I , D, 0);
+        setPID(P, I, D, 0);
     }
 
     /**
-     * Sets the PID gains for the specified slot using GainConstants.
+     * Sets the proportional gain for the specified slot
      * 
-     * @param constants PID constants from GainConstants
-     * @param slot slot for gains to be added to 
+     * @param P proportional gain
+     * @param slot the gain slot to configure
      */
-    public void setPID(GainConstants constants, int slot) {
-        setPID(constants.getP(), constants.getI(), constants.getD(), slot);
+    public void setP(double P, int slot) {
+        applyGains(gains[slot].withP(P), slot);
     }
 
     /**
-     * Sets the PID gains for the slot 0 using GainConstants.
+     * Sets the proportional gain for slot 0
      * 
-     * @param constants PID constants from GainConstants
+     * @param P proportional gain
      */
-    public void setPID(GainConstants constants) {
-        setPID(constants, 0);
-    }
-
     public void setP(double P) {
-        slot0Configs.kP = P;
-        applySlot0Gains(slot0Configs);
+        setP(P, 0);
     }
 
+    /**
+     * Sets the integral gain for the specified slot
+     * 
+     * @param I integral gain
+     * @param slot the gain slot to configure
+     */
+    public void setI(double I, int slot) {
+        applyGains(gains[slot].withI(I), slot);
+    }
+
+    /**
+     * Sets the integral gain for slot 0
+     * 
+     * @param I integral gain
+     */
     public void setI(double I) {
-        slot0Configs.kI = I;
-        applySlot0Gains(slot0Configs);
+        setI(I, 0);
     }
 
+    /**
+     * Sets the derivative gain for the specified slot
+     * 
+     * @param D derivative gain
+     * @param slot the gain slot to configure
+     */
+    public void setD(double D, int slot) {
+        applyGains(gains[slot].withD(D), slot);
+    }
+
+    /**
+     * Sets the derivative gain for slot 0
+     * 
+     * @param D derivative gain
+     */
     public void setD(double D) {
-        slot0Configs.kD = D;
-        applySlot0Gains(slot0Configs);
+        setD(D, 0);
     }
 
+    /**
+     * Sets the static feedforward gain for the specified slot
+     * 
+     * @param S static feedforward gain
+     * @param slot the gain slot to configure
+     */
+    public void setS(double S, int slot) {
+        applyGains(gains[slot].withS(S), slot);
+    }
+
+    /**
+     * Sets the static feedforward gain for slot 0
+     * 
+     * @param S static feedforward gain
+     */
     public void setS(double S) {
-        slot0Configs.kS = S;
-        applySlot0Gains(slot0Configs);
+        setS(S, 0);
     }
 
+    /**
+     * Sets the velocity feedforward gain for the specified slot
+     * 
+     * @param V velocity feedforward gain
+     * @param slot the gain slot to configure
+     */
+    public void setV(double V, int slot) {
+        applyGains(gains[slot].withV(V), slot);
+    }
+
+    /**
+     * Sets the velocity feedforward gain for slot 0
+     * 
+     * @param V velocity feedforward gain
+     */
     public void setV(double V) {
-        slot0Configs.kV = V;
-        applySlot0Gains(slot0Configs);
+        setV(V, 0);
     }
 
+    /**
+     * Sets the gravitational feedforward gain for the specified slot
+     * 
+     * @param G gravitational feedforward gain
+     * @param slot the gain slot to configure
+     */
+    public void setG(double G, int slot) {
+        applyGains(gains[slot].withG(G), slot);
+    }
+
+    /**
+     * Sets the gravitational feedforward gain for slot 0
+     * 
+     * @param G gravitational feedforward gain
+     */
     public void setG(double G) {
-        slot0Configs.kG = G;
-        applySlot0Gains(slot0Configs);
+        setG(G, 0);
     }
 
+    /**
+     * Gets the proportional gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the proportional gain
+     */
     public double getP(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kP;
-        } else if (slot == 1) {
-            return slot1Configs.kP;
-        }
-        return slot2Configs.kP;
+        return gains[slot].getP();
     }
 
+    /**
+     * Gets the proportional gain from slot 0
+     * 
+     * @return the proportional gain
+     */
     public double getP() {
         return getP(0);
     }
 
+    /**
+     * Gets the integral gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the integral gain
+     */
     public double getI(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kI;
-        } else if (slot == 1) {
-            return slot1Configs.kI;
-        }
-        return slot2Configs.kI;
+        return gains[slot].getI();
     }
 
+    /**
+     * Gets the integral gain from slot 0
+     * 
+     * @return the integral gain
+     */
     public double getI() {
         return getI(0);
     }
 
+    /**
+     * Gets the derivative gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the derivative gain
+     */
     public double getD(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kD;
-        } else if (slot == 1) {
-            return slot1Configs.kD;
-        }
-        return slot2Configs.kD;
+        return gains[slot].getD();
     }
 
+    /**
+     * Gets the derivative gain from slot 0
+     * 
+     * @return the derivative gain
+     */
     public double getD() {
         return getD(0);
     }
 
+    /**
+     * Gets the static feedforward gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the static feedforward gain
+     */
     public double getS(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kS;
-        } else if (slot == 1) {
-            return slot1Configs.kS;
-        }
-        return slot2Configs.kS;
+        return gains[slot].getS();
     }
 
+    /**
+     * Gets the static feedforward gain from slot 0
+     * 
+     * @return the static feedforward gain
+     */
     public double getS() {
         return getS(0);
     }
 
+    /**
+     * Gets the velocity feedforward gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the velocity feedforward gain
+     */
     public double getV(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kV;
-        } else if (slot == 1) {
-            return slot1Configs.kV;
-        }
-        return slot2Configs.kV;
+        return gains[slot].getV();
     }
 
+    /**
+     * Gets the velocity feedforward gain from slot 0
+     * 
+     * @return the velocity feedforward gain
+     */
     public double getV() {
         return getV(0);
     }
 
+    /**
+     * Gets the gravitational feedforward gain from the specified slot
+     * 
+     * @param slot the slot to get the gain from
+     * @return the gravitational feedforward gain
+     */
     public double getG(int slot) {
-        if (slot == 0) {
-            return slot0Configs.kG;
-        } else if (slot == 1) {
-            return slot1Configs.kG;
-        }
-        return slot2Configs.kG;
+        return gains[slot].getG();
     }
 
+    /**
+     * Gets the gravitational feedforward gain from slot 0
+     * 
+     * @return the gravitational feedforward gain
+     */
     public double getG() {
         return getG(0);
     }
