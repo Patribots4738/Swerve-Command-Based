@@ -377,6 +377,8 @@ public final class Constants {
         public static final double DRIVING_MOTOR_SUPPLY_LIMIT_AMPS = 80.0;
         public static final double TURNING_MOTOR_STATOR_LIMIT_AMPS = 80.0;
         public static final double TURNING_MOTOR_SUPPLY_LIMIT_AMPS = 80.0;
+        public static final double DRIVING_MOTOR_TORQUE_LIMIT_AMPS = 80.0;
+        public static final double TURNING_MOTOR_TORQUE_LIMIT_AMPS = 40.0;
 
         public static final double DRIVING_P = 0.11;
         public static final double DRIVING_I = 0;
@@ -493,6 +495,12 @@ public final class Constants {
 
             return KRAKEN_MOTOR_GROUPS;
         }
+
+    }
+
+    public static final class CANCoderConstants {
+
+        public static final double ENCODER_UPDATE_FREQ_HZ = 500;
 
     }
 

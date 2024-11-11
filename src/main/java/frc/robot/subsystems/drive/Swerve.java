@@ -150,7 +150,11 @@ public class Swerve extends SubsystemBase {
         updateAndProcessSwerveModuleInputs();
         updateAndProcessGyroInputs();
         gyroRotation2d = gyro.getYawRotation2D();
-        poseEstimator.updateWithTime(Timer.getFPGATimestamp(), gyroRotation2d, getModulePositions());
+
+        // TalonFX position is capped at 16000 rotations, and flips when overflowed, messing up pose
+        if (!getModuleDrivePositionsFlipped()) {
+            poseEstimator.updateWithTime(Timer.getFPGATimestamp(), gyroRotation2d, getModulePositions());
+        }
         
         logPositions();
     }
@@ -234,6 +238,15 @@ public class Swerve extends SubsystemBase {
 
     public Rotation2d getGyroRotation2d() {
         return this.gyroRotation2d;
+    }
+
+    public boolean getModuleDrivePositionsFlipped() {
+        for (ModuleIO module : swerveModules) {
+            if (module.getDrivePositionFlipped()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public SwerveDrivePoseEstimator getPoseEstimator() {

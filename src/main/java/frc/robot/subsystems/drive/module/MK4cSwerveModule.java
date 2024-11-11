@@ -7,12 +7,14 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.hardware.phoenix.CANCoderCustom;
 import frc.robot.util.hardware.phoenix.Kraken;
 
 public class MK4cSwerveModule implements ModuleIO {
 
     private final Kraken driveMotor;
     private final Kraken turnMotor;
+    private final CANCoderCustom turnEncoder;
 
     private final int canCoderId;
 
@@ -37,12 +39,14 @@ public class MK4cSwerveModule implements ModuleIO {
         // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
         driveMotor = new Kraken(drivingCANId, "rio", false, true, false);
         turnMotor = new Kraken(turningCANId, "rio", MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true, false);
+        turnEncoder = new CANCoderCustom(canCoderId, "rio");
         this.canCoderId = canCoderId;
         this.index = index;
         this.chassisAngularOffset = chassisAngularOffset;
         resetEncoders();
         configMotors();
-        desiredState.angle = new Rotation2d(turnMotor.getPositionAsDouble());
+        configEncoder();
+        desiredState.angle = new Rotation2d(turnEncoder.getPosition().refresh().getValue());
     }
 
     /**
@@ -51,7 +55,10 @@ public class MK4cSwerveModule implements ModuleIO {
     @Override
     public void updateInputs() {
 
+        // Call isConnected() to refresh all status signals
         inputs.driverMotorConnected = driveMotor.isConnected();
+        // 800 m is roughly the value at which the talonfx position "flips", leading to odometry bugs
+        inputs.drivePositionFlipped = (inputs.drivePositionMeters > 800 && driveMotor.getPositionAsDouble() < -800);
         inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
         inputs.driveVelocityMPS = driveMotor.getVelocityAsDouble();
         inputs.driveAppliedVolts = driveMotor.getVoltageAsDouble();
@@ -59,20 +66,24 @@ public class MK4cSwerveModule implements ModuleIO {
         inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
         inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
         
+        // Call isConnected() to refresh all status signals
         inputs.turnMotorConnected = turnMotor.isConnected();
-        inputs.turnPositionRads = turnMotor.getPositionAsDouble();
-        inputs.turnVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
+        inputs.turnInternalPositionRads = turnMotor.getPositionAsDouble();
+        inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
         inputs.turnAppliedVolts = turnMotor.getVoltageAsDouble();
         inputs.turnSupplyCurrentAmps = turnMotor.getSupplyCurrentAsDouble();
         inputs.turnStatorCurrentAmps = turnMotor.getStatorCurrentAsDouble();
         inputs.turnTempCelcius = turnMotor.getTemperatureAsDouble();
 
-        inputs.position = new SwerveModulePosition(
-            inputs.drivePositionMeters,
-            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
-        
-        inputs.state = new SwerveModuleState(inputs.driveVelocityMPS,
-            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
+        // Call isConnected() to refresh all status signals, but only if turn encoder is real
+        if (!FieldConstants.IS_SIMULATION) {
+            inputs.turnEncoderConnected = turnEncoder.isConnected();
+        }
+
+        inputs.turnEncoderAbsPositionRads = inputs.turnEncoderConnected ? turnEncoder.getAbsolutePositionAsDouble() : inputs.turnInternalPositionRads;
+        inputs.turnEncoderPositionRads = inputs.turnEncoderConnected ? turnEncoder.getPositionAsDouble() : inputs.turnInternalPositionRads;
+        inputs.turnEncoderVelocityRadsPerSec = inputs.turnEncoderConnected ? turnEncoder.getVelocityAsDouble() : inputs.turnInternalVelocityRadsPerSec;
+
     }
 
     /**
@@ -98,7 +109,7 @@ public class MK4cSwerveModule implements ModuleIO {
         // Optimize the reference state to avoid spinning further than 90 degrees.
         if (!FieldConstants.IS_SIMULATION) {
             correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                    new Rotation2d(inputs.turnPositionRads));
+                    new Rotation2d(inputs.turnEncoderAbsPositionRads));
         }
 
         // Command driving and turning TalonFX towards their respective setpoints.
@@ -115,7 +126,7 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public void resetEncoders()  {
-        driveMotor.resetEncoder();
+        driveMotor.resetEncoder(0);
     }
 
     /**
@@ -139,7 +150,7 @@ public class MK4cSwerveModule implements ModuleIO {
     /**
      * Configures MK4c module's encoders, conversion factor, PID, and current limit.
      */
-    public void configMotors() {
+    private void configMotors() {
 
         // Apply position and velocity conversion factors for the driving encoder. The
         // native units for position and velocity are rotations and RPM, respectively,
@@ -155,7 +166,7 @@ public class MK4cSwerveModule implements ModuleIO {
 
         // We only want to ask for the abs encoder in real life
         if (!FieldConstants.IS_SIMULATION) {
-            turnMotor.setEncoder(this.canCoderId);
+            turnMotor.setEncoder(this.canCoderId, MK4cSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
         }
 
         turnMotor.setPositionClosedLoopWrappingEnabled(true);
@@ -169,7 +180,19 @@ public class MK4cSwerveModule implements ModuleIO {
         driveMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_SUPPLY_LIMIT_AMPS);
         turnMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_SUPPLY_LIMIT_AMPS);
 
+        driveMotor.setTorqueCurrentLimits(
+            -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
+            MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS);
+        turnMotor.setTorqueCurrentLimits(
+            -MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS,
+            MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS);
+
         setBrakeMode();
+    }
+
+    private void configEncoder() {
+        turnEncoder.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnEncoder.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
     }
 
     /**
@@ -179,7 +202,8 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public SwerveModuleState getState() {
-        return inputs.state;
+        return new SwerveModuleState(inputs.driveVelocityMPS,
+            new Rotation2d(inputs.turnEncoderAbsPositionRads - chassisAngularOffset));
     }
 
     /**
@@ -199,7 +223,9 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public SwerveModulePosition getPosition() {
-        return inputs.position;
+        return new SwerveModulePosition(
+            inputs.drivePositionMeters,
+            new Rotation2d(inputs.turnEncoderAbsPositionRads - chassisAngularOffset));
     }
 
     /** 
@@ -209,6 +235,11 @@ public class MK4cSwerveModule implements ModuleIO {
     @Override
     public double getDrivePositionRadians() {
         return inputs.drivePositionMeters * 2 * Math.PI / MK4cSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
+    }
+
+    @Override
+    public boolean getDrivePositionFlipped() {
+        return inputs.drivePositionFlipped;
     }
     
 }

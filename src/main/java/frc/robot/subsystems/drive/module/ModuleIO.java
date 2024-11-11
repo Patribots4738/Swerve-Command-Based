@@ -11,6 +11,7 @@ public interface ModuleIO {
     class ModuleIOInputs {
 
         public boolean driverMotorConnected = false;
+        public boolean drivePositionFlipped = false;
         public double drivePositionMeters = 0.0; 
         public double driveVelocityMPS = 0.0;
         public double driveAppliedVolts = 0.0;
@@ -19,15 +20,18 @@ public interface ModuleIO {
         public double driveTempCelcius = 0.0;
 
         public boolean turnMotorConnected = false;
-        public double turnPositionRads = 0.0;
-        public double turnVelocityRadsPerSec = 0.0;
+        public double turnInternalPositionRads = 0.0;
+        public double turnInternalVelocityRadsPerSec = 0.0;
         public double turnAppliedVolts = 0.0;
         public double turnSupplyCurrentAmps = 0.0;
         public double turnStatorCurrentAmps = 0.0;
         public double turnTempCelcius = 0.0;
 
-        public SwerveModulePosition position = new SwerveModulePosition();
-        public SwerveModuleState state = new SwerveModuleState();
+        public boolean turnEncoderConnected = false;
+        public double turnEncoderPositionRads = 0.0;
+        public double turnEncoderAbsPositionRads = 0.0;
+        public double turnEncoderVelocityRadsPerSec = 0.0;
+        
     }
 
     default void updateInputs() {}
@@ -41,6 +45,8 @@ public interface ModuleIO {
     default void setCoastMode() {}
 
     default void setBrakeMode() {}
+
+    public boolean getDrivePositionFlipped();
 
     public SwerveModuleState getState();
 

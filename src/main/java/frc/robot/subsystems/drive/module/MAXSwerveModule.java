@@ -55,7 +55,8 @@ public class MAXSwerveModule implements ModuleIO {
     public SwerveModuleState getState() {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
-        return inputs.state;
+        return new SwerveModuleState(inputs.driveVelocityMPS,
+            new Rotation2d(inputs.turnInternalPositionRads - chassisAngularOffset));
     }
 
     public SparkPIDController getDrivingPIDController() {
@@ -75,7 +76,9 @@ public class MAXSwerveModule implements ModuleIO {
     public SwerveModulePosition getPosition() {
         // Apply chassis angular offset to the encoder position to get the position
         // relative to the chassis.
-        return inputs.position;
+        return new SwerveModulePosition(
+            inputs.drivePositionMeters,
+            new Rotation2d(inputs.turnInternalPositionRads - chassisAngularOffset));
     }
 
     // gets the rotations of the wheel converted to radians
@@ -100,7 +103,7 @@ public class MAXSwerveModule implements ModuleIO {
         // Optimize the reference state to avoid spinning further than 90 degrees.
         if (!FieldConstants.IS_SIMULATION) {
             correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                    new Rotation2d(inputs.turnPositionRads));
+                    new Rotation2d(inputs.turnInternalPositionRads));
         }
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
@@ -189,15 +192,15 @@ public class MAXSwerveModule implements ModuleIO {
 
         // turning motor
         inputs.turnAppliedVolts = turnMotor.getAppliedOutput();
-        inputs.turnPositionRads = turnMotor.getPosition();
-        inputs.turnVelocityRadsPerSec = turnMotor.getVelocity();
+        inputs.turnInternalPositionRads = turnMotor.getPosition();
+        inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocity();
         inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent();
-
-        inputs.position = new SwerveModulePosition(
-            inputs.drivePositionMeters,
-            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
         
-        inputs.state = new SwerveModuleState(inputs.driveVelocityMPS,
-            new Rotation2d(inputs.turnPositionRads - chassisAngularOffset));
+    }
+
+    // This issue does not happen with SparkMAX's! Hooray!
+    @Override
+    public boolean getDrivePositionFlipped() {
+        return false;
     }
 }

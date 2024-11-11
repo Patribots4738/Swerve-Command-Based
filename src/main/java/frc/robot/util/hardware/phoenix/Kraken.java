@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
@@ -45,6 +46,7 @@ public class Kraken extends TalonFX {
     private final MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
     private final ClosedLoopGeneralConfigs closedLoopConfigs = new ClosedLoopGeneralConfigs();
     private final FeedbackConfigs feedbackConfigs = new FeedbackConfigs();
+    private final TorqueCurrentConfigs torqueCurrentConfigs = new TorqueCurrentConfigs();
 
     private DCMotorSim motorSimModel;
 
@@ -395,7 +397,7 @@ public class Kraken extends TalonFX {
     public void setSupplyCurrentLimit(double currentLimit) {
         currentLimitConfigs.SupplyCurrentLimit = currentLimit;
         currentLimitConfigs.SupplyCurrentLimitEnable = true;
-        configurator.apply(currentLimitConfigs);
+        configurator.apply(currentLimitConfigs, 1.0);
     }
 
     /**
@@ -406,7 +408,19 @@ public class Kraken extends TalonFX {
     public void setStatorCurrentLimit(double currentLimit) {
         currentLimitConfigs.StatorCurrentLimit = currentLimit;
         currentLimitConfigs.StatorCurrentLimitEnable = true;
-        configurator.apply(currentLimitConfigs);
+        configurator.apply(currentLimitConfigs, 1.0);
+    }   
+
+    /**
+     * Sets the limit of the current output when the kraken is being controlled via torque
+     * 
+     * @param reverseLimit miniumum allowable current
+     * @param forwardLimit maximum allowable current
+     */
+    public void setTorqueCurrentLimits(double reverseLimit, double forwardLimit) {
+        torqueCurrentConfigs.PeakReverseTorqueCurrent = reverseLimit;
+        torqueCurrentConfigs.PeakForwardTorqueCurrent = forwardLimit;
+        configurator.apply(torqueCurrentConfigs, 1.0);
     }
 
     /**
@@ -415,7 +429,7 @@ public class Kraken extends TalonFX {
      * @param position position encoder should be set to
      */
     public void resetEncoder(double position) {
-        setPosition(position);
+        setPosition(position / positionConversionFactor);
     }
 
     /**
@@ -430,7 +444,7 @@ public class Kraken extends TalonFX {
      */
     public void setBrakeMode() {
         outputConfigs.NeutralMode = NeutralModeValue.Brake;
-        configurator.apply(outputConfigs);
+        configurator.apply(outputConfigs, 1.0);
     }
 
     /**
@@ -438,7 +452,7 @@ public class Kraken extends TalonFX {
      */
     public void setCoastMode() {
         outputConfigs.NeutralMode = NeutralModeValue.Coast;
-        configurator.apply(outputConfigs);
+        configurator.apply(outputConfigs, 1.0);
     }
 
     /**
@@ -446,12 +460,12 @@ public class Kraken extends TalonFX {
      * 
      * @param canCoderId new CANCoder ID
      */
-    public void setEncoder(int canCoderId) {
-        // TODO: REFACTOR THIS TO FUSEDCANCODER ONCE WE HAVE PHOENIX PRO
+    public void setEncoder(int canCoderId, double mechanismReduction) {
         feedbackConfigs.FeedbackRemoteSensorID = canCoderId;
-        feedbackConfigs.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+        feedbackConfigs.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         feedbackConfigs.SensorToMechanismRatio = 1.0;
-        configurator.apply(feedbackConfigs);
+        feedbackConfigs.RotorToSensorRatio = mechanismReduction;
+        configurator.apply(feedbackConfigs, 1.0);
     }
 
     /**
@@ -461,7 +475,7 @@ public class Kraken extends TalonFX {
      */
     public void setPositionClosedLoopWrappingEnabled(boolean enabled) {
         closedLoopConfigs.ContinuousWrap = enabled;
-        configurator.apply(closedLoopConfigs);
+        configurator.apply(closedLoopConfigs, 1.0);
     }
 
     /**
@@ -683,7 +697,7 @@ public class Kraken extends TalonFX {
         slotConfigs.kS = appliedGains.getS();
         slotConfigs.kV = appliedGains.getV();
         slotConfigs.kG = appliedGains.getG();
-        configurator.apply(slotConfigs);
+        configurator.apply(slotConfigs, 1.0);
     }
 
     /**
@@ -700,7 +714,7 @@ public class Kraken extends TalonFX {
         slotConfigs.kS = appliedGains.getS();
         slotConfigs.kV = appliedGains.getV();
         slotConfigs.kG = appliedGains.getG();
-        configurator.apply(slotConfigs);
+        configurator.apply(slotConfigs, 1.0);
     }
 
     /**
