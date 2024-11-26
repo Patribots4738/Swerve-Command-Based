@@ -194,7 +194,7 @@ public class Robot extends LoggedRobot {
 
         for (Kraken kraken : KrakenMotorConstants.KRAKEN_MOTOR_MAP.values()) {
             kraken.tick();
-        }
+        }   
     }
 
     public static boolean isRedAlliance() {

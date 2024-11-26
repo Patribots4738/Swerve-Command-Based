@@ -156,35 +156,35 @@ public class RobotContainer {
     }
 
     public void updateNTGains() {
-        double HPFCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0P").getDouble(-1);
-        double HPFCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1I").getDouble(-1);
-        double HPFCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2D").getDouble(-1);
-        double HPFCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0P").getDouble(-1);
-        double HPFCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1I").getDouble(-1);
-        double HPFCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2D").getDouble(-1);
+        double HPFCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0-P").getDouble(-1);
+        double HPFCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1-I").getDouble(-1);
+        double HPFCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2-D").getDouble(-1);
+        double HPFCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0-P").getDouble(-1);
+        double HPFCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1-I").getDouble(-1);
+        double HPFCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2-D").getDouble(-1);
 
-        double HDCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0P").getDouble(-1);
-        double HDCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1I").getDouble(-1);
-        double HDCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2D").getDouble(-1);
-        double HDCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0P").getDouble(-1);
-        double HDCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1I").getDouble(-1);
-        double HDCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2D").getDouble(-1);
+        double HDCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0-P").getDouble(-1);
+        double HDCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1-I").getDouble(-1);
+        double HDCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2-D").getDouble(-1);
+        double HDCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0-P").getDouble(-1);
+        double HDCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1-I").getDouble(-1);
+        double HDCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2-D").getDouble(-1);
 
         if (HPFCP == -1 || HPFCI == -1 || HPFCD == -1 || HPFCP2 == -1 || HPFCI2 == -1 || HPFCD2 == -1 ||
             HDCP == -1 || HDCI == -1 || HDCD == -1 || HDCP2 == -1 || HDCI2 == -1 || HDCD2 == -1) {
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0P").setDouble(AutoConstants.XY_CORRECTION_P);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1I").setDouble(AutoConstants.XY_CORRECTION_I);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2D").setDouble(AutoConstants.XY_CORRECTION_D);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0-P").setDouble(AutoConstants.XY_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1-I").setDouble(AutoConstants.XY_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2-D").setDouble(AutoConstants.XY_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0-P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1-I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2-D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
 
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0P").setDouble(AutoConstants.XY_CORRECTION_P);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1I").setDouble(AutoConstants.XY_CORRECTION_I);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2D").setDouble(AutoConstants.XY_CORRECTION_D);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
-            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0-P").setDouble(AutoConstants.XY_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1-I").setDouble(AutoConstants.XY_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/2-D").setDouble(AutoConstants.XY_CORRECTION_D);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/0-P").setDouble(AutoConstants.ROTATION_CORRECTION_P);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1-I").setDouble(AutoConstants.ROTATION_CORRECTION_I);
+            NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2-D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
             return;
         } else {
             AutoConstants.HPFC = new HolonomicPathFollowerConfig(
