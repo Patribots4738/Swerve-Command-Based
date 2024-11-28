@@ -206,6 +206,6 @@ public class MAXSwerveModule implements ModuleIO {
 
     @Override
     public double getCharacterizationVelocity() {
-        return inputs.driveVelocityMPS;
+        return inputs.driveVelocityMPS / MAXSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR;
     }
 }

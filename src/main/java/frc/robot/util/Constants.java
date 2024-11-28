@@ -396,8 +396,8 @@ public final class Constants {
         public static final double DRIVING_P = 0.11;
         public static final double DRIVING_I = 0;
         public static final double DRIVING_D = 0;
-        public static final double DRIVING_S = 0.1;
-        public static final double DRIVING_V = 0.12;
+        public static final double DRIVING_S = 0.01587;
+        public static final double DRIVING_V = 0.12362;
 
         public static final GainConstants DRIVING_GAINS = new GainConstants(
             DRIVING_P,

@@ -254,7 +254,7 @@ public class MK4cSwerveModule implements ModuleIO {
 
     @Override
     public double getCharacterizationVelocity() {
-        return inputs.driveVelocityMPS;
+        return inputs.driveVelocityMPS / MK4cSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR;
     }
     
 }
