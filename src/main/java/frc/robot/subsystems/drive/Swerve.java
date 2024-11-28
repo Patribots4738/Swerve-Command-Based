@@ -278,6 +278,21 @@ public class Swerve extends SubsystemBase {
     public void stopDriving() {
         drive(0, 0, 0, false);
     }
+
+    public void runCharacterization(double input) {
+        for (ModuleIO module : swerveModules) {
+            // TODO: CHANGE THIS TO AMPS WHEN PRO!
+            module.runDriveVolts(input);
+        }
+    }
+
+    public double getCharacterizationVelocity() {
+        double average = 0.0;
+        for (ModuleIO module : swerveModules) {
+            average += module.getCharacterizationVelocity();
+        }
+        return average / 4.0;
+    }
     
     @AutoLogOutput (key = "Subsystems/Swerve/DesiredHDCPose")
     Pose2d desiredHDCPose = new Pose2d();
@@ -310,9 +325,9 @@ public class Swerve extends SubsystemBase {
 
     public void setWheelsO() {
         SwerveModuleState[] desiredStates = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
             new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-135)),
             new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
         };
 
@@ -320,7 +335,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command setWheelsOCommand() {
-        return runOnce(this::setWheelsO);
+        return runOnce(this::setWheelsO).andThen(Commands.waitSeconds(2.0));
     }
 
     /**

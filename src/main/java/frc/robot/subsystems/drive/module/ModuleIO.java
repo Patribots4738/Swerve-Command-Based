@@ -46,6 +46,10 @@ public interface ModuleIO {
 
     default void setBrakeMode() {}
 
+    default void runDriveVolts(double input) {}
+
+    default void runDriveAmps(double input) {}
+
     public boolean getDrivePositionFlipped();
 
     public SwerveModuleState getState();
@@ -55,5 +59,7 @@ public interface ModuleIO {
     public SwerveModulePosition getPosition();
 
     public double getDrivePositionRadians();
+
+    public double getCharacterizationVelocity();
 
 }

@@ -13,6 +13,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -52,12 +53,11 @@ public class Kraken extends TalonFX {
 
     private final PositionVoltage positionRequest;
     private final VelocityVoltage velocityRequest;
-
     private final PositionTorqueCurrentFOC positionTorqueRequest;
     private final VelocityTorqueCurrentFOC velocityTorqueRequest;
-
     private final VoltageOut voltageRequest;
     private final DutyCycleOut percentRequest;
+    private final TorqueCurrentFOC torqueRequest;
 
     private final StatusSignal<Double> positionSignal;
     private final StatusSignal<Double> velocitySignal;
@@ -143,12 +143,11 @@ public class Kraken extends TalonFX {
 
         positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
         velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
-
         positionTorqueRequest = new PositionTorqueCurrentFOC(0);
         velocityTorqueRequest = new VelocityTorqueCurrentFOC(0);
-
         voltageRequest = new VoltageOut(0).withEnableFOC(useFOC);
         percentRequest = new DutyCycleOut(0).withEnableFOC(useFOC);
+        torqueRequest = new TorqueCurrentFOC(0);
 
         gains = new GainConstants[] { new GainConstants(), new GainConstants(), new GainConstants() };
 
@@ -369,6 +368,15 @@ public class Kraken extends TalonFX {
      */
     public void setVoltageOutput(double volts) {
         setControl(voltageRequest.withOutput(volts));
+    }
+
+    /**
+     * Directly sets the output of the Kraken using amps
+     * 
+     * @param amps the current to set to
+     */
+    public void setTorqueCurrentOutput(double amps) {
+        setControl(torqueRequest.withOutput(amps));
     }
 
     /**
