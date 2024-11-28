@@ -203,4 +203,9 @@ public class MAXSwerveModule implements ModuleIO {
     public boolean getDrivePositionFlipped() {
         return false;
     }
+
+    @Override
+    public double getCharacterizationVelocity() {
+        return inputs.driveVelocityMPS;
+    }
 }

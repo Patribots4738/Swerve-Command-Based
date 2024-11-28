@@ -20,8 +20,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.GameMode;
+import frc.robot.commands.characterization.FeedForwardCharacterization;
+import frc.robot.commands.characterization.StaticCharacterization;
+import frc.robot.commands.characterization.WheelRadiusCharacterization;
 import frc.robot.commands.drive.Drive;
-import frc.robot.commands.drive.WheelRadiusCharacterization;
 import frc.robot.commands.logging.NTGainTuner;
 import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
@@ -111,6 +113,20 @@ public class RobotContainer {
         pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",
             swerve.setWheelsOCommand()
             .andThen(new WheelRadiusCharacterization(swerve)));
+        pathPlannerStorage.getAutoChooser().addOption("DriveFeedForwardCharacterization",
+            swerve.setWheelsOCommand()
+            .andThen(
+                new FeedForwardCharacterization(
+                    swerve, 
+                    swerve::runCharacterization, 
+                    swerve::getCharacterizationVelocity)));
+        pathPlannerStorage.getAutoChooser().addOption("DriveStaticCharacterization",
+            swerve.setWheelsOCommand()
+            .andThen(
+                new StaticCharacterization(
+                    swerve, 
+                    swerve::runCharacterization, 
+                    swerve::getCharacterizationVelocity)));
 
         new NTGainTuner().schedule();
         

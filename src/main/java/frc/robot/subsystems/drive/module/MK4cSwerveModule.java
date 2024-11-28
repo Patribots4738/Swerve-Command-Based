@@ -195,6 +195,16 @@ public class MK4cSwerveModule implements ModuleIO {
         turnEncoder.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
     }
 
+    @Override
+    public void runDriveVolts(double input) {
+        driveMotor.setVoltageOutput(input);
+    }
+
+    @Override
+    public void runDriveAmps(double input) {
+        driveMotor.setTorqueCurrentOutput(input);
+    }
+
     /**
      * Obtains current state of the MK4c module.
      * 
@@ -240,6 +250,11 @@ public class MK4cSwerveModule implements ModuleIO {
     @Override
     public boolean getDrivePositionFlipped() {
         return inputs.drivePositionFlipped;
+    }
+
+    @Override
+    public double getCharacterizationVelocity() {
+        return inputs.driveVelocityMPS;
     }
     
 }
