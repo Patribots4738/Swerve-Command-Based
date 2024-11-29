@@ -39,7 +39,6 @@ import frc.robot.RobotContainer;
 import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
-import frc.robot.subsystems.drive.module.MAXSwerveModule;
 import frc.robot.subsystems.drive.module.MK4cSwerveModule;
 import frc.robot.subsystems.drive.module.ModuleIO;
 import frc.robot.util.Constants.AutoConstants;
@@ -103,7 +102,7 @@ public class Swerve extends SubsystemBase {
             rearRight
         };
             
-        gyro = new Gyro(DriveConstants.GYRO_CAN_ID);
+        gyro = new Gyro();
         gyro.setYaw(0);
         resetEncoders();
         setBrakeMode();
@@ -204,7 +203,7 @@ public class Swerve extends SubsystemBase {
                 currentPose.getRotation().getRadians())
             :  new Rotation3d(
                 Units.degreesToRadians(-roll), 
-                Units.degreesToRadians(-pitch+180), 
+                Units.degreesToRadians(-pitch+Math.PI), 
                 currentPose.getRotation().getRadians()+Math.PI);
 
         RobotContainer.robotPose3d = new Pose3d(

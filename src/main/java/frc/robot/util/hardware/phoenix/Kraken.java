@@ -192,7 +192,7 @@ public class Kraken extends TalonFX {
                     velocitySignal
                 );
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    0,
                     voltageSignal,
                     percentSignal,
                     supplyCurrentSignal,
@@ -212,7 +212,7 @@ public class Kraken extends TalonFX {
                     temperatureSignal
                 );
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    0,
                     positionSignal,
                     velocitySignal
                 );
@@ -223,7 +223,7 @@ public class Kraken extends TalonFX {
                     percentSignal
                 );
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ,
+                    0,
                     positionSignal,
                     velocitySignal,
                     voltageSignal,
@@ -245,6 +245,7 @@ public class Kraken extends TalonFX {
                     torqueCurrentSignal,
                     temperatureSignal
                 );
+                break;
         }
     }
 

@@ -513,7 +513,14 @@ public final class Constants {
 
     public static final class CANCoderConstants {
 
-        public static final double ENCODER_UPDATE_FREQ_HZ = 500;
+        public static final double ENCODER_UPDATE_FREQ_HZ = 500; // TODO: FIND THE SWEET SPOT
+
+    }
+
+    public static final class PigeonConstants {
+
+        public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
+        public static final double PIGEON_SLOW_UPDATE_FREQ_HZ = 4;
 
     }
 
