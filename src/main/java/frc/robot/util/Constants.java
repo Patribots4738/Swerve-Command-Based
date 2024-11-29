@@ -485,8 +485,7 @@ public final class Constants {
         public static final double KRAKENX60_FREE_SPEED_RPM = 6000;
         public static final double KRAKENX60_FREE_SPEED_RPM_FOC = 5800;
 
-        public static final double TALONFX_SLOW_UPDATE_FREQ_HZ = 4;
-        public static final double TALONFX_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
+        public static final double TALONFX_FAST_UPDATE_FREQ_HZ = 50; // TODO: FIND THE SWEET SPOT
 
         public static final HashMap<Integer, Kraken> KRAKEN_MOTOR_MAP = new HashMap<Integer, Kraken>();
 
@@ -513,14 +512,13 @@ public final class Constants {
 
     public static final class CANCoderConstants {
 
-        public static final double ENCODER_UPDATE_FREQ_HZ = 500; // TODO: FIND THE SWEET SPOT
+        public static final double ENCODER_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
     }
 
     public static final class PigeonConstants {
 
         public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
-        public static final double PIGEON_SLOW_UPDATE_FREQ_HZ = 4;
 
     }
 
