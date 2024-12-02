@@ -47,18 +47,24 @@ public class Pigeon2Custom extends Pigeon2 {
             case YAW_ONLY:
                 BaseStatusSignal.setUpdateFrequencyForAll(
                     PigeonConstants.PIGEON_FAST_UPDATE_FREQ_HZ, 
-                    yawSignal);
+                    yawSignal,
+                    yawVelocitySignal);
                 BaseStatusSignal.setUpdateFrequencyForAll(
                     0,
                     pitchSignal,
-                    rollSignal);
+                    pitchVelocitySignal,
+                    rollSignal,
+                    rollVelocitySignal);
                 break;
             default:
                 BaseStatusSignal.setUpdateFrequencyForAll(
                     PigeonConstants.PIGEON_FAST_UPDATE_FREQ_HZ, 
                     yawSignal,
+                    yawVelocitySignal,
                     pitchSignal,
-                    rollSignal);  
+                    pitchVelocitySignal,
+                    rollSignal,
+                    rollVelocitySignal); 
                 break;
         }
     }

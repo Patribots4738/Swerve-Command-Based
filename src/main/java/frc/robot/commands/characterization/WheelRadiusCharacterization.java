@@ -17,7 +17,7 @@ public class WheelRadiusCharacterization extends Command {
     // wheel radius (meters) =
     // gyro delta (radians) * drive base radius (meters) / wheel position delta
     // (radians)
-    private double gyroDelta = 0.0, wheelPosDelta = 0.0, currentEffectiveWheelRadius = 0.0;
+    private double currentEffectiveWheelRadius = 0.0;
 
     private double lastGyroYawRads = 0.0, accumGyroYawRads = 0.0;
 

@@ -107,7 +107,7 @@ public class RobotContainer {
         configureButtonBindings();
         configureTimedEvents();
 
-        pathPlannerStorage = new PathPlannerStorage(swerve);
+        pathPlannerStorage = new PathPlannerStorage();
 
         pathPlannerStorage.configureAutoChooser();
         pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",

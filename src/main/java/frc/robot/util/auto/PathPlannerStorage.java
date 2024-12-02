@@ -1,31 +1,21 @@
 package frc.robot.util.auto;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.util.Constants.AutoConstants;
-import frc.robot.util.Constants.FieldConstants;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.Robot.GameMode;
-import frc.robot.subsystems.drive.Swerve;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -39,13 +29,11 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class PathPlannerStorage {
 
-    private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Auto Routine");
+    private final LoggedDashboardChooser<Command> autoChooser;
 
     public static final ArrayList<Pose2d> AUTO_STARTING_POSITIONS = new ArrayList<Pose2d>();
 
-    private Swerve swerve;
-
-    public static final PathConstraints PATH_CONSTRAINTS = 
+    public static final PathConstraints PATH_CONSTRAINTS =
         new PathConstraints(
             AutoConstants.MAX_SPEED_METERS_PER_SECOND, 
             AutoConstants.MAX_ACCELERATION_METERS_PER_SECOND_SQUARED, 
@@ -55,11 +43,9 @@ public class PathPlannerStorage {
     public static final HashMap<String, List<PathPlannerPath>> AUTO_PATHS = new HashMap<String, List<PathPlannerPath>>();
     /**
      * Creates a new AutoPathStorage object.
-     * @param hasPieceSupplier A supplier that returns whether or not the robot has a piece.
-     *                         This could be a sensor, motor current, or other system.
      */
-    public PathPlannerStorage(Swerve swerve) {
-        this.swerve = swerve;
+    public PathPlannerStorage() {
+        autoChooser = new LoggedDashboardChooser<>("Auto Routine");
     }
 
     public void configureAutoChooser() {

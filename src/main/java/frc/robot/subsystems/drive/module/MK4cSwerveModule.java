@@ -174,11 +174,11 @@ public class MK4cSwerveModule implements ModuleIO {
         driveMotor.setGains(MK4cSwerveModuleConstants.DRIVING_GAINS);
         turnMotor.setGains(MK4cSwerveModuleConstants.TURNING_GAINS);
 
-        driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
-        turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);
+        // driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
+        // turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);
 
-        driveMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_SUPPLY_LIMIT_AMPS);
-        turnMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_SUPPLY_LIMIT_AMPS);
+        // driveMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_SUPPLY_LIMIT_AMPS);
+        // turnMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_SUPPLY_LIMIT_AMPS);
 
         driveMotor.setTorqueCurrentLimits(
             -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,

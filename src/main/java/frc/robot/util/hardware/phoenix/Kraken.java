@@ -171,7 +171,6 @@ public class Kraken extends TalonFX {
 
     public enum TelemetryPreference {
         DEFAULT,
-        ENCODER_ONLY,
         NO_ENCODER,
         PERCENT_ONLY
     }
@@ -185,27 +184,14 @@ public class Kraken extends TalonFX {
         telemetryPreference = newPreference;
 
         switch(telemetryPreference) {
-            case ENCODER_ONLY:
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
-                    positionSignal,
-                    velocitySignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    0,
-                    voltageSignal,
-                    percentSignal,
-                    supplyCurrentSignal,
-                    statorCurrentSignal,
-                    torqueCurrentSignal,
-                    temperatureSignal
-                );
-                break;
             case NO_ENCODER:
                 BaseStatusSignal.setUpdateFrequencyForAll(
                     KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
                     voltageSignal,
-                    percentSignal,
+                    percentSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
                     supplyCurrentSignal,
                     statorCurrentSignal,
                     torqueCurrentSignal,
@@ -219,7 +205,7 @@ public class Kraken extends TalonFX {
                 break;
             case PERCENT_ONLY:
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                    KrakenMotorConstants.TALONFX_MID_UPDATE_FREQ_HZ,
                     percentSignal
                 );
                 BaseStatusSignal.setUpdateFrequencyForAll(
@@ -235,11 +221,17 @@ public class Kraken extends TalonFX {
                 break;
             default:
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
-                    positionSignal,
-                    velocitySignal,
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ, 
                     voltageSignal,
-                    percentSignal,
+                    percentSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_MID_UPDATE_FREQ_HZ,
+                    positionSignal,
+                    velocitySignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
                     supplyCurrentSignal,
                     statorCurrentSignal,
                     torqueCurrentSignal,
@@ -644,11 +636,6 @@ public class Kraken extends TalonFX {
                 case PERCENT_ONLY ->
                     BaseStatusSignal.refreshAll(
                         percentSignal
-                    ).isOK();
-                case ENCODER_ONLY ->
-                    BaseStatusSignal.refreshAll(
-                        positionSignal,
-                        velocitySignal
                     ).isOK();
                 default ->
                     BaseStatusSignal.refreshAll(
