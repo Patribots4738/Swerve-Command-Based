@@ -9,6 +9,7 @@ import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
 import frc.robot.util.hardware.phoenix.CANCoderCustom;
 import frc.robot.util.hardware.phoenix.Kraken;
+import frc.robot.util.hardware.phoenix.Kraken.TelemetryPreference;
 
 public class MK4cSwerveModule implements ModuleIO {
 
@@ -126,7 +127,7 @@ public class MK4cSwerveModule implements ModuleIO {
      */
     @Override
     public void resetEncoders()  {
-        driveMotor.resetEncoder(0);
+        driveMotor.resetEncoder(800);
     }
 
     /**
@@ -164,6 +165,10 @@ public class MK4cSwerveModule implements ModuleIO {
         turnMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
         turnMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
 
+        // Set status signal update frequencies, optimized for swerve
+        driveMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
+        turnMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
+
         // We only want to ask for the abs encoder in real life
         if (!FieldConstants.IS_SIMULATION) {
             turnMotor.setEncoder(this.canCoderId, MK4cSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
@@ -173,12 +178,6 @@ public class MK4cSwerveModule implements ModuleIO {
 
         driveMotor.setGains(MK4cSwerveModuleConstants.DRIVING_GAINS);
         turnMotor.setGains(MK4cSwerveModuleConstants.TURNING_GAINS);
-
-        // driveMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_STATOR_LIMIT_AMPS);
-        // turnMotor.setStatorCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_STATOR_LIMIT_AMPS);
-
-        // driveMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.DRIVING_MOTOR_SUPPLY_LIMIT_AMPS);
-        // turnMotor.setSupplyCurrentLimit(MK4cSwerveModuleConstants.TURNING_MOTOR_SUPPLY_LIMIT_AMPS);
 
         driveMotor.setTorqueCurrentLimits(
             -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,

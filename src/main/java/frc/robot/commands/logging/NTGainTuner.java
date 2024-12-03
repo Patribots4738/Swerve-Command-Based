@@ -170,13 +170,14 @@ public class NTGainTuner extends Command {
             double NTValue = entry2.getKey().getDouble(entry2.getValue());
             if (NTValue != entry2.getValue()) {
                 String entryPath = entry2.getKey().getName();
-                // We are given a full path like "/Calibration//FrontLeftTurn/3-FF"
+                // We are given a full path like "/Calibration/FrontLeftTurn/3-FF"
                 // We just want that "FF" part
                 String lastPart = entryPath.substring(entryPath.lastIndexOf("-") + 1);
 
                 // Update the last known value for future comparisons
                 entry2.setValue(NTValue);
                 updateTalon(entry.getKey(), lastPart, NTValue);
+                System.out.println("*************************************");
             }
         }
     }

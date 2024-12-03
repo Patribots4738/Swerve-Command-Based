@@ -3,6 +3,7 @@ package frc.robot.util.hardware.phoenix;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
+import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -48,6 +49,7 @@ public class Kraken extends TalonFX {
     private final ClosedLoopGeneralConfigs closedLoopConfigs = new ClosedLoopGeneralConfigs();
     private final FeedbackConfigs feedbackConfigs = new FeedbackConfigs();
     private final TorqueCurrentConfigs torqueCurrentConfigs = new TorqueCurrentConfigs();
+    private final ClosedLoopRampsConfigs closedLoopRampConfigs = new ClosedLoopRampsConfigs();
 
     private DCMotorSim motorSimModel;
 
@@ -141,13 +143,13 @@ public class Kraken extends TalonFX {
         this.useFOC = useFOC;
         this.useTorqueControl = useTorqueControl;
 
-        positionRequest = new PositionVoltage(0).withEnableFOC(useFOC);
-        velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC);
-        positionTorqueRequest = new PositionTorqueCurrentFOC(0);
-        velocityTorqueRequest = new VelocityTorqueCurrentFOC(0);
-        voltageRequest = new VoltageOut(0).withEnableFOC(useFOC);
-        percentRequest = new DutyCycleOut(0).withEnableFOC(useFOC);
-        torqueRequest = new TorqueCurrentFOC(0);
+        positionRequest = new PositionVoltage(0).withEnableFOC(useFOC).withUpdateFreqHz(0);
+        velocityRequest = new VelocityVoltage(0).withEnableFOC(useFOC).withUpdateFreqHz(0);
+        positionTorqueRequest = new PositionTorqueCurrentFOC(0).withUpdateFreqHz(0);
+        velocityTorqueRequest = new VelocityTorqueCurrentFOC(0).withUpdateFreqHz(0);
+        voltageRequest = new VoltageOut(0).withEnableFOC(useFOC).withUpdateFreqHz(0);
+        percentRequest = new DutyCycleOut(0).withEnableFOC(useFOC).withUpdateFreqHz(0);
+        torqueRequest = new TorqueCurrentFOC(0).withUpdateFreqHz(0);
 
         gains = new GainConstants[] { new GainConstants(), new GainConstants(), new GainConstants() };
 
@@ -172,7 +174,7 @@ public class Kraken extends TalonFX {
     public enum TelemetryPreference {
         DEFAULT,
         NO_ENCODER,
-        PERCENT_ONLY
+        SWERVE
     }
 
     /**
@@ -203,20 +205,23 @@ public class Kraken extends TalonFX {
                     velocitySignal
                 );
                 break;
-            case PERCENT_ONLY:
+            case SWERVE:
                 BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_MID_UPDATE_FREQ_HZ,
-                    percentSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    0,
+                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
                     positionSignal,
                     velocitySignal,
                     voltageSignal,
                     supplyCurrentSignal,
-                    statorCurrentSignal,
-                    torqueCurrentSignal,
+                    torqueCurrentSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
                     temperatureSignal
+                );
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    0,
+                    percentSignal,
+                    statorCurrentSignal
                 );
                 break;
             default:
@@ -422,6 +427,21 @@ public class Kraken extends TalonFX {
         torqueCurrentConfigs.PeakReverseTorqueCurrent = reverseLimit;
         torqueCurrentConfigs.PeakForwardTorqueCurrent = forwardLimit;
         configurator.apply(torqueCurrentConfigs, 1.0);
+    }
+
+    /**
+     * Sets the limit of the current output when the kraken is being controlled via torque
+     * 
+     * @param reverseLimit miniumum allowable current
+     * @param forwardLimit maximum allowable current
+     */
+    public void setClosedLoopRampPeriod(double seconds) {
+        if (useTorqueControl) {
+            closedLoopRampConfigs.TorqueClosedLoopRampPeriod = seconds;
+        } else {
+            closedLoopRampConfigs.VoltageClosedLoopRampPeriod = seconds;
+        }
+        configurator.apply(closedLoopRampConfigs, 1.0);
     }
 
     /**
@@ -633,9 +653,14 @@ public class Kraken extends TalonFX {
                         torqueCurrentSignal,
                         temperatureSignal
                     ).isOK();
-                case PERCENT_ONLY ->
+                case SWERVE ->
                     BaseStatusSignal.refreshAll(
-                        percentSignal
+                        voltageSignal,
+                        positionSignal,
+                        velocitySignal,
+                        supplyCurrentSignal,
+                        torqueCurrentSignal,
+                        temperatureSignal
                     ).isOK();
                 default ->
                     BaseStatusSignal.refreshAll(
@@ -656,7 +681,6 @@ public class Kraken extends TalonFX {
      */
     public void register() {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
-
         if (FieldConstants.IS_SIMULATION) {
             motorSimModel = new DCMotorSim(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 1, 0.001);
         }
