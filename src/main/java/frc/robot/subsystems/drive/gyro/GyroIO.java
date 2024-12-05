@@ -17,5 +17,7 @@ public interface GyroIO {
         public double rollVelocityRadsPerSec = 0.0;
     }
 
-    default void updateInputs() {}
+    default void updateInputs(GyroIOInputs inputs) {}
+
+    default void setYaw(double degrees) {}
 }

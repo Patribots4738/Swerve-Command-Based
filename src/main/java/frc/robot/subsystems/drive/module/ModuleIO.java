@@ -2,9 +2,6 @@ package frc.robot.subsystems.drive.module;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-
 public interface ModuleIO {
 
     @AutoLog
@@ -34,32 +31,20 @@ public interface ModuleIO {
         
     }
 
-    default void updateInputs() {}
+    default void updateInputs(ModuleIOInputs inputs) {}
 
-    default void processInputs() {}
+    default void resetDriveEncoder() {}
 
-    default void setDesiredState(SwerveModuleState state) {}
+    default void setDriveBrakeMode(boolean brake) {}
 
-    default void resetEncoders() {}
+    default void setTurnBrakeMode(boolean brake) {}
 
-    default void setCoastMode() {}
+    default void runDriveCharacterization(double input) {}
 
-    default void setBrakeMode() {}
+    default void runTurnCharacterization(double input) {}
 
-    default void runDriveVolts(double input) {}
+    default void runDriveVelocity(double velocity) {}
 
-    default void runDriveAmps(double input) {}
-
-    public boolean getDrivePositionFlipped();
-
-    public SwerveModuleState getState();
-
-    public SwerveModuleState getDesiredState();
-
-    public SwerveModulePosition getPosition();
-
-    public double getDrivePositionRadians();
-
-    public double getCharacterizationVelocity();
+    default void setTurnPosition(double position) {}
 
 }

@@ -38,8 +38,9 @@ import frc.robot.RobotContainer;
 import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
-import frc.robot.subsystems.drive.module.MK4cSwerveModule;
-import frc.robot.subsystems.drive.module.ModuleIO;
+import frc.robot.subsystems.drive.gyro.GyroPigeon2IO;
+import frc.robot.subsystems.drive.module.MK4cSwerveModuleIO;
+import frc.robot.subsystems.drive.module.Module;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
@@ -50,70 +51,71 @@ public class Swerve extends SubsystemBase {
     public static double twistScalar = 4;
     private Rotation2d gyroRotation2d = new Rotation2d();
 
-    @AutoLogOutput(key = "Subsystems/Swerve/AlignedToAmp")
-    private boolean isAlignedToAmp = false;
-
-    private final ModuleIO frontLeft, frontRight, rearLeft, rearRight;
+    private final Module frontLeft, frontRight, rearLeft, rearRight;
     // The gyro sensor
     private final Gyro gyro;
 
-    private final ModuleIO[] swerveModules;
+    private final Module[] swerveModules;
 
     private SwerveDrivePoseEstimator poseEstimator;
 
     /**
-     * Creates a new DriveSu1stem.
+     * Creates a new DriveSubsystem.
      */
     public Swerve() {
 
-        frontLeft = new MK4cSwerveModule(
-            MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
-            MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
-            MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
-            DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET,
-            DriveConstants.FRONT_LEFT_INDEX);
+        frontLeft = new Module(
+            new MK4cSwerveModuleIO(
+                MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID),
+            DriveConstants.FRONT_LEFT_INDEX,
+            DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
-        frontRight = new MK4cSwerveModule(
-            MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
-            MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
-            MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
-            DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET,
-            DriveConstants.FRONT_RIGHT_INDEX);
+        frontRight = new Module(
+            new MK4cSwerveModuleIO(
+                MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID),
+            DriveConstants.FRONT_RIGHT_INDEX,
+            DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
-        rearLeft = new MK4cSwerveModule(
-            MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
-            MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
-            MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
-            DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET,
-            DriveConstants.REAR_LEFT_INDEX);
+        rearLeft = new Module(
+            new MK4cSwerveModuleIO(
+                MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID),
+            DriveConstants.REAR_LEFT_INDEX,
+            DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
-        rearRight = new MK4cSwerveModule(
-            MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
-            MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
-            MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
-            DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET,
-            DriveConstants.REAR_RIGHT_INDEX);     
+        rearRight = new Module(
+            new MK4cSwerveModuleIO(
+                MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID),
+            DriveConstants.REAR_RIGHT_INDEX,
+            DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);     
 
-        swerveModules = new ModuleIO[] {
+        swerveModules = new Module[] {
             frontLeft,
             frontRight,
             rearLeft,
             rearRight
         };
             
-        gyro = new Gyro();
-        gyro.setYaw(0);
+        gyro = new Gyro(new GyroPigeon2IO(DriveConstants.GYRO_CAN_ID));
+
         resetEncoders();
         setBrakeMode();
 
         AutoBuilder.configureHolonomic(
-                this::getPose,
-                this::resetOdometryAuto,
-                this::getRobotRelativeVelocity,
-                this::drive,
-                AutoConstants.HPFC,
-                Robot::isRedAlliance,
-                this);
+            this::getPose,
+            this::resetOdometryAuto,
+            this::getRobotRelativeVelocity,
+            this::drive,
+            AutoConstants.HPFC,
+            Robot::isRedAlliance,
+            this);
 
         poseEstimator = new SwerveDrivePoseEstimator(
             DriveConstants.DRIVE_KINEMATICS,
@@ -145,11 +147,16 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        updateAndProcessSwerveModuleInputs();
-        updateAndProcessGyroInputs();
+
+        for (Module swerveMod : swerveModules) {
+            swerveMod.updateInputs();
+        }
+
+        gyro.updateInputs();
+        
         gyroRotation2d = gyro.getYawRotation2D();
 
-        // TalonFX position is capped at 16000 rotations, and flips when overflowed, messing up pose
+        // TalonFX position is capped at 16000 rotations, and flips when overflowed, creating extreme pose error
         if (!getModuleDrivePositionsFlipped()) {
             poseEstimator.updateWithTime(Timer.getFPGATimestamp(), gyroRotation2d, getModulePositions());
         }
@@ -165,7 +172,7 @@ public class Swerve extends SubsystemBase {
         currentPose = getPose();
 
         RobotContainer.swerveMeasuredStates = new SwerveModuleState[] {
-                frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState()
+            frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState()
         };
 
         ChassisSpeeds speeds = DriveConstants.DRIVE_KINEMATICS.toChassisSpeeds(RobotContainer.swerveMeasuredStates);
@@ -239,7 +246,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public boolean getModuleDrivePositionsFlipped() {
-        for (ModuleIO module : swerveModules) {
+        for (Module module : swerveModules) {
             if (module.getDrivePositionFlipped()) {
                 return true;
             }
@@ -277,16 +284,23 @@ public class Swerve extends SubsystemBase {
         drive(0, 0, 0, false);
     }
 
-    public void runCharacterization(double input) {
-        for (ModuleIO module : swerveModules) {
+    public void runDriveCharacterization(double input) {
+        for (Module module : swerveModules) {
             // TODO: CHANGE THIS TO AMPS WHEN PRO!
-            module.runDriveVolts(input);
+            module.runDriveCharacterization(input);
+        }
+    }
+
+    public void runTurnCharacterization(double input) {
+        for (Module module : swerveModules) {
+            // TODO: CHANGE THIS TO AMPS WHEN PRO!
+            module.runTurnCharacterization(input);
         }
     }
 
     public double getCharacterizationVelocity() {
         double average = 0.0;
-        for (ModuleIO module : swerveModules) {
+        for (Module module : swerveModules) {
             average += module.getCharacterizationVelocity();
         }
         return average / 4.0;
@@ -361,9 +375,9 @@ public class Swerve extends SubsystemBase {
         }
 
         poseEstimator.resetPosition(
-                gyroRotation2d,
-                getModulePositions(),
-                pose);
+            gyroRotation2d,
+            getModulePositions(),
+            pose);
     }
 
     private void resetOdometryAuto(Pose2d pose) {
@@ -410,8 +424,8 @@ public class Swerve extends SubsystemBase {
     }
     
     public void resetEncoders() {
-        for (ModuleIO swerveMod : swerveModules) {
-            swerveMod.resetEncoders();
+        for (Module swerveMod : swerveModules) {
+            swerveMod.resetDriveEncoder();
         }
     }
 
@@ -426,8 +440,8 @@ public class Swerve extends SubsystemBase {
      * (This is the default mode)
      */
     public void setBrakeMode() {
-        for (ModuleIO swerveMod : swerveModules) {
-            swerveMod.setBrakeMode();
+        for (Module swerveMod : swerveModules) {
+            swerveMod.setBrakeMode(true);
         }
     }
 
@@ -437,8 +451,8 @@ public class Swerve extends SubsystemBase {
      * So we can freely move the robot around
      */
     public void setCoastMode() {
-        for (ModuleIO swerveMod : swerveModules) {
-            swerveMod.setCoastMode();
+        for (Module swerveMod : swerveModules) {
+            swerveMod.setBrakeMode(false);
         }
     }
 
@@ -491,17 +505,5 @@ public class Swerve extends SubsystemBase {
             desiredHDCPose.getRotation().getRadians(), 
             getPose().getRotation().getRadians(),
             AutoConstants.AUTO_ROTATION_TOLERANCE_RADIANS);
-    }
-
-    public void updateAndProcessSwerveModuleInputs() {
-        for (ModuleIO swerveMod : swerveModules) {
-            swerveMod.updateInputs();
-            swerveMod.processInputs();
-        }
-    }
-
-    public void updateAndProcessGyroInputs() {
-        gyro.updateInputs();
-        gyro.processInputs();
     }
 }

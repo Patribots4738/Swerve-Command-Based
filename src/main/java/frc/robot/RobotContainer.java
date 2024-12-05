@@ -118,14 +118,14 @@ public class RobotContainer {
             .andThen(
                 new FeedForwardCharacterization(
                     swerve, 
-                    swerve::runCharacterization, 
+                    swerve::runDriveCharacterization, 
                     swerve::getCharacterizationVelocity)));
         pathPlannerStorage.getAutoChooser().addOption("DriveStaticCharacterization",
             swerve.setWheelsOCommand()
             .andThen(
                 new StaticCharacterization(
                     swerve, 
-                    swerve::runCharacterization, 
+                    swerve::runDriveCharacterization, 
                     swerve::getCharacterizationVelocity)));
 
         new NTGainTuner().schedule();
