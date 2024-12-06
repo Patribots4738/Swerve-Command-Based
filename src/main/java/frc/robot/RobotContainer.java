@@ -4,9 +4,9 @@ import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,7 +29,6 @@ import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
 import frc.robot.subsystems.test.KrakenTest;
 import frc.robot.util.Constants.AutoConstants;
-import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.OIConstants;
 import frc.robot.util.auto.PathPlannerStorage;
 import frc.robot.util.custom.PatriBoxController;
@@ -172,12 +171,12 @@ public class RobotContainer {
     }
 
     public void updateNTGains() {
-        double HPFCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0-P").getDouble(-1);
-        double HPFCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1-I").getDouble(-1);
-        double HPFCD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2-D").getDouble(-1);
-        double HPFCP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0-P").getDouble(-1);
-        double HPFCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1-I").getDouble(-1);
-        double HPFCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2-D").getDouble(-1);
+        double PPP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0-P").getDouble(-1);
+        double PPI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1-I").getDouble(-1);
+        double PPD = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/2-D").getDouble(-1);
+        double PPP2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/0-P").getDouble(-1);
+        double PPI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/1-I").getDouble(-1);
+        double PPD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Rotation/2-D").getDouble(-1);
 
         double HDCP = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/0-P").getDouble(-1);
         double HDCI = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Translation/1-I").getDouble(-1);
@@ -186,7 +185,7 @@ public class RobotContainer {
         double HDCI2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/1-I").getDouble(-1);
         double HDCD2 = NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2-D").getDouble(-1);
 
-        if (HPFCP == -1 || HPFCI == -1 || HPFCD == -1 || HPFCP2 == -1 || HPFCI2 == -1 || HPFCD2 == -1 ||
+        if (PPP == -1 || PPI == -1 || PPD == -1 || PPP2 == -1 || PPI2 == -1 || PPD2 == -1 ||
             HDCP == -1 || HDCI == -1 || HDCD == -1 || HDCP2 == -1 || HDCI2 == -1 || HDCD2 == -1) {
             NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/0-P").setDouble(AutoConstants.XY_CORRECTION_P);
             NetworkTableInstance.getDefault().getTable("Calibration").getEntry("Auto/Translation/1-I").setDouble(AutoConstants.XY_CORRECTION_I);
@@ -203,18 +202,16 @@ public class RobotContainer {
             NetworkTableInstance.getDefault().getTable("Calibration").getEntry("HDC/Rotation/2-D").setDouble(AutoConstants.ROTATION_CORRECTION_D);
             return;
         } else {
-            AutoConstants.HPFC = new HolonomicPathFollowerConfig(
-                    new PIDConstants(
-                            HPFCP,
-                            HPFCI,
-                            HPFCD),
-                    new PIDConstants(
-                            HPFCP2,
-                            HPFCI2,
-                            HPFCD2),
-                    DriveConstants.MAX_SPEED_METERS_PER_SECOND,
-                    Math.hypot(DriveConstants.WHEEL_BASE, DriveConstants.TRACK_WIDTH) / 2.0,
-                    new ReplanningConfig());
+
+            AutoConstants.PPHDC = new PPHolonomicDriveController(
+                new PIDConstants(
+                    PPP,
+                    PPI,
+                    PPD),
+                new PIDConstants(
+                    PPP2,
+                    PPI2,
+                    PPD2));
 
             AutoConstants.XY_PID.setP(HDCP);
             AutoConstants.XY_PID.setI(HDCI);
