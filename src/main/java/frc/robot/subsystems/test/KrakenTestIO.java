@@ -14,7 +14,7 @@ public interface KrakenTestIO {
         public double targetVelocityRPM = 0.0;
         public double appliedVolts = 0.0;
         public double targetPercent = 0.0;
-        public double statorCurrentAmps = 0.0;
+        public double supplyCurrentAmps = 0.0;
         public double tempCelcius = 0.0;
 
     }

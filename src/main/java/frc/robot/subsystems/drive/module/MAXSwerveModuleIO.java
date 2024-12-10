@@ -3,14 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems.drive.module;
-import org.littletonrobotics.junction.Logger;
-
-import com.revrobotics.SparkPIDController;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MAXSwerveModuleConstants;
 import frc.robot.util.hardware.rev.Neo;
 

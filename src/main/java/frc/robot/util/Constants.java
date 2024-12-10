@@ -482,6 +482,7 @@ public final class Constants {
     }
 
     public static final class KrakenMotorConstants {
+
         public static final double KRAKENX60_FREE_SPEED_RPM = 6000;
         public static final double KRAKENX60_FREE_SPEED_RPM_FOC = 5800;
 
@@ -506,6 +507,9 @@ public final class Constants {
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID));
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID));
             }});
+            KRAKEN_MOTOR_GROUPS.put("Test", new ArrayList<Kraken>() {{
+                add(KRAKEN_MOTOR_MAP.get(20));
+            }});
 
             return KRAKEN_MOTOR_GROUPS;
         }
@@ -522,6 +526,10 @@ public final class Constants {
 
         public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
+    }
+
+    public static final class GeneralHardwareConstants {
+        public static final boolean SAFE_HARDWARE_MODE = false;
     }
 
     public static final class FieldConstants {
