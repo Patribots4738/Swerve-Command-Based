@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.SlotConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -122,6 +123,8 @@ public class Kraken extends TalonFX {
     public Kraken(int id, String canBus, boolean useFOC, boolean useTorqueControl) {
 
         super(id, canBus);
+
+        restoreFactoryDefaults();
 
         this.useFOC = useFOC;
         this.useTorqueControl = useTorqueControl;
@@ -399,6 +402,18 @@ public class Kraken extends TalonFX {
      */
     public StatusCode applySignalFrequency(double frequency, BaseStatusSignal... signals) {
         return DeviceUtil.applySignalFrequency(frequency, getDeviceID(), signals);
+    }
+
+    /**
+     * Restores the factory defaults of the TalonFX.
+     * 
+     * @return The status code indicating the result of the operation.
+     */
+    public StatusCode restoreFactoryDefaults() {
+        return applyParameter(
+            () -> configurator.apply(new TalonFXConfiguration(), 1.0),
+            "Factory Defaults"
+        );
     }
 
     /**

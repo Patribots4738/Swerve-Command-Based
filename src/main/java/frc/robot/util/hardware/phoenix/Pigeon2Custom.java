@@ -5,6 +5,8 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import com.ctre.phoenix6.configs.Pigeon2Configurator;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,6 +14,8 @@ import edu.wpi.first.math.util.Units;
 import frc.robot.util.Constants.PigeonConstants;
 
 public class Pigeon2Custom extends Pigeon2 {
+
+    private final Pigeon2Configurator configurator = getConfigurator();
 
     private TelemetryPreference telemetryPreference;
 
@@ -39,6 +43,9 @@ public class Pigeon2Custom extends Pigeon2 {
      */
     public Pigeon2Custom(int id, String canBus) {
         super(id, canBus);
+
+        restoreFactoryDefaults();
+
         yawSignal = getYaw();
         pitchSignal = getPitch();
         rollSignal = getRoll();
@@ -73,6 +80,18 @@ public class Pigeon2Custom extends Pigeon2 {
      */
     public StatusCode applySignalFrequency(double frequency, BaseStatusSignal... signals) {
         return DeviceUtil.applySignalFrequency(frequency, getDeviceID(), signals);
+    }
+
+    /**
+     * Restores the factory defaults of the Pigeon2.
+     * 
+     * @return The status code indicating the result of the operation.
+     */
+    public StatusCode restoreFactoryDefaults() {
+        return applyParameter(
+            () -> configurator.apply(new Pigeon2Configuration(), 1.0),
+            "Factory Defaults"
+        );
     }
 
     /**

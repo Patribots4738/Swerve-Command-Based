@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -53,6 +54,8 @@ public class CANCoderCustom extends CANcoder {
      */
     public CANCoderCustom(int id, String canBus, boolean inverted, double offset) {
         super(id, canBus);
+
+        restoreFactoryDefaults();
 
         configureMagnetSensor(inverted, offset);
 
@@ -165,6 +168,18 @@ public class CANCoderCustom extends CANcoder {
         return applyParameter(
             () -> configurator.apply(magnetSensorConfigs, 1.0), 
             "Magnet Sensor Configs"
+        );
+    }
+
+    /**
+     * Restores the factory defaults of the CANCoder.
+     * 
+     * @return The status code indicating the result of the operation.
+     */
+    public StatusCode restoreFactoryDefaults() {
+        return applyParameter(
+            () -> configurator.apply(new CANcoderConfiguration(), 1.0),
+            "Factory Defaults"
         );
     }
 
