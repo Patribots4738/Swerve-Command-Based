@@ -482,6 +482,7 @@ public final class Constants {
     }
 
     public static final class KrakenMotorConstants {
+
         public static final double KRAKENX60_FREE_SPEED_RPM = 6000;
         public static final double KRAKENX60_FREE_SPEED_RPM_FOC = 5800;
 
@@ -522,6 +523,10 @@ public final class Constants {
 
         public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
+    }
+
+    public static final class GeneralHardwareConstants {
+        public static final boolean SAFE_HARDWARE_MODE = false;
     }
 
     public static final class FieldConstants {

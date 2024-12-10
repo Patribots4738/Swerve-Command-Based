@@ -12,7 +12,7 @@ public class GyroPigeon2IO implements GyroIO {
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         // refresh all status signals
-        inputs.isConnected = pigeon.isConnected();
+        inputs.isConnected = pigeon.refreshSignals().isOK();
         inputs.yawRotation2d = pigeon.getRotation2d();
         inputs.pitchRads = pigeon.getPitchRadians();
         inputs.rollRads = pigeon.getRollRadians();
