@@ -89,7 +89,7 @@ public class CANCoderCustom extends CANcoder {
     /**
      * Returns the position as a double value.
      * 
-     * @return the position as a double value
+     * @return the position as rotations * PCF
      */
     public double getPositionAsDouble() {
         return position.getValue() * positionConversionFactor;
@@ -98,7 +98,7 @@ public class CANCoderCustom extends CANcoder {
     /**
      * Returns the absolute position as a double value.
      *
-     * @return the absolute position as a double value
+     * @return the absolute position as rotation from -0.5 to 0.5 * PCF
      */
     public double getAbsolutePositionAsDouble() {
         return absolutePosition.getValue() * positionConversionFactor;
@@ -107,7 +107,7 @@ public class CANCoderCustom extends CANcoder {
     /**
      * Returns the velocity as a double value.
      * 
-     * @return the velocity as a double value
+     * @return the velocity as rps * VCF
      */
     public double getVelocityAsDouble() {
         return velocity.getValue() * velocityConversionFactor;
@@ -116,7 +116,7 @@ public class CANCoderCustom extends CANcoder {
     /**
      * Resets the encoder to the specified position.
      * 
-     * @param position the desired position to reset the encoder to
+     * @param position the desired position to reset the encoder to, position / PCF = rotations
      * @return the status code indicating the success or failure of the operation
      */
     public StatusCode resetEncoder(double position) {
@@ -163,8 +163,8 @@ public class CANCoderCustom extends CANcoder {
         magnetSensorConfigs.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
         magnetSensorConfigs.MagnetOffset = offset;
         magnetSensorConfigs.SensorDirection = inverted 
-            ? SensorDirectionValue.CounterClockwise_Positive 
-            : SensorDirectionValue.Clockwise_Positive;
+            ? SensorDirectionValue.Clockwise_Positive 
+            : SensorDirectionValue.CounterClockwise_Positive;
         return applyParameter(
             () -> configurator.apply(magnetSensorConfigs, 1.0), 
             "Magnet Sensor Configs"

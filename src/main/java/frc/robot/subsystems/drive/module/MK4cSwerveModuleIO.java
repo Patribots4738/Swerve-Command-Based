@@ -86,7 +86,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
 
-        // Call isConnected() to refresh all status signals
+        // Call refreshALl() to refresh all status signals, and check in on him :)
         inputs.driverMotorConnected = driveMotor.refreshSignals().isOK();
         // 800 m is roughly the value at which the talonfx position "flips", leading to odometry bugs
         inputs.drivePositionFlipped = (inputs.drivePositionMeters > 800 && driveMotor.getPositionAsDouble() < -800);
@@ -97,7 +97,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
         inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
         inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
         
-        // Call isConnected() to refresh all status signals
+        // Call refreshALl() to refresh all status signals, and check in on him :)
         inputs.turnMotorConnected = turnMotor.refreshSignals().isOK();
         inputs.turnInternalPositionRads = turnMotor.getPositionAsDouble();
         inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
@@ -106,7 +106,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
         inputs.turnStatorCurrentAmps = turnMotor.getStatorCurrentAsDouble();
         inputs.turnTempCelcius = turnMotor.getTemperatureAsDouble();
 
-        // Call isConnected() to refresh all status signals, but only if turn encoder is real
+        // Call refreshALl() to refresh all status signals (only if he is real)
         if (!FieldConstants.IS_SIMULATION) {
             inputs.turnEncoderConnected = turnEncoder.refreshSignals().isOK();
         }

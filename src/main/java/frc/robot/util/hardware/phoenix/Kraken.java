@@ -106,7 +106,7 @@ public class Kraken extends TalonFX {
      * 
      * @param id ID of Kraken motor
      * @param useFOC uses FOC to enhance motor communication when set to true
-     * @param useTorqueControl uses torque control mode when set to true
+     * @param useTorqueControl uses the TalonFX native torque control mode when set to true
      */
     public Kraken(int id, boolean useFOC, boolean useTorqueControl) {
         this(id, "rio", useFOC, useTorqueControl);
@@ -118,7 +118,7 @@ public class Kraken extends TalonFX {
      * @param id The ID of the Kraken object.
      * @param canBus The CAN bus address of the Kraken object.
      * @param useFOC Whether to use Field Oriented Control (FOC) for the Kraken object.
-     * @param useTorqueControl Whether to use torque control for the Kraken object.
+     * @param useTorqueControl Uses the TalonFX native torque control mode when set to true.
      */
     public Kraken(int id, String canBus, boolean useFOC, boolean useTorqueControl) {
 
@@ -247,7 +247,7 @@ public class Kraken extends TalonFX {
     /**
      * Sets the target position of the Kraken mechanism.
      * 
-     * @param position The desired position of the Kraken mechanism.
+     * @param position The desired position of the Kraken mechanism, position / PCF give rotations.
      * @param feedForward The feed forward value for the Kraken mechanism.
      * @param slot The slot number for the Kraken mechanism.
      * @return The status code indicating the success or failure of setting the target position.
@@ -288,7 +288,7 @@ public class Kraken extends TalonFX {
     /**
      * Sets the target velocity for the Kraken motor controller.
      * 
-     * @param velocity The desired velocity in units per second.
+     * @param velocity The desired velocity in units per second, velocity / VCF gives rps.
      * @param feedForward The feed forward value to be applied.
      * @param slot The slot index for PIDF configuration.
      * @return The status code indicating the success or failure of the operation.
@@ -334,7 +334,7 @@ public class Kraken extends TalonFX {
     /**
      * Sets the voltage output of the Kraken device.
      * 
-     * @param volts the desired voltage output
+     * @param volts the desired voltage output in volts
      * @return the status code indicating the success or failure of the operation
      */
     public StatusCode setVoltageOutput(double volts) {
@@ -478,6 +478,7 @@ public class Kraken extends TalonFX {
 
     /**
      * Sets the closed loop ramp period for the motor controller.
+     * This is the time to ramp from 0V to 12V (or 0A to 300A) in seconds
      * 
      * @param seconds the ramp period in seconds
      * @return the status code indicating the success or failure of the operation
@@ -631,7 +632,7 @@ public class Kraken extends TalonFX {
     /**
      * Obtains the current position of the Kraken as a double.
      * 
-     * @return current position
+     * @return current position as rotations * PCF
      */
     public double getPositionAsDouble() {
         return positionSignal.getValue() * positionConversionFactor;        
@@ -640,7 +641,7 @@ public class Kraken extends TalonFX {
     /**
      * Obtains the current velocity of the Kraken as a double.
      * 
-     * @return current velocity
+     * @return current velocity as rotations per second * VCF
      */
     public double getVelocityAsDouble() {
         return velocitySignal.getValue() * velocityConversionFactor;
@@ -649,7 +650,7 @@ public class Kraken extends TalonFX {
     /**
      * Obtains the current voltage of the Kraken as a double.
      * 
-     * @return current voltage
+     * @return current voltage in volts
      */
     public double getVoltageAsDouble() {
         return voltageSignal.getValue();
@@ -658,7 +659,7 @@ public class Kraken extends TalonFX {
     /**
      * Obtains the current duty cycle output percentage of the Kraken as a double.
      * 
-     * @return current percent
+     * @return current percent from -1.0 to 1.0
      */
     public double getPercentAsDouble() {
         return percentSignal.getValue();
@@ -667,7 +668,7 @@ public class Kraken extends TalonFX {
     /**
      * Represents current supplied to Kraken as a double.
      * 
-     * @return supply of current to Kraken
+     * @return supply of current to Kraken in amps
      */
     public double getSupplyCurrentAsDouble() {
         return supplyCurrentSignal.getValue();
@@ -676,7 +677,7 @@ public class Kraken extends TalonFX {
     /**
      * Represents current supplied to the stator of the Kraken as a double.
      * 
-     * @return supply of current to stator
+     * @return supply of current to stator in amps
      */
     public double getStatorCurrentAsDouble() {
         return statorCurrentSignal.getValue();
@@ -685,7 +686,7 @@ public class Kraken extends TalonFX {
     /**
      * Represents the current creating torque as a double.
      * 
-     * @return torque current
+     * @return torque current in amps
      */
     public double getTorqueCurrentAsDouble() {
         return torqueCurrentSignal.getValue();
