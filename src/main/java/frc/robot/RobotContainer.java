@@ -135,17 +135,15 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings(){
-        configureDriverBindings();
-        configureOperatorBindings();
+        configureDriverBindings(driver);
+        configureOperatorBindings(operator);
     }
 
     private void configureTimedEvents() {}
 
-    private void configureOperatorBindings() {}
+    private void configureDriverBindings(PatriBoxController controller) {
 
-    private void configureDriverBindings() {
-
-        driver.start().onTrue(
+        controller.start().onTrue(
             Commands.runOnce(() -> swerve.resetOdometry(
                 new Pose2d(
                     swerve.getPose().getTranslation(), 
@@ -156,19 +154,32 @@ public class RobotContainer {
             ), swerve)
         );
 
-        driver.povLeft()
-            .onTrue(krakenTest.setVelocity(1000))
-            .onFalse(krakenTest.setVelocity(0));
+        controller.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
+    }
 
-        driver.povUp()
-            .onTrue(krakenTest.setPosition(500))
-            .onFalse(krakenTest.setPosition(0));
-        
-        driver.povRight()
-            .onTrue(krakenTest.setPercent(1.0))
-            .onFalse(krakenTest.setPercent(0));
+    private void configureOperatorBindings(PatriBoxController controller) {
 
-        driver.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
+        controller.povUp()
+            .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() + 0.2));
+
+        controller.povDown()
+            .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() - 0.2));
+
+        controller.a()
+            .onTrue(krakenTest.setPosition(() -> 0));
+
+        controller.b()
+            .whileTrue(krakenTest.setVelocity(() -> 500)
+                .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
+
+        controller.x()
+            .whileTrue(krakenTest.setVelocity(() -> -500)
+                .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
+
+        controller.rightTrigger()
+            .whileTrue(krakenTest.setPercent(controller::getRightY)
+                .finallyDo(() -> krakenTest.setPercent(() -> 0)));
+
     }
 
     public void updateNTGains() {

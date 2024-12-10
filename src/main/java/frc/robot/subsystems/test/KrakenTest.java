@@ -1,9 +1,10 @@
 package frc.robot.subsystems.test;
 
+import java.util.function.DoubleSupplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.hardware.phoenix.Kraken;
 
@@ -28,16 +29,28 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
         Logger.recordOutput("Subsystems/KrakenTest/TargetPercent", inputs.targetPercent);
     }
 
-    public Command setPosition(double position) {
-        return Commands.runOnce(() -> motor.setTargetPosition(position));
+    public Command setPosition(DoubleSupplier position) {
+        return runOnce(() -> motor.setTargetPosition(position.getAsDouble()));
     }
 
-    public Command setVelocity(double velocity) {
-        return Commands.runOnce(() -> motor.setTargetVelocity(velocity));
+    public Command setVelocity(DoubleSupplier velocity) {
+        return runOnce(() -> motor.setTargetVelocity(velocity.getAsDouble()));
     }
 
-    public Command setPercent(double percent) {
-        return Commands.runOnce(() -> motor.set(percent));
+    public Command setPercent(DoubleSupplier percent) {
+        return runOnce(() -> motor.setPercentOutput(percent.getAsDouble()));
+    }
+
+    public Command setVoltage(DoubleSupplier volts) {
+        return runOnce(() -> motor.setVoltageOutput(volts.getAsDouble()));
+    }
+
+    public Command setCurrent(DoubleSupplier amps) {
+        return runOnce(() -> motor.setTorqueCurrentOutput(amps.getAsDouble()));
+    }
+
+    public double getPosition() {
+        return inputs.positionRotations;
     }
 
     public void updateInputs(KrakenTestIOInputs inputs) {
@@ -48,7 +61,7 @@ public class KrakenTest extends SubsystemBase implements KrakenTestIO {
         inputs.targetVelocityRPM = motor.getTargetVelocity();
         inputs.appliedVolts = motor.getVoltageAsDouble();
         inputs.targetPercent = motor.getTargetPercent();
-        inputs.statorCurrentAmps = motor.getStatorCurrentAsDouble();
+        inputs.supplyCurrentAmps = motor.getSupplyCurrentAsDouble();
         inputs.tempCelcius = motor.getTemperatureAsDouble();
     }
 

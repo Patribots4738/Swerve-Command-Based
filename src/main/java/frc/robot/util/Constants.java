@@ -507,6 +507,9 @@ public final class Constants {
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID));
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID));
             }});
+            KRAKEN_MOTOR_GROUPS.put("Test", new ArrayList<Kraken>() {{
+                add(KRAKEN_MOTOR_MAP.get(20));
+            }});
 
             return KRAKEN_MOTOR_GROUPS;
         }
