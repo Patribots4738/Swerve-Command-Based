@@ -5,9 +5,11 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 
-import frc.robot.util.Constants.KrakenMotorConstants;
+import frc.robot.util.Constants.GeneralHardwareConstants;
 
 public class DeviceUtil {
+
+    public static final double MAX_ATTEMPTS = GeneralHardwareConstants.SAFE_HARDWARE_MODE ? 20 : 1;
     
     /**
      * Applies a parameter to a device using the provided status code supplier.
@@ -19,7 +21,7 @@ public class DeviceUtil {
      */
     public static StatusCode applyParameter(Supplier<StatusCode> statusCode, String name, int deviceId) {
         StatusCode status = statusCode.get();
-        for (int i = 1; i <= (KrakenMotorConstants.SAFE_TALON_MODE ? 20 : 1); i++) {
+        for (int i = 1; i <= MAX_ATTEMPTS; i++) {
             status = statusCode.get();
             if (status.isOK()) {
                 System.err.println("Successfully applied " + name + " to device " + deviceId + " on attempt " + i);
@@ -40,7 +42,7 @@ public class DeviceUtil {
      * @return The status code indicating the result of the operation.
      */
     public static StatusCode applySignalFrequency(double frequency, int deviceId, BaseStatusSignal... signals) {
-        return DeviceUtil.applyParameter(
+        return applyParameter(
             () -> BaseStatusSignal.setUpdateFrequencyForAll(frequency, signals), 
             frequency + " Hz Signal Frequency",
             deviceId

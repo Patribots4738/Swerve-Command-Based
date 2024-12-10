@@ -490,8 +490,6 @@ public final class Constants {
         public static final double TALONFX_MID_UPDATE_FREQ_HZ = 50; // TODO: FIND THE SWEET SPOT
         public static final double TALONFX_SLOW_UPDATE_FREQ_HZ = 4; // TODO: FIND THE SWEET SPOT
 
-        public static final boolean SAFE_TALON_MODE = false;
-
         public static final HashMap<Integer, Kraken> KRAKEN_MOTOR_MAP = new HashMap<Integer, Kraken>();
 
         public static final HashMap<String, List<Kraken>> KRAKEN_MOTOR_GROUPS = new HashMap<String, List<Kraken>>();
@@ -525,6 +523,10 @@ public final class Constants {
 
         public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
+    }
+
+    public static final class GeneralHardwareConstants {
+        public static final boolean SAFE_HARDWARE_MODE = false;
     }
 
     public static final class FieldConstants {
