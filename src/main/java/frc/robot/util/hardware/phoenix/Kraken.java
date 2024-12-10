@@ -1,6 +1,9 @@
 package frc.robot.util.hardware.phoenix;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
@@ -20,6 +23,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -84,7 +88,7 @@ public class Kraken extends TalonFX {
      * @param canBus CANivore Kraken is connected to
      */
     public Kraken(int id, String canBus) {
-        this(id, canBus, false, false, false);
+        this(id, canBus, false, false);
     }
 
     /**
@@ -97,46 +101,25 @@ public class Kraken extends TalonFX {
     }
 
     /**
-     * Creates new Kraken motor that can be inverted.
-     * 
-     * @param id ID of Kraken motor
-     * @param canBus CANivore Kraken is connected to
-     * @param inverted inverts input given to motor when set to true
-     */
-    public Kraken(int id, String canBus, boolean inverted) {
-        this(id, canBus, inverted, false, false);
-    }
-
-    /**
-     * Creates new Kraken motor that can be inverted.
-     * 
-     * @param id ID of Kraken motor
-     * @param inverted inverts input given to motor when set to true
-     */
-    public Kraken(int id, boolean inverted) {
-        this(id, "rio", inverted);
-    }
-
-    /**
      * Creates a new Kraken motor that can be inverted and use FOC.
      * 
      * @param id ID of Kraken motor
-     * @param inverted inverts input given to motor when set to true
      * @param useFOC uses FOC to enhance motor communication when set to true
+     * @param useTorqueControl uses torque control mode when set to true
      */
-    public Kraken(int id, boolean inverted, boolean useFOC, boolean useTorqueControl) {
-        this(id, "rio", inverted, useFOC, useTorqueControl);
+    public Kraken(int id, boolean useFOC, boolean useTorqueControl) {
+        this(id, "rio", useFOC, useTorqueControl);
     }
 
     /**
-     * Creates a new Kraken motor that can be inverted and use FOC.
+     * Represents a Kraken object that controls a specific hardware component.
      * 
-     * @param id ID of Kraken motor
-     * @param inverted inverts input given to motor when set to true
-     * @param canBus CANivore Kraken is connected to
-     * @param useFOC uses FOC to enhance motor communication when set to true
+     * @param id The ID of the Kraken object.
+     * @param canBus The CAN bus address of the Kraken object.
+     * @param useFOC Whether to use Field Oriented Control (FOC) for the Kraken object.
+     * @param useTorqueControl Whether to use torque control for the Kraken object.
      */
-    public Kraken(int id, String canBus, boolean inverted, boolean useFOC, boolean useTorqueControl) {
+    public Kraken(int id, String canBus, boolean useFOC, boolean useTorqueControl) {
 
         super(id, canBus);
 
@@ -163,359 +146,426 @@ public class Kraken extends TalonFX {
         temperatureSignal = super.getDeviceTemp();
 
         setTelemetryPreference(TelemetryPreference.DEFAULT);
-        optimizeBusUtilization(0, 1.0);
+        applyParameter(
+            () -> optimizeBusUtilization(0, 1.0),
+            "Optimize Bus Utilization"
+        );
 
-        setInverted(inverted);
-        setBrakeMode();
         register();
 
     }
 
     public enum TelemetryPreference {
         DEFAULT,
-        NO_ENCODER,
-        SWERVE
+        NO_ENCODER, // Intake roller, for example
+        SWERVE // Swerve module motors
     }
 
     /**
-     * Changes the update frequency of certain status fields based on the preference
+     * Sets the telemetry preference for the Kraken motor.
      * 
-     * @param newPreference the new telemetry mode to switch to
+     * @param newPreference the new telemetry preference to set
+     * @return true if the telemetry preference was set successfully, false otherwise
      */
-    public void setTelemetryPreference(TelemetryPreference newPreference) {
+    public boolean setTelemetryPreference(TelemetryPreference newPreference) {
         telemetryPreference = newPreference;
 
-        switch(telemetryPreference) {
-            case NO_ENCODER:
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
-                    voltageSignal,
-                    percentSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
-                    supplyCurrentSignal,
-                    statorCurrentSignal,
-                    torqueCurrentSignal,
-                    temperatureSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    0,
-                    positionSignal,
-                    velocitySignal
-                );
-                break;
-            case SWERVE:
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
-                    positionSignal,
-                    velocitySignal,
-                    voltageSignal,
-                    supplyCurrentSignal,
-                    torqueCurrentSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
-                    temperatureSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    0,
-                    percentSignal,
-                    statorCurrentSignal
-                );
-                break;
-            default:
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ, 
-                    voltageSignal,
-                    percentSignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_MID_UPDATE_FREQ_HZ,
-                    positionSignal,
-                    velocitySignal
-                );
-                BaseStatusSignal.setUpdateFrequencyForAll(
-                    KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
-                    supplyCurrentSignal,
-                    statorCurrentSignal,
-                    torqueCurrentSignal,
-                    temperatureSignal
-                );
-                break;
+        return 
+            switch(telemetryPreference) {
+                case NO_ENCODER ->
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                        voltageSignal,
+                        percentSignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
+                        supplyCurrentSignal,
+                        statorCurrentSignal,
+                        torqueCurrentSignal,
+                        temperatureSignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        0,
+                        positionSignal,
+                        velocitySignal
+                    ).isOK();
+                case SWERVE ->
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ,
+                        positionSignal,
+                        velocitySignal,
+                        voltageSignal,
+                        supplyCurrentSignal,
+                        torqueCurrentSignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
+                        temperatureSignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        0,
+                        percentSignal,
+                        statorCurrentSignal
+                    ).isOK();
+                default ->
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_FAST_UPDATE_FREQ_HZ, 
+                        voltageSignal,
+                        percentSignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_MID_UPDATE_FREQ_HZ,
+                        positionSignal,
+                        velocitySignal
+                    ).isOK() &&
+                    applySignalFrequency(
+                        KrakenMotorConstants.TALONFX_SLOW_UPDATE_FREQ_HZ, 
+                        supplyCurrentSignal,
+                        statorCurrentSignal,
+                        torqueCurrentSignal,
+                        temperatureSignal
+                    ).isOK();
+            };
+    }
+
+    public StatusCode setTargetPosition(double position) {
+        return setTargetPosition(position, 0, 0);
+    }
+
+    public StatusCode setTargetPosition(double position, double feedForward) {
+        return setTargetPosition(position, feedForward, 0);
+    }
+
+    public StatusCode setTargetPosition(double position, int slot) {
+        return setTargetPosition(position, 0, slot);
+    }
+
+    /**
+     * Sets the target position of the Kraken mechanism.
+     * 
+     * @param position The desired position of the Kraken mechanism.
+     * @param feedForward The feed forward value for the Kraken mechanism.
+     * @param slot The slot number for the Kraken mechanism.
+     * @return The status code indicating the success or failure of setting the target position.
+     */
+    public StatusCode setTargetPosition(double position, double feedForward, int slot) {
+        StatusCode status = 
+            setControl(
+                useTorqueControl 
+                    ? positionTorqueRequest
+                        .withPosition(position / positionConversionFactor)
+                        .withFeedForward(feedForward)
+                        .withSlot(slot)
+                    : positionRequest
+                        .withPosition(position / positionConversionFactor)
+                        .withFeedForward(feedForward)
+                        .withSlot(slot));
+        if (!status.isError()) {
+            targetPosition = position;
+        } else {
+            System.err.println("Failure to set position setpoint");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
         }
+        return status;
+    }
+
+    public StatusCode setTargetVelocity(double velocity) {
+        return setTargetVelocity(velocity, 0, 0);
+    }
+
+    public StatusCode setTargetVelocity(double velocity, double feedForward) {
+        return setTargetVelocity(velocity, feedForward, 0);
+    }
+
+    public StatusCode setTargetVelocity(double velocity, int slot) {
+        return setTargetVelocity(velocity, 0, slot);
     }
 
     /**
-     * Sets the target position of the Kraken.
+     * Sets the target velocity for the Kraken motor controller.
      * 
-     * @param position motor position
+     * @param velocity The desired velocity in units per second.
+     * @param feedForward The feed forward value to be applied.
+     * @param slot The slot index for PIDF configuration.
+     * @return The status code indicating the success or failure of the operation.
      */
-    public void setTargetPosition(double position) {
-        setTargetPosition(position, 0, 0);
-    }
-
-    /**
-     * Sets the target position of the Kraken and feed forward control.
-     * 
-     * @param position motor position
-     * @param feedForward feed forward control
-     */
-    public void setTargetPosition(double position, double feedForward) {
-        setTargetPosition(position, feedForward, 0);
-    }
-
-    /**
-     * Sets the target position of the Kraken and PID slot
-     * 
-     * @param position motor position
-     * @param slot PID slot
-     */
-    public void setTargetPosition(double position, int slot) {
-        setTargetPosition(position, 0, slot);
-    }
-
-    /**
-     * Sets the target position of the Kraken, feed forward control and PID slot
-     * 
-     * @param position motor position
-     * @param feedForward feed forward control
-     * @param slot PID slot
-     */
-    public void setTargetPosition(double position, double feedForward, int slot) {
-        setControl(
-            useTorqueControl 
-                ? positionTorqueRequest
-                    .withPosition(position / positionConversionFactor)
-                    .withFeedForward(feedForward)
-                    .withSlot(slot)
-                : positionRequest
-                    .withPosition(position / positionConversionFactor)
-                    .withFeedForward(feedForward)
-                    .withSlot(slot));
-        targetPosition = position;
-    }
-
-    /**
-     * Sets target velocity of the Kraken (rps)
-     * 
-     * @param velocity target velocity
-     */
-    public void setTargetVelocity(double velocity) {
-        setTargetVelocity(velocity, 0, 0);
-    }
-
-    /**
-     * Sets the target velocity of the Kraken and feed forward control
-     * 
-     * @param velocity target velocity
-     * @param feedForward feed forward control
-     */
-    public void setTargetVelocity(double velocity, double feedForward) {
-        setTargetVelocity(velocity, feedForward, 0);
-    }
-
-    /**
-     * Sets the target velocity of the Kraken and PID slot
-     * 
-     * @param velocity target velocity
-     * @param slot PID slot
-     */
-    public void setTargetVelocity(double velocity, int slot) {
-        setTargetVelocity(velocity, 0, slot);
-    }
-
-    /**
-     * Sets the target velocity of the Kraken, feed forward control, and PID slot
-     * 
-     * @param velocity target velocity
-     * @param feedForward feed forward control
-     * @param slot PID slot
-     */
-    public void setTargetVelocity(double velocity, double feedForward, int slot) {
-        setControl(
-            useTorqueControl 
-                ? velocityTorqueRequest
-                    .withVelocity(velocity / velocityConversionFactor)
-                    .withFeedForward(feedForward)
-                    .withSlot(slot)
-                : velocityRequest
-                    .withVelocity(velocity / velocityConversionFactor)
-                    .withFeedForward(feedForward)
-                    .withSlot(slot));
-        if (velocity == 0) {
-            setVoltageOutput(0.0);
+    public StatusCode setTargetVelocity(double velocity, double feedForward, int slot) {
+        StatusCode status = 
+            setControl(
+                useTorqueControl 
+                    ? velocityTorqueRequest
+                        .withVelocity(velocity / velocityConversionFactor)
+                        .withFeedForward(feedForward)
+                        .withSlot(slot)
+                    : velocityRequest
+                        .withVelocity(velocity / velocityConversionFactor)
+                        .withFeedForward(feedForward)
+                        .withSlot(slot));
+        if (!status.isError()) {
+            targetVelocity = velocity;
+        } else {
+            System.err.println("Failure to set velocity setpoint");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
         }
-        targetVelocity = velocity;
+        return status;
     }
 
     /**
-     * Directly sets the output of Kraken using percent of its maximum output.
+     * Sets the percent output of the Kraken motor controller.
      * 
-     * @param percent should be between 1.0 to -1.0
+     * @param percent The desired percent output, ranging from -1.0 to 1.0.
+     * @return The status code indicating the success or failure of the operation.
      */
-    public void setPercentOutput(double percent) {
-        setControl(percentRequest.withOutput(percent));
-        targetPercent = percent;
+    public StatusCode setPercentOutput(double percent) {
+        StatusCode status = setControl(percentRequest.withOutput(percent));
+        if (!status.isError()) {
+            targetPercent = percent;
+        } else {
+            System.err.println("Failure to set percent output");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+        }
+        return status;
     }
 
     /**
-     * Directly sets the output of the Kraken using volts
+     * Sets the voltage output of the Kraken device.
      * 
-     * @param volts the voltage to set to, automatically capped at the supply voltage
+     * @param volts the desired voltage output
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setVoltageOutput(double volts) {
-        setControl(voltageRequest.withOutput(volts));
+    public StatusCode setVoltageOutput(double volts) {
+        StatusCode status = setControl(voltageRequest.withOutput(volts));
+        if (status.isError()) {
+            System.err.println("Failure to set voltage output");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+        }
+        return status;
     }
 
     /**
-     * Directly sets the output of the Kraken using amps
+     * Sets the torque current output of the Kraken hardware component.
      * 
-     * @param amps the current to set to
+     * @param amps the desired current output in amps
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setTorqueCurrentOutput(double amps) {
-        setControl(torqueRequest.withOutput(amps));
+    public StatusCode setTorqueCurrentOutput(double amps) {
+        StatusCode status = setControl(torqueRequest.withOutput(amps));
+        if (status.isError()) {
+            System.err.println("Failure to set voltage output");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+        }
+        return status;
     }
 
     /**
-     * Sets new conversion factor for the position of the Kraken.
-     * 
-     * @param newFactor new conversion factor
+     * Sets the position conversion factor for the Kraken.
+     * This factor is used to convert the raw position value to a meaningful unit.
+     *
+     * @param newFactor the new position conversion factor to be set
      */
     public void setPositionConversionFactor(double newFactor) {
         positionConversionFactor = newFactor;
     }
 
     /**
-     * Sets new conversion factor for the velocity of the Kraken.
-     * 
-     * @param newFactor new conversion factor
+     * Sets the velocity conversion factor for the Kraken.
+     * This factor is used to convert the desired velocity value to the actual velocity value
+     * that is sent to the Kraken motor controller.
+     *
+     * @param newFactor the new velocity conversion factor to be set
      */
     public void setVelocityConversionFactor(double newFactor) {
         velocityConversionFactor = newFactor;
     }
 
     /**
-     * Sets the limit of current that can be supplied to the Kraken.
+     * Applies a parameter to the device configuration using the given configuration application and configuration name.
      * 
-     * @param currentLimit maximum allowable current
+     * @param configApplication the supplier that applies the configuration parameter
+     * @param configName the name of the configuration parameter
+     * @return the status code indicating the result of applying the parameter
      */
-    public void setSupplyCurrentLimit(double currentLimit) {
-        currentLimitConfigs.SupplyCurrentLimit = currentLimit;
-        currentLimitConfigs.SupplyCurrentLimitEnable = true;
-        configurator.apply(currentLimitConfigs, 1.0);
+    public StatusCode applyParameter(Supplier<StatusCode> configApplication, String configName) {
+        return DeviceUtil.applyParameter(configApplication, configName, getDeviceID());
     }
 
     /**
-     * Sets the limit of the current supplied to the stator of the Kraken.
+     * Applies the given signal frequency to the specified status signals for the Kraken device.
      * 
-     * @param currentLimit maximum allowable current
+     * @param frequency The frequency at which to apply the signals.
+     * @param signals The status signals to apply the frequency to.
+     * @return The status code indicating the success or failure of applying the signal frequency.
      */
-    public void setStatorCurrentLimit(double currentLimit) {
+    public StatusCode applySignalFrequency(double frequency, BaseStatusSignal... signals) {
+        return DeviceUtil.applySignalFrequency(frequency, getDeviceID(), signals);
+    }
+
+    /**
+     * Sets the motor inversion status.
+     *
+     * @param inverted true to invert the motor output, false otherwise
+     * @return the status code indicating the success or failure of the operation
+     */
+    public StatusCode setMotorInverted(boolean inverted) {
+        outputConfigs.Inverted = inverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+        return applyParameter(
+            () -> configurator.apply(outputConfigs),
+            "Motor Output Inverted"
+        );
+    }
+
+    /**
+     * Sets the supply current limit for the Kraken hardware component.
+     * 
+     * @param currentLimit the desired current limit in amperes
+     * @return the status code indicating the success or failure of the operation
+     */
+    public StatusCode setSupplyCurrentLimit(double currentLimit) {
+        currentLimitConfigs.SupplyCurrentLimit = currentLimit;
+        currentLimitConfigs.SupplyCurrentLimitEnable = true;
+        return applyParameter(
+            () -> configurator.apply(currentLimitConfigs, 1.0), 
+            "Supply Current Limit"
+        );
+    }
+
+    /**
+     * Sets the stator current limit for the Kraken motor controller.
+     * 
+     * @param currentLimit the desired stator current limit
+     * @return the status code indicating the success or failure of the operation
+     */
+    public StatusCode setStatorCurrentLimit(double currentLimit) {
         currentLimitConfigs.StatorCurrentLimit = currentLimit;
         currentLimitConfigs.StatorCurrentLimitEnable = true;
-        configurator.apply(currentLimitConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(currentLimitConfigs, 1.0),
+            "Stator Current Limit"
+        );
     }   
 
     /**
-     * Sets the limit of the current output when the kraken is being controlled via torque
+     * Sets the torque current limits for the Kraken.
      * 
-     * @param reverseLimit miniumum allowable current
-     * @param forwardLimit maximum allowable current
+     * @param reverseLimit The reverse torque current limit.
+     * @param forwardLimit The forward torque current limit.
+     * @return The status code indicating the success or failure of the operation.
      */
-    public void setTorqueCurrentLimits(double reverseLimit, double forwardLimit) {
+    public StatusCode setTorqueCurrentLimits(double reverseLimit, double forwardLimit) {
         torqueCurrentConfigs.PeakReverseTorqueCurrent = reverseLimit;
         torqueCurrentConfigs.PeakForwardTorqueCurrent = forwardLimit;
-        configurator.apply(torqueCurrentConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(torqueCurrentConfigs, 1.0),
+            "Torque Current Limits"
+        );
     }
 
     /**
-     * Sets the limit of the current output when the kraken is being controlled via torque
+     * Sets the closed loop ramp period for the motor controller.
      * 
-     * @param reverseLimit miniumum allowable current
-     * @param forwardLimit maximum allowable current
+     * @param seconds the ramp period in seconds
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setClosedLoopRampPeriod(double seconds) {
+    public StatusCode setClosedLoopRampPeriod(double seconds) {
         if (useTorqueControl) {
             closedLoopRampConfigs.TorqueClosedLoopRampPeriod = seconds;
         } else {
             closedLoopRampConfigs.VoltageClosedLoopRampPeriod = seconds;
         }
-        configurator.apply(closedLoopRampConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(closedLoopRampConfigs, 1.0),
+            "Closed Loop Ramp Period"
+        );
     }
-
+    
     /**
-     * Resets encoder postion.
+     * Resets the encoder to the specified position.
      * 
-     * @param position position encoder should be set to
+     * @param position the desired position to reset the encoder to
+     * @return the status code indicating the result of the operation
      */
-    public void resetEncoder(double position) {
-        setPosition(position / positionConversionFactor);
+    public StatusCode resetEncoder(double position) {
+        return applyParameter(
+            () -> setPosition(position / positionConversionFactor),
+            "Internal Encoder Reset"
+        );
     }
 
-    /**
-     * Resets the encoder position to 0.
-     */
-    public void resetEncoder() {
-        setPosition(0);
+    public StatusCode resetEncoder() {
+        return resetEncoder(0);
     }
-
+    
     /**
-     * Puts the Kraken in brake mode and it can not move.
-     */
-    public void setBrakeMode() {
-        outputConfigs.NeutralMode = NeutralModeValue.Brake;
-        configurator.apply(outputConfigs, 1.0);
-    }
-
-    /**
-     * Puts the Kraken in coast mode and the motor can spin freely.
-     */
-    public void setCoastMode() {
-        outputConfigs.NeutralMode = NeutralModeValue.Coast;
-        configurator.apply(outputConfigs, 1.0);
-    }
-
-    /**
-     * Sets the ID of the Kraken's CANCoder.
+     * Sets the brake mode for the Kraken hardware.
      * 
-     * @param canCoderId new CANCoder ID
+     * @param brake true to enable brake mode, false to enable coast mode
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setEncoder(int canCoderId, double mechanismReduction) {
+    public StatusCode setBrakeMode(boolean brake) {
+        outputConfigs.NeutralMode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+        return applyParameter(
+            () -> configurator.apply(outputConfigs, 1.0),
+            "Brake Mode"
+        );
+    }
+    
+    /**
+     * Sets the encoder for the specified CANCoder ID with the given mechanism reduction.
+     * 
+     * @param canCoderId The ID of the CANCoder.
+     * @param mechanismReduction The mechanism reduction ratio.
+     * @return The status code indicating the result of the operation.
+     */
+    public StatusCode setEncoder(int canCoderId, double mechanismReduction) {
         feedbackConfigs.FeedbackRemoteSensorID = canCoderId;
         feedbackConfigs.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         feedbackConfigs.SensorToMechanismRatio = 1.0;
         feedbackConfigs.RotorToSensorRatio = mechanismReduction;
-        configurator.apply(feedbackConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(feedbackConfigs, 1.0),
+            "Absolute Encoder Configuration"
+        );
     }
 
     /**
-     * Enables PID wrapping.
+     * Sets the position closed loop wrapping enabled flag.
      * 
-     * @param enabled set to true if wrapping is enabled
+     * @param enabled true to enable wrapping, false otherwise
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setPositionClosedLoopWrappingEnabled(boolean enabled) {
+    public StatusCode setPositionClosedLoopWrappingEnabled(boolean enabled) {
         closedLoopConfigs.ContinuousWrap = enabled;
-        configurator.apply(closedLoopConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(closedLoopConfigs, 1.0),
+            "PID Wrapping Enabled"
+        );
+    }
+    
+    /**
+     * Adds a follower motor to the current motor.
+     * 
+     * @param motor The motor to be added as a follower.
+     * @param invert Specifies whether the follower motor should be inverted or not.
+     * @return The status code indicating the success or failure of adding the follower motor.
+     */
+    public StatusCode addFollower(Kraken motor, boolean invert) {
+        StatusCode status = motor.setControl(new Follower(getDeviceID(), invert));
+        if (status.isError()) {
+            System.err.println("Failure to add follower");
+            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+        }
+        return status;
     }
 
     /**
-     * Adds a follower motor to the Kraken.
+     * Adds a follower motor to this Kraken motor.
      * 
-     * @param motor follower motor
-     * @param invert whether the follower motor is to be inverted
+     * @param motor the motor to be added as a follower
+     * @return the status code indicating the success or failure of the operation
      */
-    public void addFollower(Kraken motor, boolean invert) {
-        motor.setControl(new Follower(getDeviceID(), invert));
-    }
-
-    /**
-     * Adds a follower motor to the Kraken.
-     * 
-     * @param motor
-     */
-    public void addFollower(Kraken motor) {
-        addFollower(motor, false);
+    public StatusCode addFollower(Kraken motor) {
+        return addFollower(motor, false);
     }
 
     /**
@@ -636,12 +686,11 @@ public class Kraken extends TalonFX {
     }
 
     /**
-     * Based on the telemetry preference, check if every needed status signal 
-     * is able to be successfully refreshed
+     * Refreshes the signals based on the telemetry preference.
      * 
-     * @return whether the motor is connected or not
+     * @return The status code indicating the success or failure of the signal refresh.
      */
-    public boolean isConnected() {
+    public StatusCode refreshSignals() {
         return 
             switch(telemetryPreference) {
                 case NO_ENCODER -> 
@@ -652,7 +701,7 @@ public class Kraken extends TalonFX {
                         statorCurrentSignal,
                         torqueCurrentSignal,
                         temperatureSignal
-                    ).isOK();
+                    );
                 case SWERVE ->
                     BaseStatusSignal.refreshAll(
                         voltageSignal,
@@ -661,7 +710,7 @@ public class Kraken extends TalonFX {
                         supplyCurrentSignal,
                         torqueCurrentSignal,
                         temperatureSignal
-                    ).isOK();
+                    );
                 default ->
                     BaseStatusSignal.refreshAll(
                         positionSignal,
@@ -672,7 +721,7 @@ public class Kraken extends TalonFX {
                         statorCurrentSignal,
                         torqueCurrentSignal,
                         temperatureSignal
-                    ).isOK();
+                    );
             };
     }
 
@@ -704,12 +753,13 @@ public class Kraken extends TalonFX {
     }
 
     /**
-     * Given a set of gains and a gain slot, applies them with the TalonFX's configurator
+     * Applies the specified gains to the given slot.
      * 
-     * @param appliedGains the set of gains to apply
-     * @param slot the gain slot to configure
+     * @param appliedGains the gains to be applied
+     * @param slot the slot number to apply the gains to
+     * @return the status code indicating the success or failure of the operation
      */
-    private void applyGains(GainConstants appliedGains, int slot) {
+    private StatusCode applyGains(GainConstants appliedGains, int slot) {
         slotConfigs.SlotNumber = slot;
         slotConfigs.kP = appliedGains.getP();
         slotConfigs.kI = appliedGains.getI();
@@ -717,15 +767,19 @@ public class Kraken extends TalonFX {
         slotConfigs.kS = appliedGains.getS();
         slotConfigs.kV = appliedGains.getV();
         slotConfigs.kG = appliedGains.getG();
-        configurator.apply(slotConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(slotConfigs, 1.0),
+            "Gains"
+        );
     }
 
     /**
-     * Configures the slot gains for a given slot
+     * Applies the gains for a specific slot.
      * 
-     * @param slot the gain slot to configure
+     * @param slot The slot number to apply the gains to.
+     * @return The status code indicating the result of applying the gains.
      */
-    private void applyGains(int slot) {
+    private StatusCode applyGains(int slot) {
         GainConstants appliedGains = gains[slot];
         slotConfigs.SlotNumber = slot;
         slotConfigs.kP = appliedGains.getP();
@@ -734,206 +788,157 @@ public class Kraken extends TalonFX {
         slotConfigs.kS = appliedGains.getS();
         slotConfigs.kV = appliedGains.getV();
         slotConfigs.kG = appliedGains.getG();
-        configurator.apply(slotConfigs, 1.0);
+        return applyParameter(
+            () -> configurator.apply(slotConfigs, 1.0),
+            "Gains"
+        );
     }
 
     /**
-     * Sets the gains for the specified slot.
+     * Sets the gains for a specific slot in the Kraken hardware.
      * 
-     * @param P proportional gains
-     * @param I integral gains
-     * @param D derivative gains
-     * @param S static feed forward gain
-     * @param V velocity feed forward gain
-     * @param G gravity feed forward / feedback gain
-     * @param slot slot for gains to be added to 
+     * @param P the proportional gain value
+     * @param I the integral gain value
+     * @param D the derivative gain value
+     * @param S the feed forward gain value
+     * @param V the velocity gain value
+     * @param G the acceleration gain value
+     * @param slot the slot number to set the gains for
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setGains(double P, double I, double D, double S, double V, double G, int slot)  {
-        applyGains(gains[slot].withGains(P, I, D, S, V, G), slot);
+    public StatusCode setGains(double P, double I, double D, double S, double V, double G, int slot)  {
+        return applyGains(gains[slot].withGains(P, I, D, S, V, G), slot);
+    }
+
+    public StatusCode setGains(double P, double I, double D, double S, double V, double G) {
+        return setGains(P, I, D, S, V, G, 0);
+    }
+
+    public StatusCode setGains(double P, double I, double D, double S, double V) {
+        return setGains(P, I, D, S, V, 0, 0);
     }
 
     /**
-     * Sets the gains for slot 0.
-     * 
-     * @param P proportional gains
-     * @param I integral gains
-     * @param D derivative gains
-     * @param S static feed forward gain
-     * @param V velocity feed forward gain
-     * @param G gravity feed forward / feedback gain
+     * Sets the gains for a specific slot and applies them.
+     *
+     * @param constants the gain constants to set
+     * @param slot the slot index to set the gains for
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setGains(double P, double I, double D, double S, double V, double G) {
-        setGains(P, I, D, S, V, G, 0);
-    }
-
-    /**
-     * Sets the gains for slot 0.
-     * 
-     * @param P proportional gains
-     * @param I integral gains
-     * @param D derivative gains
-     * @param S static feed forward gain
-     * @param V velocity feed forward gain
-     */
-    public void setGains(double P, double I, double D, double S, double V) {
-        setGains(P, I, D, S, V, 0, 0);
-    }
-
-    /**
-     * Sets the gains for the specified slot.
-     * 
-     * @param constants the gains to set
-     * @param slot the gain slot to configure
-     */
-    public void setGains(GainConstants constants, int slot) {
+    public StatusCode setGains(GainConstants constants, int slot) {
         gains[slot] = constants;
-        applyGains(slot);
+        return applyGains(slot);
+    }
+
+    public StatusCode setGains(GainConstants constants) {
+        return setGains(constants, 0);
     }
 
     /**
-     * Sets the gains for the specified slot.
+     * Sets the PID gains for a specific slot and applies them to the motor controller.
      * 
-     * @param constants the gains to set
+     * @param P the proportional gain value
+     * @param I the integral gain value
+     * @param D the derivative gain value
+     * @param slot the slot number to set the gains for
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setGains(GainConstants constants) {
-        setGains(constants, 0);
+    public StatusCode setPID(double P, double I, double D, int slot) {
+        return applyGains(gains[slot].withPID(P, I, D), slot);
+    }
+
+    public StatusCode setPID(double P, double I, double D) {
+        return setPID(P, I, D, 0);
     }
 
     /**
-     * Sets the PID gains for the specified slot.
+     * Sets the proportional gain (P) for a specific slot and applies the updated gains to the Kraken.
      * 
-     * @param P proportional gains
-     * @param I integral gains
-     * @param D derivative gains
-     * @param slot slot for gains to be added to 
+     * @param P the proportional gain value to set
+     * @param slot the slot index to set the gain for
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setPID(double P, double I, double D, int slot) {
-        applyGains(gains[slot].withPID(P, I, D), slot);
+    public StatusCode setP(double P, int slot) {
+        return applyGains(gains[slot].withP(P), slot);
+    }
+
+    public StatusCode setP(double P) {
+        return setP(P, 0);
     }
 
     /**
-     * Sets the PID gains for the slot 0.
+     * Sets the value of the I (integral) gain for the specified slot in the gains array.
      * 
-     * @param P proportional gains
-     * @param I integral gains
-     * @param D derivative gains
+     * @param I    the new value of the I gain
+     * @param slot the index of the slot in the gains array
+     * @return     the status code indicating the success or failure of the operation
      */
-    public void setPID(double P, double I, double D) {
-        setPID(P, I, D, 0);
+    public StatusCode setI(double I, int slot) {
+        return applyGains(gains[slot].withI(I), slot);
+    }
+
+    public StatusCode setI(double I) {
+        return setI(I, 0);
     }
 
     /**
-     * Sets the proportional gain for the specified slot
+     * Sets the value of the D (derivative) gain for the specified slot in the gains array.
      * 
-     * @param P proportional gain
-     * @param slot the gain slot to configure
+     * @param D    the new value of the D gain
+     * @param slot the index of the slot in the gains array
+     * @return     the status code indicating the success or failure of the operation
      */
-    public void setP(double P, int slot) {
-        applyGains(gains[slot].withP(P), slot);
+    public StatusCode setD(double D, int slot) {
+        return applyGains(gains[slot].withD(D), slot);
+    }
+
+    public StatusCode setD(double D) {
+        return setD(D, 0);
     }
 
     /**
-     * Sets the proportional gain for slot 0
-     * 
-     * @param P proportional gain
+     * Sets the value of kS (static friction gain) for a specific slot and applies the gains.
+     *
+     * @param S    the value of S to set
+     * @param slot the slot to apply the gains to
+     * @return the status code indicating the result of the operation
      */
-    public void setP(double P) {
-        setP(P, 0);
+    public StatusCode setS(double S, int slot) {
+        return applyGains(gains[slot].withS(S), slot);
+    }
+
+    public StatusCode setS(double S) {
+        return setS(S, 0);
     }
 
     /**
-     * Sets the integral gain for the specified slot
-     * 
-     * @param I integral gain
-     * @param slot the gain slot to configure
+     * Sets the kV value for the specified slot and applies the gains.
+     *
+     * @param V    the V value to set
+     * @param slot the slot index
+     * @return the status code indicating the result of the operation
      */
-    public void setI(double I, int slot) {
-        applyGains(gains[slot].withI(I), slot);
+    public StatusCode setV(double V, int slot) {
+        return applyGains(gains[slot].withV(V), slot);
     }
 
+    public StatusCode setV(double V) {
+        return setV(V, 0);
+    }
+    
     /**
-     * Sets the integral gain for slot 0
-     * 
-     * @param I integral gain
+     * Sets the value of G (gain) for the specified slot and applies the updated gains to the Kraken.
+     *
+     * @param G    the new value of G (gain)
+     * @param slot the slot number to update the gains for
+     * @return the status code indicating the success or failure of the operation
      */
-    public void setI(double I) {
-        setI(I, 0);
+    public StatusCode setG(double G, int slot) {
+        return applyGains(gains[slot].withG(G), slot);
     }
 
-    /**
-     * Sets the derivative gain for the specified slot
-     * 
-     * @param D derivative gain
-     * @param slot the gain slot to configure
-     */
-    public void setD(double D, int slot) {
-        applyGains(gains[slot].withD(D), slot);
-    }
-
-    /**
-     * Sets the derivative gain for slot 0
-     * 
-     * @param D derivative gain
-     */
-    public void setD(double D) {
-        setD(D, 0);
-    }
-
-    /**
-     * Sets the static feedforward gain for the specified slot
-     * 
-     * @param S static feedforward gain
-     * @param slot the gain slot to configure
-     */
-    public void setS(double S, int slot) {
-        applyGains(gains[slot].withS(S), slot);
-    }
-
-    /**
-     * Sets the static feedforward gain for slot 0
-     * 
-     * @param S static feedforward gain
-     */
-    public void setS(double S) {
-        setS(S, 0);
-    }
-
-    /**
-     * Sets the velocity feedforward gain for the specified slot
-     * 
-     * @param V velocity feedforward gain
-     * @param slot the gain slot to configure
-     */
-    public void setV(double V, int slot) {
-        applyGains(gains[slot].withV(V), slot);
-    }
-
-    /**
-     * Sets the velocity feedforward gain for slot 0
-     * 
-     * @param V velocity feedforward gain
-     */
-    public void setV(double V) {
-        setV(V, 0);
-    }
-
-    /**
-     * Sets the gravitational feedforward gain for the specified slot
-     * 
-     * @param G gravitational feedforward gain
-     * @param slot the gain slot to configure
-     */
-    public void setG(double G, int slot) {
-        applyGains(gains[slot].withG(G), slot);
-    }
-
-    /**
-     * Sets the gravitational feedforward gain for slot 0
-     * 
-     * @param G gravitational feedforward gain
-     */
-    public void setG(double G) {
-        setG(G, 0);
+    public StatusCode setG(double G) {
+        return setG(G, 0);
     }
 
     /**

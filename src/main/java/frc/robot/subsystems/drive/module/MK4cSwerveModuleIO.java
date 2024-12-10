@@ -23,8 +23,8 @@ public class MK4cSwerveModuleIO implements ModuleIO {
      */
     public MK4cSwerveModuleIO(int drivingCANId, int turningCANId, int canCoderId) {
         // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
-        driveMotor = new Kraken(drivingCANId, "rio", false, true, false);
-        turnMotor = new Kraken(turningCANId, "rio", MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR, true, false);
+        driveMotor = new Kraken(drivingCANId, "rio", true, false);
+        turnMotor = new Kraken(turningCANId, "rio", true, false);
         turnEncoder = new CANCoderCustom(canCoderId, "rio");
         resetDriveEncoder();
         configMotors();
@@ -35,6 +35,8 @@ public class MK4cSwerveModuleIO implements ModuleIO {
      * Configures MK4c module's encoders, conversion factor, PID, and current limit.
      */
     private void configMotors() {
+
+        turnMotor.setMotorInverted(MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR);
 
         // Apply position and velocity conversion factors for the driving encoder. The
         // native units for position and velocity are rotations and RPM, respectively,
@@ -85,7 +87,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
     public void updateInputs(ModuleIOInputs inputs) {
 
         // Call isConnected() to refresh all status signals
-        inputs.driverMotorConnected = driveMotor.isConnected();
+        inputs.driverMotorConnected = driveMotor.refreshSignals().isOK();
         // 800 m is roughly the value at which the talonfx position "flips", leading to odometry bugs
         inputs.drivePositionFlipped = (inputs.drivePositionMeters > 800 && driveMotor.getPositionAsDouble() < -800);
         inputs.drivePositionMeters = driveMotor.getPositionAsDouble();
@@ -96,7 +98,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
         inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
         
         // Call isConnected() to refresh all status signals
-        inputs.turnMotorConnected = turnMotor.isConnected();
+        inputs.turnMotorConnected = turnMotor.refreshSignals().isOK();
         inputs.turnInternalPositionRads = turnMotor.getPositionAsDouble();
         inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocityAsDouble();
         inputs.turnAppliedVolts = turnMotor.getVoltageAsDouble();
@@ -106,7 +108,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
 
         // Call isConnected() to refresh all status signals, but only if turn encoder is real
         if (!FieldConstants.IS_SIMULATION) {
-            inputs.turnEncoderConnected = turnEncoder.isConnected();
+            inputs.turnEncoderConnected = turnEncoder.refreshSignals().isOK();
         }
 
         inputs.turnEncoderAbsPositionRads = inputs.turnEncoderConnected ? turnEncoder.getAbsolutePositionAsDouble() : inputs.turnInternalPositionRads;
@@ -125,20 +127,12 @@ public class MK4cSwerveModuleIO implements ModuleIO {
 
     @Override
     public void setDriveBrakeMode(boolean brake) {
-        if (brake) {
-            driveMotor.setBrakeMode();
-        } else {
-            driveMotor.setCoastMode();
-        }
+        driveMotor.setBrakeMode(brake);
     }
 
     @Override
     public void setTurnBrakeMode(boolean brake) {
-        if (brake) {
-            turnMotor.setBrakeMode();
-        } else {
-            turnMotor.setCoastMode();
-        }
+        turnMotor.setBrakeMode(brake);
     }
 
     @Override
