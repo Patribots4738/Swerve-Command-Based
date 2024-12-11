@@ -1,6 +1,7 @@
 package frc.robot.util.hardware.phoenix;
 
 import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
@@ -70,7 +71,7 @@ public class CANCoderCustom extends CANcoder {
             velocity
         );
         applyParameter(
-            () -> optimizeBusUtilization(0, 1.0), 
+            () -> optimizeBusUtilization(0, 1.0),
             "Optimize Bus Utilization"
         );
 
@@ -137,8 +138,19 @@ public class CANCoderCustom extends CANcoder {
      * @param name the name of the parameter
      * @return the status code indicating the result of applying the parameter
      */
-    public StatusCode applyParameter(Supplier<StatusCode> configApplication, String name) {
-        return DeviceUtil.applyParameter(configApplication, name, getDeviceID());
+    public StatusCode applyParameter(Supplier<StatusCode> configApplication, Supplier<StatusCode> refreshConfig, BooleanSupplier parameterCheckSupplier, String name) {
+        return DeviceUtil.applyParameter(configApplication, refreshConfig, parameterCheckSupplier, name, getDeviceID());
+    }
+
+    /**
+     * Applies a parameter to the device configuration without checking the parameter.
+     * 
+     * @param configApplication the supplier that applies the configuration parameter
+     * @param configName the name of the configuration parameter
+     * @return the status code indicating the success or failure of the configuration application
+     */
+    public StatusCode applyParameter(Supplier<StatusCode> configApplication, String configName) {
+        return DeviceUtil.applyParameter(configApplication, configName, getDeviceID());
     }
 
     /**
@@ -160,13 +172,19 @@ public class CANCoderCustom extends CANcoder {
      * @return the status code indicating the success or failure of the configuration
      */
     public StatusCode configureMagnetSensor(boolean inverted, double offset) {
-        magnetSensorConfigs.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
-        magnetSensorConfigs.MagnetOffset = offset;
-        magnetSensorConfigs.SensorDirection = inverted 
+        AbsoluteSensorRangeValue absoluteSensorRangeValue = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        SensorDirectionValue sensorDirectionValue = inverted 
             ? SensorDirectionValue.Clockwise_Positive 
             : SensorDirectionValue.CounterClockwise_Positive;
+        magnetSensorConfigs.AbsoluteSensorRange = absoluteSensorRangeValue;
+        magnetSensorConfigs.MagnetOffset = offset;
+        magnetSensorConfigs.SensorDirection = sensorDirectionValue;
         return applyParameter(
             () -> configurator.apply(magnetSensorConfigs, 1.0), 
+            () -> configurator.refresh(magnetSensorConfigs),
+            () -> magnetSensorConfigs.AbsoluteSensorRange == absoluteSensorRangeValue &&
+                  (magnetSensorConfigs.MagnetOffset != 0 ^ offset == 0) &&
+                  magnetSensorConfigs.SensorDirection == sensorDirectionValue,
             "Magnet Sensor Configs"
         );
     }
