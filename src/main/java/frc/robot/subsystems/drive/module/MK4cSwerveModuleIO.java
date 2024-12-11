@@ -21,14 +21,14 @@ public class MK4cSwerveModuleIO implements ModuleIO {
      * @param chassisAngularOffset angular offset of module to the chasis
      * @param index
      */
-    public MK4cSwerveModuleIO(int drivingCANId, int turningCANId, int canCoderId) {
+    public MK4cSwerveModuleIO(int drivingCANId, int turningCANId, int canCoderId, double absoluteEncoderOffset) {
         // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
         driveMotor = new Kraken(drivingCANId, "rio", true, false);
         turnMotor = new Kraken(turningCANId, "rio", true, false);
         turnEncoder = new CANCoderCustom(canCoderId, "rio");
         resetDriveEncoder();
+        configEncoder(absoluteEncoderOffset);
         configMotors();
-        configEncoder();
     }
 
     /**
@@ -75,7 +75,8 @@ public class MK4cSwerveModuleIO implements ModuleIO {
         setTurnBrakeMode(true);
     }
 
-    private void configEncoder() {
+    private void configEncoder(double absoluteEncoderOffset) {
+        turnEncoder.configureMagnetSensor(false, absoluteEncoderOffset);
         turnEncoder.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
         turnEncoder.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
     }

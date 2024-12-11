@@ -279,7 +279,9 @@ public final class Constants {
 
         // Calculations required for driving motor conversion factors and feed forward
         public static final double DRIVING_MOTOR_FREE_SPEED_RPS = NeoMotorConstants.VORTEX_FREE_SPEED_RPM / 60;
+        // **********************************************************************MAX SWERVE**********************
         public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(1.4642497827983136*2.0);
+        // **********************************************************************MAX SWERVE**********************
         public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
         // 45 teeth on the wheel's bevel gear, 15 teeth on the bevel pinion
         public static final double DRIVING_MOTOR_REDUCTION = (45.0 * CURRENT_GEARING.spurTeeth) / (CURRENT_GEARING.pinionTeeth * 15.0);
@@ -355,27 +357,33 @@ public final class Constants {
 
         private enum SwerveGearing {
 
-            L1 (7.13),
-            L2 (5.9),
-            L3 (5.36);
+            L1(7.13),
+            L2(5.9),
+            L3(5.36);
 
             private final double gearRatio;
 
             SwerveGearing(double gearRatio) {
                 this.gearRatio = gearRatio;
-
             }
             
         };
 
         public static final SwerveGearing CURRENT_GEARING = SwerveGearing.L2;
 
-        public static final double TURNING_MOTOR_REDUCTION = 1;
+        public static final double FRONT_LEFT_TURN_ENCODER_OFFSET = 0.0;
+        public static final double FRONT_RIGHT_TURN_ENCODER_OFFSET = 0.0;
+        public static final double REAR_LEFT_TURN_ENCODER_OFFSET = 0.0;
+        public static final double REAR_RIGHT_TURN_ENCODER_OFFSET = 0.0;
+
+        public static final double TURNING_MOTOR_REDUCTION = 12.8;
 
         public static final boolean INVERT_TURNING_MOTOR = false;
 
         public static final double DRIVING_MOTOR_FREE_SPEED_RPS = KrakenMotorConstants.KRAKENX60_FREE_SPEED_RPM_FOC / 60;
+        // **********************************************************************MK4c SWERVE**********************
         public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(4);
+        // **********************************************************************MK4c SWERVE**********************
         public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
 
         public static final double DRIVING_ENCODER_POSITION_FACTOR = (WHEEL_CIRCUMFERENCE_METERS)
@@ -383,8 +391,8 @@ public final class Constants {
         public static final double DRIVING_ENCODER_VELOCITY_FACTOR = (WHEEL_CIRCUMFERENCE_METERS
                 / CURRENT_GEARING.gearRatio); // meters per second
 
-        public static final double TURNING_ENCODER_POSITION_FACTOR = (2 * Math.PI) / TURNING_MOTOR_REDUCTION; // radians
-        public static final double TURNING_ENCODER_VELOCITY_FACTOR = (2 * Math.PI) / TURNING_MOTOR_REDUCTION; // radians per second
+        public static final double TURNING_ENCODER_POSITION_FACTOR = (2 * Math.PI); // radians
+        public static final double TURNING_ENCODER_VELOCITY_FACTOR = (2 * Math.PI); // radians per second
 
         public static final double DRIVING_MOTOR_STATOR_LIMIT_AMPS = 80.0;
         public static final double DRIVING_MOTOR_SUPPLY_LIMIT_AMPS = 80.0;

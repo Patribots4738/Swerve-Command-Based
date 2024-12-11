@@ -28,20 +28,9 @@ public class CANCoderCustom extends CANcoder {
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
 
+
     public CANCoderCustom(int id) {
-        this(id, "rio", false, 0);
-    }
-
-    public CANCoderCustom(int id, String canBus) {
-        this(id, canBus, false, 0);
-    }
-
-    public CANCoderCustom(int id, double offset) {
-        this(id, "rio", false, offset);
-    }
-
-    public CANCoderCustom(int id, boolean inverted, double offset) {
-        this(id, "rio", inverted, offset);
+        this(id, "rio");
     }
 
     /**
@@ -50,15 +39,11 @@ public class CANCoderCustom extends CANcoder {
      *
      * @param id The unique identifier for the CANCoder.
      * @param canBus The CAN bus to which the CANCoder is connected.
-     * @param inverted Whether the sensor readings should be inverted.
-     * @param offset The offset to be applied to the sensor readings.
      */
-    public CANCoderCustom(int id, String canBus, boolean inverted, double offset) {
+    public CANCoderCustom(int id, String canBus) {
         super(id, canBus);
 
         restoreFactoryDefaults();
-
-        configureMagnetSensor(inverted, offset);
 
         position = getPosition();
         absolutePosition = getAbsolutePosition();
@@ -181,7 +166,7 @@ public class CANCoderCustom extends CANcoder {
         magnetSensorConfigs.SensorDirection = sensorDirectionValue;
         return applyParameter(
             () -> configurator.apply(magnetSensorConfigs, 1.0), 
-            () -> configurator.refresh(magnetSensorConfigs),
+            () -> configurator.refresh(magnetSensorConfigs, 1.0),
             () -> magnetSensorConfigs.AbsoluteSensorRange == absoluteSensorRangeValue &&
                   (magnetSensorConfigs.MagnetOffset != 0 ^ offset == 0) &&
                   magnetSensorConfigs.SensorDirection == sensorDirectionValue,
