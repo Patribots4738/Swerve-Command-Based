@@ -816,6 +816,10 @@ public class Kraken extends TalonFX {
      * @return the status code indicating the success or failure of the operation
      */
     private StatusCode applyGains(GainConstants appliedGains, int slot) {
+        if (slot < 0 || slot > 2) {
+            slot = 0;
+        }
+        gains[slot] = appliedGains;
         slotConfigs.SlotNumber = slot;
         slotConfigs.kP = appliedGains.getP();
         slotConfigs.kI = appliedGains.getI();
@@ -834,16 +838,6 @@ public class Kraken extends TalonFX {
                 && (slotConfigs.kG != 0 ^ appliedGains.getG() == 0),
             "Gains"
         );
-    }
-
-    /**
-     * Applies the gains for a specific slot.
-     * 
-     * @param slot The slot number to apply the gains to.
-     * @return The status code indicating the result of applying the gains.
-     */
-    private StatusCode applyGains(int slot) {
-        return applyGains(gains[slot], slot);
     }
 
     /**
@@ -878,8 +872,7 @@ public class Kraken extends TalonFX {
      * @return the status code indicating the success or failure of the operation
      */
     public StatusCode setGains(GainConstants constants, int slot) {
-        gains[slot] = constants;
-        return applyGains(slot);
+        return applyGains(constants, slot);
     }
 
     public StatusCode setGains(GainConstants constants) {
