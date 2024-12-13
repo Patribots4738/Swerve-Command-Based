@@ -106,7 +106,6 @@ public class Module {
     /** 
      * Gets the rotations of the wheel converted to radians.
      */
-    //We need to undo the position conversion facto
     public double getDrivePositionRadians() {
         return inputs.drivePositionMeters * 2 * Math.PI / MK4cSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
     }

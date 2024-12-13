@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.util.Constants.FieldConstants;
+import frc.robot.util.Constants.GeneralHardwareConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 
 public class SafeSpark extends CANSparkBase {
@@ -28,7 +29,7 @@ public class SafeSpark extends CANSparkBase {
     protected RelativeEncoder relativeEncoder;
     protected SparkAbsoluteEncoder absoluteEncoder;
 
-    private final int MAX_ATTEMPTS = (NeoMotorConstants.SAFE_SPARK_MODE) ? 20 : 2;
+    private final int MAX_ATTEMPTS = (GeneralHardwareConstants.SAFE_HARDWARE_MODE) ? 20 : 2;
     private final int CAN_TIMEOUT_MS = 50;
     private final int SPARK_MAX_MEASUREMENT_PERIOD = 16;
     private final int SPARK_FLEX_MEASUREMENT_PERIOD = 32;

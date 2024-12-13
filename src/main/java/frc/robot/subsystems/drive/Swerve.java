@@ -68,7 +68,8 @@ public class Swerve extends SubsystemBase {
             new MK4cSwerveModuleIO(
                 MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID),
+                MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_LEFT_TURN_ENCODER_OFFSET),
             DriveConstants.FRONT_LEFT_INDEX,
             DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
@@ -76,7 +77,8 @@ public class Swerve extends SubsystemBase {
             new MK4cSwerveModuleIO(
                 MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID),
+                MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
+                MK4cSwerveModuleConstants.FRONT_RIGHT_TURN_ENCODER_OFFSET),
             DriveConstants.FRONT_RIGHT_INDEX,
             DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
@@ -84,7 +86,8 @@ public class Swerve extends SubsystemBase {
             new MK4cSwerveModuleIO(
                 MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID),
+                MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_LEFT_TURN_ENCODER_OFFSET),
             DriveConstants.REAR_LEFT_INDEX,
             DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
@@ -92,7 +95,8 @@ public class Swerve extends SubsystemBase {
             new MK4cSwerveModuleIO(
                 MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID),
+                MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
+                MK4cSwerveModuleConstants.REAR_RIGHT_TURN_ENCODER_OFFSET),
             DriveConstants.REAR_RIGHT_INDEX,
             DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);     
 
