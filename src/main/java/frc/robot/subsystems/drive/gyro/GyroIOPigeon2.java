@@ -2,10 +2,10 @@ package frc.robot.subsystems.drive.gyro;
 
 import frc.robot.util.hardware.phoenix.Pigeon2Custom;
 
-public class GyroPigeon2IO implements GyroIO {
+public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2Custom pigeon;
 
-    public GyroPigeon2IO(int canId) {
+    public GyroIOPigeon2(int canId) {
         pigeon = new Pigeon2Custom(canId);
     }
 

@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.Robot.GameMode;
 import frc.robot.subsystems.drive.Swerve;
-import frc.robot.util.Constants.DriveConstants;
 
 public class Drive extends Command {
 
@@ -20,7 +19,6 @@ public class Drive extends Command {
     private final DoubleSupplier rotationSupplier;
     private final BooleanSupplier fieldRelativeSupplier;
     private final BooleanSupplier shouldMirror;
-    private double driveMultiplier = 1;
 
     public Drive(
             Swerve swerve,
@@ -75,10 +73,13 @@ public class Drive extends Command {
             swerve.setWheelsX();
         }
         else {
+            double linearVelocity = swerve.getMaxLinearVelocity();
+            double angularVelocity = swerve.getMaxAngularVelocity();
+            double multiplier = swerve.getDriveMultiplier();
             swerve.drive(
-                x * DriveConstants.MAX_SPEED_METERS_PER_SECOND * driveMultiplier,
-                y * DriveConstants.MAX_SPEED_METERS_PER_SECOND * driveMultiplier,
-                rotation * DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND * driveMultiplier,
+                x * linearVelocity * multiplier,
+                y * linearVelocity * multiplier,
+                rotation * angularVelocity * multiplier,
                 fieldRelativeSupplier.getAsBoolean());
         }
     }
@@ -86,10 +87,6 @@ public class Drive extends Command {
     @Override
     public void end(boolean interrupted) {
         swerve.drive(0, 0, 0, false);
-    }
-
-    public void toggleDriveMultiplier() {
-        driveMultiplier = (driveMultiplier == 1) ? 0.5 : 1;
     }
 
     @Override

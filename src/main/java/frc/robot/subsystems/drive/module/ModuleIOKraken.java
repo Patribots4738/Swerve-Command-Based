@@ -2,11 +2,12 @@ package frc.robot.subsystems.drive.module;
 
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.phoenix.CANCoderCustom;
 import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.phoenix.Kraken.TelemetryPreference;
 
-public class MK4cSwerveModuleIO implements ModuleIO {
+public class ModuleIOKraken implements ModuleIO {
 
     private final Kraken driveMotor;
     private final Kraken turnMotor;
@@ -21,7 +22,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
      * @param chassisAngularOffset angular offset of module to the chasis
      * @param index
      */
-    public MK4cSwerveModuleIO(int drivingCANId, int turningCANId, int canCoderId, double absoluteEncoderOffset) {
+    public ModuleIOKraken(int drivingCANId, int turningCANId, int canCoderId, double absoluteEncoderOffset) {
         // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
         driveMotor = new Kraken(drivingCANId, "rio", true, false);
         turnMotor = new Kraken(turningCANId, "rio", true, false);
@@ -61,8 +62,7 @@ public class MK4cSwerveModuleIO implements ModuleIO {
 
         turnMotor.setPositionClosedLoopWrappingEnabled(true);
 
-        driveMotor.setGains(MK4cSwerveModuleConstants.DRIVING_GAINS);
-        turnMotor.setGains(MK4cSwerveModuleConstants.TURNING_GAINS);
+        setGains(MK4cSwerveModuleConstants.DRIVING_GAINS, MK4cSwerveModuleConstants.TURNING_GAINS);
 
         driveMotor.setTorqueCurrentLimits(
             -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
@@ -154,6 +154,12 @@ public class MK4cSwerveModuleIO implements ModuleIO {
     @Override
     public void setTurnPosition(double position) {
         turnMotor.setTargetPosition(position);
+    }
+
+    @Override
+    public void setGains(GainConstants driveGains, GainConstants turnGains) {
+        driveMotor.setGains(driveGains);
+        turnMotor.setGains(turnGains);
     }
     
 }

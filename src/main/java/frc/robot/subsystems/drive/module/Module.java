@@ -7,6 +7,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.custom.GainConstants;
 
 public class Module {
 
@@ -74,6 +75,10 @@ public class Module {
 
     public void resetDriveEncoder() {
         io.resetDriveEncoder();
+    }
+
+    public void setGains(GainConstants driveGains, GainConstants turnGains) {
+        io.setGains(driveGains, turnGains);
     }
 
     /**

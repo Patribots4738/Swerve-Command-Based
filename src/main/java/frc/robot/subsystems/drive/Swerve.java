@@ -38,13 +38,14 @@ import frc.robot.RobotContainer;
 import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
-import frc.robot.subsystems.drive.gyro.GyroPigeon2IO;
-import frc.robot.subsystems.drive.module.MK4cSwerveModuleIO;
+import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
+import frc.robot.subsystems.drive.module.ModuleIOKraken;
 import frc.robot.subsystems.drive.module.Module;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.custom.LoggedTunableConstant;
 
 public class Swerve extends SubsystemBase {
 
@@ -59,13 +60,17 @@ public class Swerve extends SubsystemBase {
 
     private SwerveDrivePoseEstimator poseEstimator;
 
+    private LoggedTunableConstant driveMultiplier = new LoggedTunableConstant("Drive/DriveMultiplier", 1.0);
+    private LoggedTunableConstant driveMaxLinearVelocity = new LoggedTunableConstant("Drive/DriveLinearVelocity", DriveConstants.MAX_TELEOP_SPEED_METERS_PER_SECOND);
+    private LoggedTunableConstant driveMaxAngularVelocity = new LoggedTunableConstant("Drive/DriveAngularVelocity", DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
+
     /**
      * Creates a new DriveSubsystem.
      */
     public Swerve() {
 
         frontLeft = new Module(
-            new MK4cSwerveModuleIO(
+            new ModuleIOKraken(
                 MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
@@ -74,7 +79,7 @@ public class Swerve extends SubsystemBase {
             DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
         frontRight = new Module(
-            new MK4cSwerveModuleIO(
+            new ModuleIOKraken(
                 MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
                 MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
@@ -83,7 +88,7 @@ public class Swerve extends SubsystemBase {
             DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
         rearLeft = new Module(
-            new MK4cSwerveModuleIO(
+            new ModuleIOKraken(
                 MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
@@ -92,7 +97,7 @@ public class Swerve extends SubsystemBase {
             DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
         rearRight = new Module(
-            new MK4cSwerveModuleIO(
+            new ModuleIOKraken(
                 MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
                 MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
@@ -107,7 +112,7 @@ public class Swerve extends SubsystemBase {
             rearRight
         };
             
-        gyro = new Gyro(new GyroPigeon2IO(DriveConstants.GYRO_CAN_ID));
+        gyro = new Gyro(new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID));
 
         resetEncoders();
         setBrakeMode();
@@ -309,6 +314,22 @@ public class Swerve extends SubsystemBase {
         }
         return average / 4.0;
     }
+
+    public double getMaxLinearVelocity() {
+        return driveMaxLinearVelocity.get();
+    }
+
+    public double getMaxAngularVelocity() {
+        return driveMaxAngularVelocity.get();
+    }
+
+    public double getDriveMultiplier() {
+        return driveMultiplier.get();
+    }
+
+    public void toggleDriveMultiplier() {
+        driveMultiplier.set((driveMultiplier.get() == 1.0) ? 0.5 : 1);
+    }
     
     @AutoLogOutput (key = "Subsystems/Swerve/DesiredHDCPose")
     Pose2d desiredHDCPose = new Pose2d();
@@ -362,7 +383,7 @@ public class Swerve extends SubsystemBase {
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             desiredStates, 
-            DriveConstants.MAX_SPEED_METERS_PER_SECOND
+            getMaxLinearVelocity()
         );
         frontLeft.setDesiredState(desiredStates[0]);
         frontRight.setDesiredState(desiredStates[1]);
@@ -487,9 +508,6 @@ public class Swerve extends SubsystemBase {
                 this);
     }
 
-    // Used for note pickup in auto
-    // Because of the fact that we do not have to be perfectly 
-    // on top of a note to intake it, the tolerance is fairly lenient
     public boolean atPose(Pose2d position) {
         // More lenient on x axis, less lenient on y axis and rotation
         Pose2d currentPose = getPose();

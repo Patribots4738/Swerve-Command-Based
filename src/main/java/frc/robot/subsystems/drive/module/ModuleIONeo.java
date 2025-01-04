@@ -4,9 +4,10 @@
 
 package frc.robot.subsystems.drive.module;
 import frc.robot.util.Constants.MAXSwerveModuleConstants;
+import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.rev.Neo;
 
-public class MAXSwerveModuleIO implements ModuleIO {
+public class ModuleIONeo implements ModuleIO {
     private final Neo driveMotor;
     private final Neo turnMotor;
 
@@ -16,7 +17,7 @@ public class MAXSwerveModuleIO implements ModuleIO {
      * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
      * Encoder.
      */
-    public MAXSwerveModuleIO(int drivingCANId, int turningCANId) {
+    public ModuleIONeo(int drivingCANId, int turningCANId) {
         driveMotor = new Neo(drivingCANId, true);
         
         // Invert the turning encoder, since the output shaft rotates in the opposite
@@ -50,8 +51,7 @@ public class MAXSwerveModuleIO implements ModuleIO {
             MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT,
             MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
 
-        driveMotor.setPID(MAXSwerveModuleConstants.DRIVING_PID);
-        turnMotor.setPID(MAXSwerveModuleConstants.TURNING_PID);
+        setGains(MAXSwerveModuleConstants.DRIVING_PID, MAXSwerveModuleConstants.TURNING_PID);
 
         driveMotor.setSmartCurrentLimit(MAXSwerveModuleConstants.NEO_CURRENT_LIMIT);
         turnMotor.setSmartCurrentLimit(MAXSwerveModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
@@ -76,6 +76,9 @@ public class MAXSwerveModuleIO implements ModuleIO {
         inputs.turnInternalPositionRads = turnMotor.getPosition();
         inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocity();
         inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent();
+
+        // Fake it till you make it or something
+        inputs.turnEncoderAbsPositionRads = turnMotor.getPosition();
 
     }
 
@@ -123,5 +126,11 @@ public class MAXSwerveModuleIO implements ModuleIO {
     @Override
     public void setTurnPosition(double position) {
         turnMotor.setTargetPosition(position);
+    }
+
+    @Override
+    public void setGains(GainConstants driveGains, GainConstants turnGains) {
+        driveMotor.setPID(driveGains);
+        turnMotor.setPID(turnGains);
     }
 }
