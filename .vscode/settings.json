@@ -25,6 +25,5 @@
       }
     },
   ],
-  "java.test.defaultConfig": "WPIlibUnitTests",
-  "java.format.settings.url": "eclipse-formatter.xml"
+  "java.test.defaultConfig": "WPIlibUnitTests"
 }

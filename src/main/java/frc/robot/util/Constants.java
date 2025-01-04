@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import com.revrobotics.CANSparkBase;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -147,6 +147,8 @@ public final class Constants {
         public static final double AUTO_ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2);
         public static final double PASS_ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(10);
 
+        public static final double AUTO_ALIGNMENT_DEADBAND = Units.inchesToMeters(3);
+
         /*
          * XY:
          *  P: 5.2
@@ -205,7 +207,7 @@ public final class Constants {
                 THETA_PID
             );
 
-        public static PPHolonomicDriveController PPHDC = new PPHolonomicDriveController(
+        public static HolonomicPathFollowerConfig HPFC = new HolonomicPathFollowerConfig(
             new PIDConstants(
                 AutoConstants.XY_GAINS.getP(),
                 AutoConstants.XY_GAINS.getI(),
@@ -214,11 +216,12 @@ public final class Constants {
                 AutoConstants.THETA_GAINS.getP(),
                 AutoConstants.THETA_GAINS.getI(),
                 AutoConstants.THETA_GAINS.getD(),
-                Units.degreesToRadians(45)));
+                Units.degreesToRadians(45)),
+            MAX_SPEED_METERS_PER_SECOND,
+            Math.hypot(DriveConstants.WHEEL_BASE, DriveConstants.TRACK_WIDTH)/2.0,
+            new ReplanningConfig());
 
-        public static final String[] AUTO_NAMES = new String[] {
-            "TEST"
-        };
+        public static final String[] AUTO_NAMES = new String[] {};
 
     }
 
