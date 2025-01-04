@@ -1,10 +1,5 @@
 package frc.robot.util.auto;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -20,6 +15,10 @@ import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 /**
  * This file represents all of the auto paths that we will have
  * They will be primarily compiled through
@@ -32,13 +31,6 @@ public class PathPlannerStorage {
     private final LoggedDashboardChooser<Command> autoChooser;
 
     public static final ArrayList<Pose2d> AUTO_STARTING_POSITIONS = new ArrayList<Pose2d>();
-
-    public static final PathConstraints PATH_CONSTRAINTS =
-        new PathConstraints(
-            AutoConstants.MAX_SPEED_METERS_PER_SECOND, 
-            AutoConstants.MAX_ACCELERATION_METERS_PER_SECOND_SQUARED, 
-            AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND, 
-            AutoConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
 
     public static final HashMap<String, List<PathPlannerPath>> AUTO_PATHS = new HashMap<String, List<PathPlannerPath>>();
     /**
@@ -67,15 +59,25 @@ public class PathPlannerStorage {
         for (String autoName : AutoConstants.AUTO_NAMES) {
             System.out.println("Configuring " + autoName);
             // Load the auto and add it to the auto chooser
-            Command auto = AutoBuilder.buildAuto(autoName);
+            Command auto = new PathPlannerAuto(autoName);
             autoChooser.addOption(autoName, auto);
             // Load the auto and add it to the list of starting positions
             // for LPI
-            Pose2d startingPosition = PathPlannerAuto.getStaringPoseFromAutoFile(autoName);
+            Pose2d startingPosition = new Pose2d();
+            try {
+                startingPosition = PathPlannerAuto.getPathGroupFromAutoFile(autoName).get(0).getPathPoses().get(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             PathPlannerStorage.AUTO_STARTING_POSITIONS.add(startingPosition);
             // Load the auto and add it to the list of paths 
             // for trajectory visualization
-            List<PathPlannerPath> paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+            List<PathPlannerPath> paths = new ArrayList<PathPlannerPath>();
+            try {
+                paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             PathPlannerStorage.AUTO_PATHS.put(autoName, paths);
         }
         System.out.println("Configured auto chooser");
