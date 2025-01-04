@@ -1,8 +1,6 @@
 # This gitignore has been specially created by the WPILib team.
 # If you remove items from this file, intellisense might break.
 
-BuildConstants.java
-
 ### C++ ###
 # Prerequisites
 *.d
@@ -14,7 +12,7 @@ BuildConstants.java
 *.obj
 
 # Precompiled Headers
-*.gchs
+*.gch
 *.pch
 
 # Compiled Dynamic libraries
@@ -171,6 +169,8 @@ out/
 .fleet
 
 # Simulation GUI and other tools window save file
+networktables.json
+simgui.json
 *-window.json
 
 # Simulation data log directory
@@ -178,3 +178,10 @@ logs/
 
 # Folder that has CTRE Phoenix Sim device config storage
 ctre_sim/
+
+# clangd
+/.cache
+compile_commands.json
+
+# Eclipse generated file for annotation processors
+.factorypath
