@@ -1,6 +1,12 @@
 package frc.robot.util.hardware.phoenix;
 
 import java.util.function.Supplier;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -12,6 +18,8 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.util.Constants.PigeonConstants;
 
 public class Pigeon2Custom extends Pigeon2 {
@@ -20,12 +28,12 @@ public class Pigeon2Custom extends Pigeon2 {
 
     private TelemetryPreference telemetryPreference;
 
-    private final StatusSignal<Double> yawSignal;
-    private final StatusSignal<Double> pitchSignal;
-    private final StatusSignal<Double> rollSignal;
-    private final StatusSignal<Double> yawVelocitySignal;
-    private final StatusSignal<Double> pitchVelocitySignal;
-    private final StatusSignal<Double> rollVelocitySignal;
+    private final StatusSignal<Angle> yawSignal;
+    private final StatusSignal<Angle> pitchSignal;
+    private final StatusSignal<Angle> rollSignal;
+    private final StatusSignal<AngularVelocity> yawVelocitySignal;
+    private final StatusSignal<AngularVelocity> pitchVelocitySignal;
+    private final StatusSignal<AngularVelocity> rollVelocitySignal;
 
     public enum TelemetryPreference {
         DEFAULT,
@@ -144,51 +152,51 @@ public class Pigeon2Custom extends Pigeon2 {
     }
 
     public double getYawDegrees() {
-        return yawSignal.getValueAsDouble();
+        return yawSignal.getValue().in(Degrees);
     }
 
     public double getYawRadians() {
-        return Units.degreesToRadians(getYawDegrees());
+        return yawSignal.getValue().in(Radians);
     }
 
     public double getPitchDegrees() {
-        return pitchSignal.getValueAsDouble();
+        return pitchSignal.getValue().in(Degrees);
     }
 
     public double getPitchRadians() {
-        return Units.degreesToRadians(getPitchDegrees());
+        return pitchSignal.getValue().in(Radians);
     }
 
     public double getRollDegrees() {
-        return rollSignal.getValueAsDouble();
+        return rollSignal.getValue().in(Degrees);
     }
 
     public double getRollRadians() {
-        return Units.degreesToRadians(getRollDegrees());
+        return rollSignal.getValue().in(Radians);
     }
 
     public double getYawVelocityDegreesPerSec() {
-        return yawVelocitySignal.getValueAsDouble();
+        return yawVelocitySignal.getValue().in(DegreesPerSecond);
     }
 
     public double getYawVelocityRadiansPerSec() {
-        return Units.degreesToRadians(getYawVelocityDegreesPerSec());
+        return yawVelocitySignal.getValue().in(RadiansPerSecond);
     }
 
     public double getPitchVelocityDegreesPerSec() {
-        return pitchVelocitySignal.getValueAsDouble();
+        return pitchVelocitySignal.getValue().in(DegreesPerSecond);
     }
 
     public double getPitchVelocityRadiansPerSec() {
-        return Units.degreesToRadians(getPitchVelocityDegreesPerSec());
+        return pitchVelocitySignal.getValue().in(RadiansPerSecond);
     }
 
     public double getRollVelocityDegreesPerSec() {
-        return rollVelocitySignal.getValueAsDouble();
+        return rollVelocitySignal.getValue().in(DegreesPerSecond);
     }
 
     public double getRollVelocityRadiansPerSec() {
-        return Units.degreesToRadians(getRollVelocityDegreesPerSec());
+        return rollVelocitySignal.getValue().in(RadiansPerSecond);
     }
 
     public Rotation2d getYawRotation2d() {

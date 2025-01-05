@@ -447,7 +447,7 @@ public final class Constants {
     public static final class NeoMotorConstants {
         public static final double VORTEX_FREE_SPEED_RPM = 6784;
 
-        public static ArrayList<CANSparkBase> motors = new ArrayList<>();
+        public static ArrayList<CANSparkBase> motors = new ArrayList<CANSparkBase>();
 
         public static final boolean SAFE_SPARK_MODE = false;
         public static final double NEO_FREE_SPEED_RPM = 5676;

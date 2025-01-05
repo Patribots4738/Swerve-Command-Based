@@ -1,6 +1,13 @@
 package frc.robot.util.hardware.phoenix;
 
 import java.util.function.Supplier;
+
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -30,7 +37,13 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.util.Constants.FieldConstants;
@@ -67,14 +80,14 @@ public class Kraken extends TalonFX {
     private final DutyCycleOut percentRequest;
     private final TorqueCurrentFOC torqueRequest;
 
-    private final StatusSignal<Double> positionSignal;
-    private final StatusSignal<Double> velocitySignal;
-    private final StatusSignal<Double> voltageSignal;
+    private final StatusSignal<Angle> positionSignal;
+    private final StatusSignal<AngularVelocity> velocitySignal;
+    private final StatusSignal<Voltage> voltageSignal;
     private final StatusSignal<Double> percentSignal;
-    private final StatusSignal<Double> supplyCurrentSignal;
-    private final StatusSignal<Double> statorCurrentSignal;   
-    private final StatusSignal<Double> torqueCurrentSignal;
-    private final StatusSignal<Double> temperatureSignal;
+    private final StatusSignal<Current> supplyCurrentSignal;
+    private final StatusSignal<Current> statorCurrentSignal;   
+    private final StatusSignal<Current> torqueCurrentSignal;
+    private final StatusSignal<Temperature> temperatureSignal;
 
     private final GainConstants[] gains;
 
@@ -675,7 +688,7 @@ public class Kraken extends TalonFX {
      * @return current position as rotations * PCF
      */
     public double getPositionAsDouble() {
-        return positionSignal.getValue() * positionConversionFactor;        
+        return positionSignal.getValue().in(Rotations) * positionConversionFactor;        
     }
 
     /**
@@ -684,7 +697,7 @@ public class Kraken extends TalonFX {
      * @return current velocity as rotations per second * VCF
      */
     public double getVelocityAsDouble() {
-        return velocitySignal.getValue() * velocityConversionFactor;
+        return velocitySignal.getValue().in(RotationsPerSecond) * velocityConversionFactor;
     }
 
     /**
@@ -693,7 +706,7 @@ public class Kraken extends TalonFX {
      * @return current voltage in volts
      */
     public double getVoltageAsDouble() {
-        return voltageSignal.getValue();
+        return voltageSignal.getValue().in(Volts);
     }
 
     /**
@@ -711,7 +724,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to Kraken in amps
      */
     public double getSupplyCurrentAsDouble() {
-        return supplyCurrentSignal.getValue();
+        return supplyCurrentSignal.getValue().in(Amps);
     }
 
     /**
@@ -720,7 +733,7 @@ public class Kraken extends TalonFX {
      * @return supply of current to stator in amps
      */
     public double getStatorCurrentAsDouble() {
-        return statorCurrentSignal.getValue();
+        return statorCurrentSignal.getValue().in(Amps);
     }
 
     /**
@@ -729,7 +742,7 @@ public class Kraken extends TalonFX {
      * @return torque current in amps
      */
     public double getTorqueCurrentAsDouble() {
-        return torqueCurrentSignal.getValue();
+        return torqueCurrentSignal.getValue().in(Amps);
     }
 
     /**
@@ -738,7 +751,7 @@ public class Kraken extends TalonFX {
      * @return motor temp. in celcius
      */
     public double getTemperatureAsDouble() {
-        return temperatureSignal.getValue();
+        return temperatureSignal.getValue().in(Celsius);
     }
 
     /**
@@ -787,7 +800,14 @@ public class Kraken extends TalonFX {
     public void register() {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
         if (FieldConstants.IS_SIMULATION) {
-            motorSimModel = new DCMotorSim(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 1, 0.001);
+            LinearSystemId.createDCMotorSystem(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 0.001, 1);
+            motorSimModel = 
+                new DCMotorSim(
+                    LinearSystemId.createDCMotorSystem(
+                        useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 
+                        0.001, 
+                        1), 
+                    useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1));
         }
     }
 

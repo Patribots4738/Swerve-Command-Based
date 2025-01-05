@@ -32,8 +32,8 @@ public class ActiveConditionalCommand extends Command {
 
         CommandScheduler.getInstance().registerComposedCommands(onTrueCommand, onFalseCommand);
 
-        m_requirements.addAll(this.onTrueCommand.getRequirements());
-        m_requirements.addAll(this.onFalseCommand.getRequirements());
+        getRequirements().addAll(this.onTrueCommand.getRequirements());
+        getRequirements().addAll(this.onFalseCommand.getRequirements());
     }
 
     @Override

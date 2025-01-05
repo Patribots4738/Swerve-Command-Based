@@ -10,9 +10,11 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.util.Constants.CANCoderConstants;
 
 public class CANCoderCustom extends CANcoder {
@@ -21,9 +23,9 @@ public class CANCoderCustom extends CANcoder {
 
     private final CANcoderConfigurator configurator = getConfigurator();
 
-    private final StatusSignal<Double> position;
-    private final StatusSignal<Double> absolutePosition;
-    private final StatusSignal<Double> velocity;
+    private final StatusSignal<Angle> position;
+    private final StatusSignal<Angle> absolutePosition;
+    private final StatusSignal<AngularVelocity> velocity;
 
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
@@ -78,7 +80,7 @@ public class CANCoderCustom extends CANcoder {
      * @return the position as rotations * PCF
      */
     public double getPositionAsDouble() {
-        return position.getValue() * positionConversionFactor;
+        return position.getValue().magnitude() * positionConversionFactor;
     }
 
     /**
@@ -87,7 +89,7 @@ public class CANCoderCustom extends CANcoder {
      * @return the absolute position as rotation from -0.5 to 0.5 * PCF
      */
     public double getAbsolutePositionAsDouble() {
-        return absolutePosition.getValue() * positionConversionFactor;
+        return absolutePosition.getValue().magnitude() * positionConversionFactor;
     }
 
     /**
@@ -96,7 +98,7 @@ public class CANCoderCustom extends CANcoder {
      * @return the velocity as rps * VCF
      */
     public double getVelocityAsDouble() {
-        return velocity.getValue() * velocityConversionFactor;
+        return velocity.getValue().magnitude() * velocityConversionFactor;
     }
 
     /**
@@ -157,17 +159,16 @@ public class CANCoderCustom extends CANcoder {
      * @return the status code indicating the success or failure of the configuration
      */
     public StatusCode configureMagnetSensor(boolean inverted, double offset) {
-        AbsoluteSensorRangeValue absoluteSensorRangeValue = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
         SensorDirectionValue sensorDirectionValue = inverted 
             ? SensorDirectionValue.Clockwise_Positive 
             : SensorDirectionValue.CounterClockwise_Positive;
-        magnetSensorConfigs.AbsoluteSensorRange = absoluteSensorRangeValue;
+        magnetSensorConfigs.AbsoluteSensorDiscontinuityPoint = 0.5;
         magnetSensorConfigs.MagnetOffset = offset;
         magnetSensorConfigs.SensorDirection = sensorDirectionValue;
         return applyParameter(
             () -> configurator.apply(magnetSensorConfigs, 1.0), 
             () -> configurator.refresh(magnetSensorConfigs, 1.0),
-            () -> magnetSensorConfigs.AbsoluteSensorRange == absoluteSensorRangeValue &&
+            () -> magnetSensorConfigs.AbsoluteSensorDiscontinuityPoint == 0.5 &&
                   (magnetSensorConfigs.MagnetOffset != 0 ^ offset == 0) &&
                   magnetSensorConfigs.SensorDirection == sensorDirectionValue,
             "Magnet Sensor Configs"
