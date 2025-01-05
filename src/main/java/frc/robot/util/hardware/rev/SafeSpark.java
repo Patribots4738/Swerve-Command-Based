@@ -6,15 +6,11 @@ import java.util.function.Supplier;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.jni.CANSparkJNI;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkRelativeEncoder;
 import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.SignalsConfig;
-import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SoftLimitConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfigAccessor;
@@ -26,7 +22,6 @@ import com.revrobotics.spark.config.SparkMaxConfigAccessor;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.util.Constants.FieldConstants;
@@ -267,7 +262,6 @@ public class SafeSpark extends SparkBase {
      */
     public REVLibError setPositionConversionFactor(double factor) {
         REVLibError status;
-        BooleanSupplier parameterCheckSupplier;
 
         if (useAbsoluteEncoder) {
             config.absoluteEncoder.positionConversionFactor(factor);

@@ -27,7 +27,6 @@ import frc.robot.commands.drive.Drive;
 import frc.robot.commands.logging.NTGainTuner;
 import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
-import frc.robot.subsystems.test.KrakenTest;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.OIConstants;
 import frc.robot.util.auto.PathPlannerStorage;
