@@ -32,7 +32,6 @@ import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.OIConstants;
 import frc.robot.util.auto.PathPlannerStorage;
 import frc.robot.util.custom.PatriBoxController;
-import frc.robot.util.hardware.rev.Neo;
 
 public class RobotContainer {
 
