@@ -49,8 +49,7 @@ public class Module {
 
         // Optimize the reference state to avoid spinning further than 90 degrees.
         if (!FieldConstants.IS_SIMULATION) {
-            correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                    new Rotation2d(inputs.turnEncoderAbsPositionRads));
+            correctedDesiredState.optimize(new Rotation2d(inputs.turnEncoderAbsPositionRads));
         }
 
         // Command driving and turning TalonFX towards their respective setpoints.
