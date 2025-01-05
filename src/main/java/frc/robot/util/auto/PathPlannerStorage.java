@@ -69,14 +69,17 @@ public class PathPlannerStorage {
             // Load the auto and add it to the auto chooser
             Command auto = AutoBuilder.buildAuto(autoName);
             autoChooser.addOption(autoName, auto);
-            // Load the auto and add it to the list of starting positions
-            // for LPI
-            Pose2d startingPosition = PathPlannerAuto.getStaringPoseFromAutoFile(autoName);
-            PathPlannerStorage.AUTO_STARTING_POSITIONS.add(startingPosition);
             // Load the auto and add it to the list of paths 
             // for trajectory visualization
-            List<PathPlannerPath> paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
-            PathPlannerStorage.AUTO_PATHS.put(autoName, paths);
+            List<PathPlannerPath> paths;
+            try {
+                paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+                Pose2d startingPosition = paths.get(0).getStartingHolonomicPose().get();
+                PathPlannerStorage.AUTO_STARTING_POSITIONS.add(startingPosition);
+                PathPlannerStorage.AUTO_PATHS.put(autoName, paths);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         System.out.println("Configured auto chooser");
         bindListener(getUpdatePathViewerCommand());

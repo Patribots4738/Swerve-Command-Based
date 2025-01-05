@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
-import com.revrobotics.CANSparkBase;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.revrobotics.spark.SparkBase;
+
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -207,7 +207,7 @@ public final class Constants {
                 THETA_PID
             );
 
-        public static HolonomicPathFollowerConfig HPFC = new HolonomicPathFollowerConfig(
+        public static PPHolonomicDriveController PPHDC = new PPHolonomicDriveController(
             new PIDConstants(
                 AutoConstants.XY_GAINS.getP(),
                 AutoConstants.XY_GAINS.getI(),
@@ -216,10 +216,7 @@ public final class Constants {
                 AutoConstants.THETA_GAINS.getP(),
                 AutoConstants.THETA_GAINS.getI(),
                 AutoConstants.THETA_GAINS.getD(),
-                Units.degreesToRadians(45)),
-            MAX_SPEED_METERS_PER_SECOND,
-            Math.hypot(DriveConstants.WHEEL_BASE, DriveConstants.TRACK_WIDTH)/2.0,
-            new ReplanningConfig());
+                Units.degreesToRadians(45)));
 
         public static final String[] AUTO_NAMES = new String[] {};
 
@@ -447,7 +444,7 @@ public final class Constants {
     public static final class NeoMotorConstants {
         public static final double VORTEX_FREE_SPEED_RPM = 6784;
 
-        public static ArrayList<CANSparkBase> motors = new ArrayList<CANSparkBase>();
+        public static ArrayList<SparkBase> motors = new ArrayList<SparkBase>();
 
         public static final boolean SAFE_SPARK_MODE = false;
         public static final double NEO_FREE_SPEED_RPM = 5676;

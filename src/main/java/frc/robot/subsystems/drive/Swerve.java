@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.RobotConfig;
 
 import java.util.Arrays;
 import edu.wpi.first.math.MathUtil;
@@ -117,14 +118,19 @@ public class Swerve extends SubsystemBase {
         resetEncoders();
         setBrakeMode();
 
-        AutoBuilder.configureHolonomic(
-            this::getPose,
-            this::resetOdometryAuto,
-            this::getRobotRelativeVelocity,
-            this::drive,
-            AutoConstants.HPFC,
-            Robot::isRedAlliance,
-            this);
+        try {
+            AutoBuilder.configure(
+                this::getPose,
+                this::resetOdometryAuto,
+                this::getRobotRelativeVelocity,
+                (speeds, feedforwards) -> drive(speeds),
+                AutoConstants.PPHDC,
+                RobotConfig.fromGUISettings(),
+                Robot::isRedAlliance,
+                this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         poseEstimator = new SwerveDrivePoseEstimator(
             DriveConstants.DRIVE_KINEMATICS,
@@ -495,17 +501,6 @@ public class Swerve extends SubsystemBase {
 
     public Command resetHDCCommand() {
         return Commands.runOnce(() -> resetHDC());
-    }
-
-    public void reconfigureAutoBuilder() {
-        AutoBuilder.configureHolonomic(
-                this::getPose,
-                this::resetOdometryAuto,
-                this::getRobotRelativeVelocity,
-                this::drive,
-                AutoConstants.HPFC,
-                Robot::isRedAlliance,
-                this);
     }
 
     public boolean atPose(Pose2d position) {
