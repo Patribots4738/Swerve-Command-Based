@@ -46,8 +46,7 @@ public class ModuleIONeo implements ModuleIO {
         // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
         // to 10 degrees will go through 0 rather than the other direction which is a
         // longer route.
-        turnMotor.setPositionPIDWrappingEnabled(true);
-        turnMotor.setPositionPIDWrappingBounds(
+        turnMotor.enablePIDWrapping(
             MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT,
             MAXSwerveModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
 

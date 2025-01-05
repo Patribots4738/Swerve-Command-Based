@@ -2,8 +2,8 @@
 
 package frc.robot.util.hardware.rev;
 
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
+import com.revrobotics.spark.SparkLowLevel;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -54,7 +54,7 @@ public class Neo extends SafeSpark {
      * @param useAbsoluteEncoder Whether the motor uses an absolute encoder or not.
      */
     public Neo(int id, boolean isSparkFlex, boolean inverted, boolean useAbsoluteEncoder) {
-        super(id, useAbsoluteEncoder, CANSparkLowLevel.MotorType.kBrushless, isSparkFlex);
+        super(id, useAbsoluteEncoder, SparkLowLevel.MotorType.kBrushless, isSparkFlex);
         
         setInverted(inverted);
         
@@ -231,7 +231,7 @@ public class Neo extends SafeSpark {
     public void tick() {
         if ((FieldConstants.IS_SIMULATION) && controlType == ControlLoopType.POSITION) {
             double error = (targetPosition - getPosition());
-            if (pidController.getPositionPIDWrappingEnabled()) {
+            if (getPIDWrappingEnabled()) {
                 error = MathUtil.angleModulus(error);
             }
             setVoltage(getP() * error);
@@ -395,61 +395,6 @@ public class Neo extends SafeSpark {
     }
 
     /**
-     * Gets the proportional gain constant for PID controller.
-     * @return The proportional gain constant for PID controller.
-     */
-    public double getP() {
-        return getPIDController().getP();
-    }
-
-    /**
-     * Gets the integral gain constant for PID controller.
-     * @return The integral gain constant for PID controller.
-     */
-    public double getI() {
-        return getPIDController().getI();
-    }
-
-    /**
-     * Gets the derivative gain constant for PID controller.
-     * @return The derivative gain constant for PID controller.
-     */
-    public double getD() {
-        return getPIDController().getD();
-    }
-
-    public GainConstants getPID() {
-        return new GainConstants(getPIDController().getP(), getPIDController().getI(), getPIDController().getD());
-    }
-
-    /**
-     * Gets the I-Zone constant for PID controller.
-     * The I-Zone is the zone at which the integral
-     * will be applied and "enabled"
-     *
-     * Example: 
-     *   an I-Zone of 0.25
-     *   will make the integral apply 
-     *   for when the absolute value of
-     *   | desired - current | is 0.25 or less.
-     * 
-     * Think of this like the final stretch of PID
-     * 
-     * @return The I-Zone constant for PID control.
-     */
-    public double getIZone() {
-        return getPIDController().getIZone();
-    }
-
-    /**
-     * Gets the feedforward gain constant for PID controller.
-     * @return The feedforward gain constant for PID controller.
-     */
-    public double getFF() {
-        return getPIDController().getFF();
-    }
-
-    /**
      * Enum representing the control loop types for the Neo motor.
      * The control loop types include POSITION, VELOCITY, and PERCENT.
      */
@@ -457,12 +402,6 @@ public class Neo extends SafeSpark {
         POSITION,
         VELOCITY,
         PERCENT;
-    }
-
-    public static void incinerateMotors() {
-        for (Neo neo : NeoMotorConstants.NEO_MOTOR_MAP.values()) {
-            neo.burnFlash();
-        }
     }
 
 }

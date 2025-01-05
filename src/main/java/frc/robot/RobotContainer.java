@@ -102,7 +102,6 @@ public class RobotContainer {
             AutoConstants.HDC.getXController(),
             AutoConstants.HDC.getThetaController());
 
-        Neo.incinerateMotors();
         configureButtonBindings();
         configureTimedEvents();
 
