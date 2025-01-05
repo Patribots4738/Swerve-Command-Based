@@ -47,7 +47,6 @@ public class RobotContainer {
     private final BooleanSupplier robotRelativeSupplier;
 
     private final Swerve swerve;
-    private final KrakenTest krakenTest;
 
     public static Field2d field2d = new Field2d();
 
@@ -79,7 +78,6 @@ public class RobotContainer {
         pdh.setSwitchableChannel(false);
 
         swerve = new Swerve();
-        krakenTest = new KrakenTest();
 
         SmartDashboard.putData(field2d);
 
@@ -156,26 +154,26 @@ public class RobotContainer {
 
     private void configureOperatorBindings(PatriBoxController controller) {
 
-        controller.povUp()
-            .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() + 0.2));
+        // controller.povUp()
+        //     .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() + 0.2));
 
-        controller.povDown()
-            .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() - 0.2));
+        // controller.povDown()
+        //     .whileTrue(krakenTest.setPosition(() -> krakenTest.getPosition() - 0.2));
 
-        controller.a()
-            .onTrue(krakenTest.setPosition(() -> 0));
+        // controller.a()
+        //     .onTrue(krakenTest.setPosition(() -> 0));
 
-        controller.b()
-            .whileTrue(krakenTest.setVelocity(() -> 500)
-                .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
+        // controller.b()
+        //     .whileTrue(krakenTest.setVelocity(() -> 500)
+        //         .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
 
-        controller.x()
-            .whileTrue(krakenTest.setVelocity(() -> -500)
-                .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
+        // controller.x()
+        //     .whileTrue(krakenTest.setVelocity(() -> -500)
+        //         .finallyDo(() -> krakenTest.setVelocity(() -> 0)));
 
-        controller.rightTrigger()
-            .whileTrue(krakenTest.setPercent(controller::getRightY)
-                .finallyDo(() -> krakenTest.setPercent(() -> 0)));
+        // controller.rightTrigger()
+        //     .whileTrue(krakenTest.setPercent(controller::getRightY)
+        //         .finallyDo(() -> krakenTest.setPercent(() -> 0)));
 
     }
 
