@@ -800,7 +800,6 @@ public class Kraken extends TalonFX {
     public void register() {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
         if (FieldConstants.IS_SIMULATION) {
-            LinearSystemId.createDCMotorSystem(useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 0.001, 1);
             motorSimModel = 
                 new DCMotorSim(
                     LinearSystemId.createDCMotorSystem(
