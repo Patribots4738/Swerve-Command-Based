@@ -91,12 +91,12 @@ public final class Constants {
 
         // Chassis configuration
         // Distance between centers of right and left wheels on robot
-        public static final double TRACK_WIDTH = Units.inchesToMeters(25.5);
+        public static final double TRACK_WIDTH = Units.inchesToMeters(23);
         // Distance between front and back wheels on robot
         // Easiest measured from the center of the bore of the vortex
-        public static final double WHEEL_BASE = Units.inchesToMeters(25.5);
+        public static final double WHEEL_BASE = Units.inchesToMeters(23);
 
-        public static final double ROBOT_LENGTH_METERS = Units.inchesToMeters(29);
+        public static final double ROBOT_LENGTH_METERS = Units.inchesToMeters(28.5);
         public static final double BUMPER_LENGTH_METERS = Units.inchesToMeters(2.75);
 
         // Front positive, left positive
@@ -371,10 +371,10 @@ public final class Constants {
 
         public static final SwerveGearing CURRENT_GEARING = SwerveGearing.L2;
 
-        public static final double FRONT_LEFT_TURN_ENCODER_OFFSET = 0.0;
-        public static final double FRONT_RIGHT_TURN_ENCODER_OFFSET = 0.0;
-        public static final double REAR_LEFT_TURN_ENCODER_OFFSET = 0.0;
-        public static final double REAR_RIGHT_TURN_ENCODER_OFFSET = 0.0;
+        public static final double FRONT_LEFT_TURN_ENCODER_OFFSET = -0.287354;
+        public static final double FRONT_RIGHT_TURN_ENCODER_OFFSET = -0.116732;
+        public static final double REAR_LEFT_TURN_ENCODER_OFFSET = 0.282227;
+        public static final double REAR_RIGHT_TURN_ENCODER_OFFSET = 0.080322;
 
         public static final double TURNING_MOTOR_REDUCTION = 12.8;
 
@@ -404,8 +404,8 @@ public final class Constants {
         public static final double DRIVING_P = 0.11;
         public static final double DRIVING_I = 0;
         public static final double DRIVING_D = 0;
-        public static final double DRIVING_S = 0.01587;
-        public static final double DRIVING_V = 0.12362;
+        public static final double DRIVING_S = 0.12733;
+        public static final double DRIVING_V = 0.11519;
 
         public static final GainConstants DRIVING_GAINS = new GainConstants(
             DRIVING_P,
@@ -417,14 +417,18 @@ public final class Constants {
             false
         );
 
-        public static final double TURNING_P = 4.0;
+        public static final double TURNING_P = 13.0;
         public static final double TURNING_I = 0;
-        public static final double TURNING_D = 0.1;
+        public static final double TURNING_D = 0.5;
+        public static final double TURNING_S = 0.2;
 
         public static final GainConstants TURNING_GAINS = new GainConstants(
             TURNING_P,
             TURNING_I,
-            TURNING_D
+            TURNING_D,
+            TURNING_S,
+            0,
+            0
         );
 
     }
@@ -515,9 +519,6 @@ public final class Constants {
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID));
                 add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID));
             }});
-            KRAKEN_MOTOR_GROUPS.put("Test", new ArrayList<Kraken>() {{
-                add(KRAKEN_MOTOR_MAP.get(20));
-            }});
 
             return KRAKEN_MOTOR_GROUPS;
         }
@@ -526,7 +527,7 @@ public final class Constants {
 
     public static final class CANCoderConstants {
 
-        public static final double ENCODER_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
+        public static final double ENCODER_UPDATE_FREQ_HZ = 250; // TODO: FIND THE SWEET SPOT
 
     }
 

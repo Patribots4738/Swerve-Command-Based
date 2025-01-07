@@ -6,7 +6,7 @@ public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2Custom pigeon;
 
     public GyroIOPigeon2(int canId) {
-        pigeon = new Pigeon2Custom(canId);
+        pigeon = new Pigeon2Custom(canId, "Drivebase");
     }
 
     @Override

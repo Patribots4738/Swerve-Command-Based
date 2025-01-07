@@ -27,7 +27,6 @@ import frc.robot.commands.drive.Drive;
 import frc.robot.commands.logging.NTGainTuner;
 import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
-import frc.robot.subsystems.test.KrakenTest;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.OIConstants;
@@ -112,9 +111,11 @@ public class RobotContainer {
         pathPlannerStorage.configureAutoChooser();
         pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",
             swerve.setWheelsOCommand()
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(new WheelRadiusCharacterization(swerve)));
         pathPlannerStorage.getAutoChooser().addOption("DriveFeedForwardCharacterization",
             swerve.setWheelsOCommand()
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(
                 new FeedForwardCharacterization(
                     swerve, 
@@ -154,7 +155,8 @@ public class RobotContainer {
             ), swerve)
         );
 
-        controller.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
+        controller.leftBumper().whileTrue(swerve.getSetWheelsX());
+        controller.rightBumper().whileTrue(swerve.getSetWheelsO());
     }
 
     private void configureOperatorBindings(PatriBoxController controller) {

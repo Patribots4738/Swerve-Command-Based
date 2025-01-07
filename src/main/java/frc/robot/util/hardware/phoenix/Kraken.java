@@ -269,7 +269,7 @@ public class Kraken extends TalonFX {
             targetPosition = position;
         } else {
             System.err.println("Failure to set position setpoint");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Error Code " + status.value + " On ID " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
