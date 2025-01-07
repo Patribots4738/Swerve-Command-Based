@@ -106,9 +106,11 @@ public class RobotContainer {
         pathPlannerStorage.configureAutoChooser();
         pathPlannerStorage.getAutoChooser().addOption("WheelRadiusCharacterization",
             swerve.setWheelsOCommand()
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(new WheelRadiusCharacterization(swerve)));
         pathPlannerStorage.getAutoChooser().addOption("DriveFeedForwardCharacterization",
             swerve.setWheelsOCommand()
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(
                 new FeedForwardCharacterization(
                     swerve, 
@@ -116,6 +118,7 @@ public class RobotContainer {
                     swerve::getCharacterizationVelocity)));
         pathPlannerStorage.getAutoChooser().addOption("DriveStaticCharacterization",
             swerve.setWheelsOCommand()
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(
                 new StaticCharacterization(
                     swerve, 

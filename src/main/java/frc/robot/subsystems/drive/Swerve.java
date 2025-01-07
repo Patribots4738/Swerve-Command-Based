@@ -378,8 +378,12 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command setWheelsOCommand() {
-        return runOnce(this::setWheelsO).andThen(Commands.waitSeconds(0.5));
+        return runOnce(this::setWheelsO);
     }
+
+    public Command getSetWheelsO() {
+        return run(this::setWheelsO);
+    }  
 
     /**
      * Sets the swerve ModuleStates.

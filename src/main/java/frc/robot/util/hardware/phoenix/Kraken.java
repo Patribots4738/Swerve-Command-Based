@@ -282,7 +282,7 @@ public class Kraken extends TalonFX {
             targetPosition = position;
         } else {
             System.err.println("Failure to set position setpoint");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Error Code " + status.value + " On Device " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
@@ -323,7 +323,7 @@ public class Kraken extends TalonFX {
             targetVelocity = velocity;
         } else {
             System.err.println("Failure to set velocity setpoint");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Error Code " + status.value + " On Device " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
@@ -340,7 +340,7 @@ public class Kraken extends TalonFX {
             targetPercent = percent;
         } else {
             System.err.println("Failure to set percent output");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Error Code " + status.value + " On Device " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
@@ -355,7 +355,7 @@ public class Kraken extends TalonFX {
         StatusCode status = setControl(voltageRequest.withOutput(volts));
         if (status.isError()) {
             System.err.println("Failure to set voltage output");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Error Code " + status.value + " On Device " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
@@ -369,8 +369,8 @@ public class Kraken extends TalonFX {
     public StatusCode setTorqueCurrentOutput(double amps) {
         StatusCode status = setControl(torqueRequest.withOutput(amps));
         if (status.isError()) {
-            System.err.println("Failure to set voltage output");
-            System.err.println("Error Code " + status.value + " - " + status.getDescription());
+            System.err.println("Failure to set current output");
+            System.err.println("Error Code " + status.value + " On Device " + getDeviceID() + " - " + status.getDescription());
         }
         return status;
     }
