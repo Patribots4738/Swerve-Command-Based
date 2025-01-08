@@ -379,7 +379,7 @@ public final class Constants {
 
         public static final double DRIVING_MOTOR_FREE_SPEED_RPS = KrakenMotorConstants.KRAKENX60_FREE_SPEED_RPM_FOC / 60;
         // **********************************************************************MK4c SWERVE**********************
-        public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(4);
+        public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(1.9548910849480585 * 2);
         // **********************************************************************MK4c SWERVE**********************
         public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
 
@@ -398,11 +398,11 @@ public final class Constants {
         public static final double DRIVING_MOTOR_TORQUE_LIMIT_AMPS = 80.0;
         public static final double TURNING_MOTOR_TORQUE_LIMIT_AMPS = 40.0;
 
-        public static final double DRIVING_P = 0.11;
+        public static final double DRIVING_P = 0.02;
         public static final double DRIVING_I = 0;
         public static final double DRIVING_D = 0;
-        public static final double DRIVING_S = 0.12733;
-        public static final double DRIVING_V = 0.11519;
+        public static final double DRIVING_S = 0.07193;
+        public static final double DRIVING_V = 0.11441;
 
         public static final GainConstants DRIVING_GAINS = new GainConstants(
             DRIVING_P,
@@ -413,10 +413,10 @@ public final class Constants {
             0.0
         );
 
-        public static final double TURNING_P = 13.0;
-        public static final double TURNING_I = 0;
-        public static final double TURNING_D = 0.5;
-        public static final double TURNING_S = 0.5;
+        public static final double TURNING_P = 23.0;
+        public static final double TURNING_I = 0.0;
+        public static final double TURNING_D = 0.2;
+        public static final double TURNING_S = 0.30000900000007824;
 
         public static final GainConstants TURNING_GAINS = new GainConstants(
             TURNING_P,

@@ -12,23 +12,23 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import frc.robot.util.calc.PolynomialRegression;
 
 public class FeedForwardCharacterization extends Command {
   private static final double START_DELAY_SECS = 2.0;
-  private static final double RAMP_VOLTS_PER_SEC = 0.1;
+  private static final double RAMP_PER_SEC = 0.1;
 
   private FeedForwardCharacterizationData data;
-  private final Consumer<Double> inputConsumer;
-  private final Supplier<Double> velocitySupplier;
+  private final DoubleConsumer inputConsumer;
+  private final DoubleSupplier velocitySupplier;
 
   private final Timer timer = new Timer();
 
   /** Creates a new FeedForwardCharacterization command. */
   public FeedForwardCharacterization(
-      Subsystem subsystem, Consumer<Double> inputConsumer, Supplier<Double> velocitySupplier) {
+      Subsystem subsystem, DoubleConsumer inputConsumer, DoubleSupplier velocitySupplier) {
     addRequirements(subsystem);
     this.inputConsumer = inputConsumer;
     this.velocitySupplier = velocitySupplier;
@@ -48,9 +48,10 @@ public class FeedForwardCharacterization extends Command {
     if (timer.get() < START_DELAY_SECS) {
       inputConsumer.accept(0.0);
     } else {
-      double voltage = (timer.get() - START_DELAY_SECS) * RAMP_VOLTS_PER_SEC;
-      inputConsumer.accept(voltage);
-      data.add(velocitySupplier.get(), voltage);
+      double input = (timer.get() - START_DELAY_SECS) * RAMP_PER_SEC;
+      System.err.println(input);
+      inputConsumer.accept(input);
+      data.add(velocitySupplier.getAsDouble(), input);
     }
   }
 
@@ -70,24 +71,24 @@ public class FeedForwardCharacterization extends Command {
 
   public static class FeedForwardCharacterizationData {
     private final List<Double> velocityData = new LinkedList<>();
-    private final List<Double> voltageData = new LinkedList<>();
+    private final List<Double> inputData = new LinkedList<>();
 
-    public void add(double velocity, double voltage) {
+    public void add(double velocity, double input) {
       if (Math.abs(velocity) > 1E-4) {
         velocityData.add(Math.abs(velocity));
-        voltageData.add(Math.abs(voltage));
+        inputData.add(Math.abs(input));
       }
     }
 
     public void print() {
-      if (velocityData.size() == 0 || voltageData.size() == 0) {
+      if (velocityData.size() == 0 || inputData.size() == 0) {
         return;
       }
 
       PolynomialRegression regression =
           new PolynomialRegression(
               velocityData.stream().mapToDouble(Double::doubleValue).toArray(),
-              voltageData.stream().mapToDouble(Double::doubleValue).toArray(),
+              inputData.stream().mapToDouble(Double::doubleValue).toArray(),
               1);
 
       System.out.println("FF Characterization Results:");

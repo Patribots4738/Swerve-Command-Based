@@ -109,21 +109,15 @@ public class RobotContainer {
             .andThen(Commands.waitSeconds(0.5))
             .andThen(new WheelRadiusCharacterization(swerve)));
         pathPlannerStorage.getAutoChooser().addOption("DriveFeedForwardCharacterization",
-            swerve.setWheelsOCommand()
-            .andThen(Commands.waitSeconds(0.5))
-            .andThen(
-                new FeedForwardCharacterization(
-                    swerve, 
-                    swerve::runDriveCharacterization, 
-                    swerve::getCharacterizationVelocity)));
-        pathPlannerStorage.getAutoChooser().addOption("DriveStaticCharacterization",
-            swerve.setWheelsOCommand()
-            .andThen(Commands.waitSeconds(0.5))
-            .andThen(
-                new StaticCharacterization(
-                    swerve, 
-                    swerve::runDriveCharacterization, 
-                    swerve::getCharacterizationVelocity)));
+            new FeedForwardCharacterization(
+                swerve, 
+                swerve::runDriveCharacterization, 
+                swerve::getDriveCharacterizationVelocity));
+        pathPlannerStorage.getAutoChooser().addOption("TurnStaticCharacterization",
+            new StaticCharacterization(
+                swerve, 
+                swerve::runTurnCharacterization, 
+                swerve::getTurnCharacterizationVelocity));
 
         new NTGainTuner().schedule();
         
@@ -151,7 +145,10 @@ public class RobotContainer {
             ), swerve)
         );
 
-        controller.leftBumper().whileTrue(Commands.run(swerve::getSetWheelsX));
+        controller.leftBumper().whileTrue(swerve.getSetWheelsX());
+        controller.rightBumper().whileTrue(swerve.getSetWheelsO());
+        controller.b().whileTrue(swerve.driveCharacterization());
+        controller.y().whileTrue(swerve.getSetWheelsZero());
     }
 
     private void configureOperatorBindings(PatriBoxController controller) {

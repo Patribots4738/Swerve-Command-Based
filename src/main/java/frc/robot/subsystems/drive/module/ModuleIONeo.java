@@ -108,7 +108,8 @@ public class ModuleIONeo implements ModuleIO {
     }
 
     @Override
-    public void runDriveCharacterization(double input) {
+    public void runDriveCharacterization(double input, double turnAngle) {
+        turnMotor.setTargetPosition(turnAngle);
         driveMotor.setVoltage(input);
     }
 

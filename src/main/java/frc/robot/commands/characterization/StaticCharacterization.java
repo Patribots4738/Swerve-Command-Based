@@ -39,6 +39,7 @@ public class StaticCharacterization extends Command {
   @Override
   public void execute() {
     currentInput = timer.get() * currentRampFactor;
+    System.err.println(currentInput);
     inputConsumer.accept(currentInput);
   }
 

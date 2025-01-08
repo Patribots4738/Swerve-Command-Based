@@ -300,10 +300,14 @@ public class Swerve extends SubsystemBase {
     }
 
     public void runDriveCharacterization(double input) {
-        for (Module module : swerveModules) {
-            // TODO: CHANGE THIS TO AMPS WHEN PRO!
-            module.runDriveCharacterization(input);
-        }
+        frontLeft.runDriveCharacterization(input, Units.degreesToRadians(135 + 270));
+        frontRight.runDriveCharacterization(input, Units.degreesToRadians(45));
+        rearLeft.runDriveCharacterization(input, Units.degreesToRadians(-135 + 180));
+        rearRight.runDriveCharacterization(input, Units.degreesToRadians(-45 + 90));
+    }
+
+    public Command driveCharacterization() {
+        return run(() -> runDriveCharacterization(0));
     }
 
     public void runTurnCharacterization(double input) {
@@ -313,10 +317,18 @@ public class Swerve extends SubsystemBase {
         }
     }
 
-    public double getCharacterizationVelocity() {
+    public double getDriveCharacterizationVelocity() {
         double average = 0.0;
         for (Module module : swerveModules) {
-            average += module.getCharacterizationVelocity();
+            average += module.getDriveCharacterizationVelocity();
+        }
+        return average / 4.0;
+    }
+
+    public double getTurnCharacterizationVelocity() {
+        double average = 0.0;
+        for (Module module : swerveModules) {
+            average += module.getTurnCharacterizationVelocity();
         }
         return average / 4.0;
     }
@@ -384,6 +396,20 @@ public class Swerve extends SubsystemBase {
     public Command getSetWheelsO() {
         return run(this::setWheelsO);
     }  
+
+    public void setWheelsZero() {
+        for (Module mod : swerveModules) {
+            mod.setTurnZero();
+        }
+    }
+
+    public Command setWheelsZeroCommand() {
+        return runOnce(this::setWheelsZero);
+    }
+
+    public Command getSetWheelsZero() {
+        return run(this::setWheelsZero);
+    }
 
     /**
      * Sets the swerve ModuleStates.

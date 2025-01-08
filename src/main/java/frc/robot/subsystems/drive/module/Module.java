@@ -59,8 +59,12 @@ public class Module {
         this.desiredState = correctedDesiredState;
     }
 
-    public void runDriveCharacterization(double input) {
-        io.runDriveCharacterization(input);
+    public void setTurnZero() {
+        io.setTurnPosition(0);
+    }
+
+    public void runDriveCharacterization(double input, double turnAngle) {
+        io.runDriveCharacterization(input, turnAngle);
     }
 
     public void runTurnCharacterization(double input) {
@@ -118,8 +122,12 @@ public class Module {
         return inputs.drivePositionFlipped;
     }
 
-    public double getCharacterizationVelocity() {
+    public double getDriveCharacterizationVelocity() {
         return inputs.driveVelocityMPS / MK4cSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR;
+    }
+
+    public double getTurnCharacterizationVelocity() {
+        return inputs.turnInternalVelocityRadsPerSec / MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR;
     }
 
 }

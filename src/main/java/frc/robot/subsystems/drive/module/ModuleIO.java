@@ -41,7 +41,7 @@ public interface ModuleIO {
 
     default void setTurnBrakeMode(boolean brake) {}
 
-    default void runDriveCharacterization(double input) {}
+    default void runDriveCharacterization(double input, double turnAngle) {}
 
     default void runTurnCharacterization(double input) {}
 
