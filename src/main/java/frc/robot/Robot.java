@@ -150,7 +150,6 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopInit() {
         Robot.gameMode = GameMode.TELEOP;
-        DriveConstants.MAX_SPEED_METERS_PER_SECOND = DriveConstants.MAX_TELEOP_SPEED_METERS_PER_SECOND;
         robotContainer.onEnabled();
     }
 

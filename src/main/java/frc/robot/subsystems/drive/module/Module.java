@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.Constants.MK5nSwerveModuleConstants;
 import frc.robot.util.custom.GainConstants;
 
 public class Module {
@@ -37,26 +37,21 @@ public class Module {
     }
 
     /**
-     * Corrects the rotation2d and speed of the MK4c 
+     * Corrects the rotation2d and speed of the MK5n 
      * 
      * @param desiredState stored rotation 2d and speed 
      */
-    public void setDesiredState(SwerveModuleState desiredState) {
+    public void setDesiredState(SwerveModuleState desiredState, double feedforward) {
         // Apply chassis angular offset to the desired state.
-        SwerveModuleState correctedDesiredState = new SwerveModuleState();
-        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-        correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(chassisAngularOffset));
+        this.desiredState.speedMetersPerSecond *= desiredState.angle.minus(new Rotation2d(inputs.turnEncoderAbsPositionRads)).getCos();
+        this.desiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(chassisAngularOffset));
 
         // Optimize the reference state to avoid spinning further than 90 degrees.
-        if (!FieldConstants.IS_SIMULATION) {
-            correctedDesiredState.optimize(new Rotation2d(inputs.turnEncoderAbsPositionRads));
-        }
+        this.desiredState.optimize(new Rotation2d(inputs.turnEncoderAbsPositionRads));
 
         // Command driving and turning TalonFX towards their respective setpoints.
-        io.runDriveVelocity(correctedDesiredState.speedMetersPerSecond);
-        io.setTurnPosition(correctedDesiredState.angle.getRadians());
-
-        this.desiredState = correctedDesiredState;
+        io.runDriveVelocity(this.desiredState.speedMetersPerSecond, feedforward);
+        io.setTurnPosition(this.desiredState.angle.getRadians());
     }
 
     public void setTurnZero() {
@@ -80,12 +75,8 @@ public class Module {
         io.resetDriveEncoder();
     }
 
-    public void setGains(GainConstants driveGains, GainConstants turnGains) {
-        io.setGains(driveGains, turnGains);
-    }
-
     /**
-     * Obtains current state of the MK4c module.
+     * Obtains current state of the MK5n module.
      * 
      * @return current module state
      */
@@ -94,7 +85,7 @@ public class Module {
     }
 
     /**
-     * Obtains the desired state of MK4c the module.
+     * Obtains the desired state of MK5n the module.
      * 
      * @return desired module state
      */
@@ -103,7 +94,7 @@ public class Module {
     }
 
     /**
-     * Obtains the current position of the MK4c module.
+     * Obtains the current position of the MK5n module.
      * 
      * @return current module position
      */
@@ -115,7 +106,7 @@ public class Module {
      * Gets the rotations of the wheel converted to radians.
      */
     public double getDrivePositionRadians() {
-        return inputs.drivePositionMeters * 2 * Math.PI / MK4cSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
+        return inputs.drivePositionMeters * 2 * Math.PI / MK5nSwerveModuleConstants.WHEEL_CIRCUMFERENCE_METERS;
     }
 
     public boolean getDrivePositionFlipped() {
@@ -123,11 +114,11 @@ public class Module {
     }
 
     public double getDriveCharacterizationVelocity() {
-        return inputs.driveVelocityMPS / MK4cSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR;
+        return inputs.driveVelocityMPS / MK5nSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR;
     }
 
     public double getTurnCharacterizationVelocity() {
-        return inputs.turnInternalVelocityRadsPerSec / MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR;
+        return inputs.turnInternalVelocityRadsPerSec / MK5nSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR;
     }
 
 }

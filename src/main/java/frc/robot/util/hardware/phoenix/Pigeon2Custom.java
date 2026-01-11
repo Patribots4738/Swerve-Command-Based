@@ -1,15 +1,10 @@
 package frc.robot.util.hardware.phoenix;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-
-import java.util.function.BooleanSupplier;
-
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
@@ -17,9 +12,15 @@ import com.ctre.phoenix6.configs.Pigeon2Configurator;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.Constants.PigeonConstants;
+
 
 public class Pigeon2Custom extends Pigeon2 {
 
@@ -40,7 +41,7 @@ public class Pigeon2Custom extends Pigeon2 {
     }
 
     public Pigeon2Custom(int id) {
-        this(id, "rio");
+        this(id, CANConstants.RIO_BUS);
     }
     
     /**
@@ -49,7 +50,7 @@ public class Pigeon2Custom extends Pigeon2 {
      * @param id The ID of the Pigeon2 object.
      * @param canBus The CAN bus address of the Pigeon2 object.
      */
-    public Pigeon2Custom(int id, String canBus) {
+    public Pigeon2Custom(int id, CANBus canBus) {
         super(id, canBus);
 
         restoreFactoryDefaults();

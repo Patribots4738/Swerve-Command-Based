@@ -45,10 +45,14 @@ public interface ModuleIO {
 
     default void runTurnCharacterization(double input) {}
 
-    default void runDriveVelocity(double velocity) {}
+    default void runDriveVelocity(double velocity, double feedforwad) {}
 
     default void setTurnPosition(double position) {}
 
-    default void setGains(GainConstants driveGains, GainConstants turnGains) {}
+    default void setTurnVelocity(double velocity) {}
+
+    default void setDriveGains(GainConstants gains) {}
+
+    default void setTurnGains(GainConstants gains) {}
 
 }

@@ -8,9 +8,10 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.function.BooleanSupplier;
+import java.util.function.BooleanSupplier; 
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
@@ -33,6 +34,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -46,6 +48,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.custom.GainConstants;
@@ -102,7 +105,7 @@ public class Kraken extends TalonFX {
      * @param id ID of Kraken motor
      * @param canBus CANivore Kraken is connected to
      */
-    public Kraken(int id, String canBus) {
+    public Kraken(int id, CANBus canBus) {
         this(id, canBus, false, false);
     }
 
@@ -112,7 +115,7 @@ public class Kraken extends TalonFX {
      * @param id ID of Kraken motor
      */
     public Kraken(int id) {
-        this(id, "rio");
+        this(id, CANConstants.RIO_BUS);
     }
 
     /**
@@ -123,7 +126,7 @@ public class Kraken extends TalonFX {
      * @param useTorqueControl uses the TalonFX native torque control mode when set to true
      */
     public Kraken(int id, boolean useFOC, boolean useTorqueControl) {
-        this(id, "rio", useFOC, useTorqueControl);
+        this(id, CANConstants.RIO_BUS, useFOC, useTorqueControl);
     }
 
     /**
@@ -134,7 +137,7 @@ public class Kraken extends TalonFX {
      * @param useFOC Whether to use Field Oriented Control (FOC) for the Kraken object.
      * @param useTorqueControl Uses the TalonFX native torque control mode when set to true.
      */
-    public Kraken(int id, String canBus, boolean useFOC, boolean useTorqueControl) {
+    public Kraken(int id, CANBus canBus, boolean useFOC, boolean useTorqueControl) {
 
         super(id, canBus);
 
@@ -619,7 +622,7 @@ public class Kraken extends TalonFX {
      * @return The status code indicating the success or failure of adding the follower motor.
      */
     public StatusCode addFollower(Kraken motor, boolean invert) {
-        StatusCode status = motor.setControl(new Follower(getDeviceID(), invert));
+        StatusCode status = motor.setControl(new Follower(getDeviceID(), MotorAlignmentValue.Opposed));
         if (status.isError()) {
             System.err.println("Failure to add follower");
             System.err.println("Error Code " + status.value + " - " + status.getDescription());
@@ -800,13 +803,24 @@ public class Kraken extends TalonFX {
     public void register() {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
         if (FieldConstants.IS_SIMULATION) {
-            motorSimModel = 
+            if (getDeviceID() % 2 == 0) {
+                motorSimModel = 
                 new DCMotorSim(
                     LinearSystemId.createDCMotorSystem(
-                        useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 
+                        useFOC ? DCMotor.getKrakenX44Foc(1) : DCMotor.getKrakenX44(1), 
                         0.001, 
                         1), 
-                    useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1));
+                    useFOC ? DCMotor.getKrakenX44Foc(1) : DCMotor.getKrakenX44(1));
+            }
+            else {
+                motorSimModel = 
+                    new DCMotorSim(
+                        LinearSystemId.createDCMotorSystem(
+                            useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1), 
+                            0.001, 
+                            1), 
+                        useFOC ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX60(1));
+            }
         }
     }
 
