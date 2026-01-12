@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -13,7 +14,6 @@ import org.littletonrobotics.junction.Logger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 
-import java.util.Arrays;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -40,12 +40,11 @@ import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
 import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
-import frc.robot.subsystems.drive.module.ModuleIOKraken;
 import frc.robot.subsystems.drive.module.Module;
+import frc.robot.subsystems.drive.module.ModuleIOKraken;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.MK4cSwerveModuleConstants;
 import frc.robot.util.Constants.MK5nSwerveModuleConstants;
 import frc.robot.util.custom.LoggedTunableConstant;
 
@@ -63,7 +62,7 @@ public class Swerve extends SubsystemBase {
     private SwerveDrivePoseEstimator poseEstimator;
 
     private LoggedTunableConstant driveMultiplier = new LoggedTunableConstant("Drive/DriveMultiplier", 1.0);
-    private LoggedTunableConstant driveMaxLinearVelocity = new LoggedTunableConstant("Drive/DriveLinearVelocity", DriveConstants.MAX_TELEOP_SPEED_METERS_PER_SECOND);
+    private LoggedTunableConstant driveMaxLinearVelocity = new LoggedTunableConstant("Drive/DriveLinearVelocity", DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     private LoggedTunableConstant driveMaxAngularVelocity = new LoggedTunableConstant("Drive/DriveAngularVelocity", DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
 
     /**
