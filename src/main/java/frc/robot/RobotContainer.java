@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.GameMode;
 import frc.robot.commands.characterization.FeedForwardCharacterization;
@@ -119,7 +120,7 @@ public class RobotContainer {
                         swerve::runTurnCharacterization,
                         swerve::getTurnCharacterizationVelocity));
 
-        new NTGainTuner().schedule();
+        CommandScheduler.getInstance().schedule(new NTGainTuner());
 
         prepareNamedCommands();
 
@@ -258,19 +259,20 @@ public class RobotContainer {
 
     public void onDisabled() {
         swerve.stopDriving();
-        pathPlannerStorage.updatePathViewerCommand().schedule();
+        CommandScheduler.getInstance().schedule(pathPlannerStorage.updatePathViewerCommand());
         pathPlannerStorage.configureAutoChooser();
 
         // TODO: Extract this into a command file
-        Commands.run(this::updateNTGains)
+        CommandScheduler.getInstance().schedule(
+                Commands.run(this::updateNTGains)
                 .until(() -> Robot.gameMode != GameMode.DISABLED)
                 .ignoringDisable(true)
-                .schedule();
+                );
     }
 
     public void onEnabled() {
         gameModeStart = Robot.currentTimestamp;
-        pathPlannerStorage.updatePathViewerCommand().schedule();
+        CommandScheduler.getInstance().schedule(pathPlannerStorage.updatePathViewerCommand());
         freshCode = false;
     }
 
