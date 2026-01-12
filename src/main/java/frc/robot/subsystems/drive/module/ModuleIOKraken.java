@@ -18,7 +18,7 @@ public class ModuleIOKraken implements ModuleIO {
 
     /**
      * Creates new MK4c swerve module.
-     * 
+     *
      * @param drivingCANId CAN ID of the driving motor
      * @param turningCANId CAN ID of the turning motor
      * @param canCoderId CAN ID of the modules encoder
@@ -36,7 +36,8 @@ public class ModuleIOKraken implements ModuleIO {
     }
 
     /**
-     * Configures MK5n module's encoders, conversion factor, PID, and current limit.
+     * Configures MK5n module's encoders, conversion factor, PID, and current
+     * limit.
      */
     private void configMotors() {
 
@@ -60,19 +61,20 @@ public class ModuleIOKraken implements ModuleIO {
 
         // We only want to ask for the abs encoder in real life
         if (FieldConstants.IS_REAL) {
-            turnMotor.setEncoder(turnEncoder.getDeviceID(), MK4cSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
+            turnMotor.setEncoder(turnEncoder.getDeviceID(), MK5nSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
         }
 
         turnMotor.setPositionClosedLoopWrappingEnabled(true);
 
-        setGains(MK4cSwerveModuleConstants.DRIVING_GAINS, MK4cSwerveModuleConstants.TURNING_GAINS);
+        setDriveGains(MK5nSwerveModuleConstants.DRIVING_GAINS);
+        setTurnGains(MK5nSwerveModuleConstants.TURNING_GAINS);
 
         driveMotor.setTorqueCurrentLimits(
-            -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
-            MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS);
+                -MK5nSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
+                MK5nSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS);
         turnMotor.setTorqueCurrentLimits(
-            -MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS,
-            MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS);
+                -MK5nSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS,
+                MK5nSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS);
 
         setDriveBrakeMode(true);
         setTurnBrakeMode(true);
@@ -80,12 +82,12 @@ public class ModuleIOKraken implements ModuleIO {
 
     private void configEncoder(double absoluteEncoderOffset) {
         turnEncoder.configureMagnetSensor(false, absoluteEncoderOffset);
-        turnEncoder.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
-        turnEncoder.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+        turnEncoder.setPositionConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnEncoder.setVelocityConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
     }
 
     /**
-     * Updates the inputs sent to the Mk4c module.
+     * Updates the inputs sent to the Mk5n module.
      */
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
@@ -100,7 +102,7 @@ public class ModuleIOKraken implements ModuleIO {
         inputs.driveSupplyCurrentAmps = driveMotor.getSupplyCurrentAsDouble();
         inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
         inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
-        
+
         // Call refreshALl() to refresh all status signals, and check in on him :)
         inputs.turnMotorConnected = turnMotor.refreshSignals().isOK();
         inputs.turnInternalPositionRads = turnMotor.getPositionAsDouble();
@@ -125,7 +127,7 @@ public class ModuleIOKraken implements ModuleIO {
      * Resets drive encoder to 0.
      */
     @Override
-    public void resetDriveEncoder()  {
+    public void resetDriveEncoder() {
         driveMotor.resetEncoder(0);
     }
 
@@ -151,8 +153,8 @@ public class ModuleIOKraken implements ModuleIO {
     }
 
     @Override
-    public void runDriveVelocity(double velocity) {
-        driveMotor.setTargetVelocity(velocity);
+    public void runDriveVelocity(double velocity, double feedforward) {
+        driveMotor.setTargetVelocity(velocity, feedforward);
     }
 
     @Override
@@ -161,9 +163,13 @@ public class ModuleIOKraken implements ModuleIO {
     }
 
     @Override
-    public void setGains(GainConstants driveGains, GainConstants turnGains) {
-        driveMotor.setGains(driveGains);
-        turnMotor.setGains(turnGains);
+    public void setDriveGains(GainConstants gains) {
+        driveMotor.setGains(gains);
     }
-    
+
+    @Override
+    public void setTurnGains(GainConstants gains) {
+        turnMotor.setGains(gains);
+    }
+
 }
