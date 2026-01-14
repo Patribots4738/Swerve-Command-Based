@@ -19,9 +19,11 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkFlexConfigAccessor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkMaxConfigAccessor;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.spark.config.FeedForwardConfigAccessor;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.util.Constants.FieldConstants;
@@ -117,7 +119,7 @@ public class SafeSpark extends SparkBase {
     }
 
     public REVLibError applyParameter(BooleanSupplier parameterCheckSupplier, String errorMessage) {
-        return applyParameter(() -> configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters), parameterCheckSupplier, errorMessage);
+        return applyParameter(() -> configure(config, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters), parameterCheckSupplier, errorMessage);
     }
 
     /**
@@ -128,7 +130,7 @@ public class SafeSpark extends SparkBase {
      */
     public REVLibError restoreFactoryDefaults() {
         REVLibError status = applyParameter(
-            () -> configure(config.apply(isSparkFlex ? new SparkFlexConfig() : new SparkMaxConfig()), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters),
+            () -> configure(config.apply(isSparkFlex ? new SparkFlexConfig() : new SparkMaxConfig()), com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters),
             () -> true,
             "Restore factory defaults failure!");
         Timer.delay(BURN_FLASH_WAIT_TIME);
@@ -221,7 +223,7 @@ public class SafeSpark extends SparkBase {
                     } else {    
                         config.inverted(inverted);
                     }
-                    return configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                    return configure(config, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
                 },
                 () -> (useAbsoluteEncoder ? accessor.absoluteEncoder.getInverted() == inverted : accessor.getInverted() == inverted),
                 "Set inverted failure!");
@@ -231,7 +233,6 @@ public class SafeSpark extends SparkBase {
      * Invert the motor
      * 
      */
-    @Override
     public void setInverted(boolean inverted) {
         invertMotor(inverted);
     }
@@ -458,9 +459,9 @@ public class SafeSpark extends SparkBase {
      */
     public REVLibError setFF(double value, int slot) {
         ClosedLoopSlot gainSlot = getSlotFromInt(slot);
-        config.closedLoop.velocityFF(value, gainSlot);
+        config.closedLoop.feedForward.kV(value, gainSlot);
         REVLibError status = applyParameter(
-            () -> accessor.closedLoop.getFF(gainSlot) == value,
+            () -> accessor.closedLoop.feedForward.getkV(gainSlot) == value,
             "Set kF failure!");
         return status;
     }
@@ -545,7 +546,7 @@ public class SafeSpark extends SparkBase {
      * @return The feedforward gain constant for PID controller.
      */
     public double getFF() {
-        return accessor.closedLoop.getFF();
+        return accessor.closedLoop.feedForward.getkV();
     }
 
     
@@ -617,7 +618,7 @@ public class SafeSpark extends SparkBase {
      * @param arbFFUnits   Units for the arbitrary feed forward value
      */
     public void setPIDReference(double value, ControlType controlType, int slot, double arbitraryFeedForward, ArbFFUnits arbFFUnits) {
-        pidController.setReference(value, controlType, getSlotFromInt(slot), arbitraryFeedForward, arbFFUnits);
+        pidController.setSetpoint(value, controlType, getSlotFromInt(slot), arbitraryFeedForward, arbFFUnits);
     }
 
     /**
@@ -694,7 +695,7 @@ public class SafeSpark extends SparkBase {
      */ 
     public REVLibError changeStatusFrame(StatusFrame frame, int period) {
         frame.applyFramePeriod(config, period);
-        return configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        return configure(config, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
     }
 
     /**

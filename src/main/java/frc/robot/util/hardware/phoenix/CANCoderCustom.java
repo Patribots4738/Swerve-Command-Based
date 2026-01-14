@@ -1,9 +1,10 @@
 package frc.robot.util.hardware.phoenix;
 
-import java.util.function.Supplier;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -15,6 +16,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.util.Constants.CANCoderConstants;
+import frc.robot.util.Constants.CANConstants;
 
 public class CANCoderCustom extends CANcoder {
 
@@ -31,7 +33,7 @@ public class CANCoderCustom extends CANcoder {
 
 
     public CANCoderCustom(int id) {
-        this(id, "rio");
+        this(id, CANConstants.RIO_BUS);
     }
 
     /**
@@ -41,7 +43,7 @@ public class CANCoderCustom extends CANcoder {
      * @param id The unique identifier for the CANCoder.
      * @param canBus The CAN bus to which the CANCoder is connected.
      */
-    public CANCoderCustom(int id, String canBus) {
+    public CANCoderCustom(int id, CANBus canBus) {
         super(id, canBus);
 
         restoreFactoryDefaults();

@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -13,7 +14,6 @@ import org.littletonrobotics.junction.Logger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 
-import java.util.Arrays;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -40,12 +40,12 @@ import frc.robot.commands.drive.Drive;
 import frc.robot.commands.drive.DriveHDC;
 import frc.robot.subsystems.drive.gyro.Gyro;
 import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
-import frc.robot.subsystems.drive.module.ModuleIOKraken;
 import frc.robot.subsystems.drive.module.Module;
+import frc.robot.subsystems.drive.module.ModuleIOKraken;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.Constants.MK5nSwerveModuleConstants;
 import frc.robot.util.custom.LoggedTunableConstant;
 
 public class Swerve extends SubsystemBase {
@@ -62,7 +62,7 @@ public class Swerve extends SubsystemBase {
     private SwerveDrivePoseEstimator poseEstimator;
 
     private LoggedTunableConstant driveMultiplier = new LoggedTunableConstant("Drive/DriveMultiplier", 1.0);
-    private LoggedTunableConstant driveMaxLinearVelocity = new LoggedTunableConstant("Drive/DriveLinearVelocity", DriveConstants.MAX_TELEOP_SPEED_METERS_PER_SECOND);
+    private LoggedTunableConstant driveMaxLinearVelocity = new LoggedTunableConstant("Drive/DriveLinearVelocity", DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     private LoggedTunableConstant driveMaxAngularVelocity = new LoggedTunableConstant("Drive/DriveAngularVelocity", DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
 
     /**
@@ -72,37 +72,37 @@ public class Swerve extends SubsystemBase {
 
         frontLeft = new Module(
             new ModuleIOKraken(
-                MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_LEFT_TURN_ENCODER_OFFSET),
+                MK5nSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_LEFT_CANCODER_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_LEFT_TURN_ENCODER_OFFSET),
             DriveConstants.FRONT_LEFT_INDEX,
             DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
         frontRight = new Module(
             new ModuleIOKraken(
-                MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
-                MK4cSwerveModuleConstants.FRONT_RIGHT_TURN_ENCODER_OFFSET),
+                MK5nSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_RIGHT_CANCODER_CAN_ID,
+                MK5nSwerveModuleConstants.FRONT_RIGHT_TURN_ENCODER_OFFSET),
             DriveConstants.FRONT_RIGHT_INDEX,
             DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
         rearLeft = new Module(
             new ModuleIOKraken(
-                MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_LEFT_TURN_ENCODER_OFFSET),
+                MK5nSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_LEFT_CANCODER_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_LEFT_TURN_ENCODER_OFFSET),
             DriveConstants.REAR_LEFT_INDEX,
             DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
         rearRight = new Module(
             new ModuleIOKraken(
-                MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
-                MK4cSwerveModuleConstants.REAR_RIGHT_TURN_ENCODER_OFFSET),
+                MK5nSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_RIGHT_CANCODER_CAN_ID,
+                MK5nSwerveModuleConstants.REAR_RIGHT_TURN_ENCODER_OFFSET),
             DriveConstants.REAR_RIGHT_INDEX,
             DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);     
 
@@ -363,14 +363,7 @@ public class Swerve extends SubsystemBase {
      * Sets the wheels into an X formation to prevent movement.
      */
     public void setWheelsX() {
-        SwerveModuleState[] desiredStates = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-135))
-        };
-
-        setModuleStates(desiredStates);
+        setModuleStates(DriveConstants.X_WHEEL_STATES);
     }
 
 
@@ -379,14 +372,7 @@ public class Swerve extends SubsystemBase {
     }   
 
     public void setWheelsO() {
-        SwerveModuleState[] desiredStates = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
-        };
-
-        setModuleStates(desiredStates);
+        setModuleStates(DriveConstants.O_WHEEL_STATES);
     }
 
     public Command setWheelsOCommand() {
@@ -416,17 +402,22 @@ public class Swerve extends SubsystemBase {
      *
      * @param desiredStates The desired SwerveModule states.
      */
-    public void setModuleStates(SwerveModuleState[] desiredStates) {
+    public void setModuleStates(SwerveModuleState[] desiredStates, double[] feedforwards) {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             desiredStates, 
             getMaxLinearVelocity()
         );
-        frontLeft.setDesiredState(desiredStates[0]);
-        frontRight.setDesiredState(desiredStates[1]);
-        rearLeft.setDesiredState(desiredStates[2]);
-        rearRight.setDesiredState(desiredStates[3]);
+        frontLeft.setDesiredState(desiredStates[0], feedforwards[0]);
+        frontRight.setDesiredState(desiredStates[1], feedforwards[1]);
+        rearLeft.setDesiredState(desiredStates[2], feedforwards[2]);
+        rearRight.setDesiredState(desiredStates[3], feedforwards[3]);
 
         RobotContainer.swerveDesiredStates = desiredStates;
+    }
+
+
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
+        setModuleStates(desiredStates, new double[] { 0, 0, 0, 0 });
     }
 
     public void resetOdometry(Pose2d pose) {

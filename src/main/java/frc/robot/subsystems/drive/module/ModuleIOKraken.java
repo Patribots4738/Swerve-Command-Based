@@ -1,7 +1,10 @@
 package frc.robot.subsystems.drive.module;
 
+import com.ctre.phoenix6.CANBus;
+
 import frc.robot.util.Constants.FieldConstants;
-import frc.robot.util.Constants.MK4cSwerveModuleConstants;
+import frc.robot.util.Constants.MK5nSwerveModuleConstants;
+import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.phoenix.CANCoderCustom;
 import frc.robot.util.hardware.phoenix.Kraken;
@@ -15,7 +18,7 @@ public class ModuleIOKraken implements ModuleIO {
 
     /**
      * Creates new MK4c swerve module.
-     * 
+     *
      * @param drivingCANId CAN ID of the driving motor
      * @param turningCANId CAN ID of the turning motor
      * @param canCoderId CAN ID of the modules encoder
@@ -24,52 +27,54 @@ public class ModuleIOKraken implements ModuleIO {
      */
     public ModuleIOKraken(int drivingCANId, int turningCANId, int canCoderId, double absoluteEncoderOffset) {
         // TODO: CHANGE USETORQUECONTROL TO TRUE ONCE WE HAVE PHOENIX PRO
-        driveMotor = new Kraken(drivingCANId, "Drivebase", true, false);
-        turnMotor = new Kraken(turningCANId, "Drivebase", true, false);
-        turnEncoder = new CANCoderCustom(canCoderId, "Drivebase");
+        driveMotor = new Kraken(drivingCANId, CANConstants.DRIVEBASE_BUS, true, false);
+        turnMotor = new Kraken(turningCANId, CANConstants.DRIVEBASE_BUS, true, false);
+        turnEncoder = new CANCoderCustom(canCoderId, CANConstants.DRIVEBASE_BUS);
         resetDriveEncoder();
         configEncoder(absoluteEncoderOffset);
         configMotors();
     }
 
     /**
-     * Configures MK4c module's encoders, conversion factor, PID, and current limit.
+     * Configures MK5n module's encoders, conversion factor, PID, and current
+     * limit.
      */
     private void configMotors() {
 
-        turnMotor.setMotorInverted(MK4cSwerveModuleConstants.INVERT_TURNING_MOTOR);
+        turnMotor.setMotorInverted(MK5nSwerveModuleConstants.INVERT_TURNING_MOTOR);
 
         // Apply position and velocity conversion factors for the driving encoder. The
         // native units for position and velocity are rotations and RPM, respectively,
         // but we want meters and meters per second to use with WPILib's swerve APIs.
-        driveMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
-        driveMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
+        driveMotor.setPositionConversionFactor(MK5nSwerveModuleConstants.DRIVING_ENCODER_POSITION_FACTOR);
+        driveMotor.setVelocityConversionFactor(MK5nSwerveModuleConstants.DRIVING_ENCODER_VELOCITY_FACTOR);
 
         // Apply position and velocity conversion factors for the turning encoder. We
         // want these in radians and radians per second to use with WPILib's swerve
         // APIs.
-        turnMotor.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
-        turnMotor.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+        turnMotor.setPositionConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnMotor.setVelocityConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
 
         // Set status signal update frequencies, optimized for swerve
         driveMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
         turnMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
 
         // We only want to ask for the abs encoder in real life
-        if (!FieldConstants.IS_SIMULATION) {
-            turnMotor.setEncoder(turnEncoder.getDeviceID(), MK4cSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
+        if (FieldConstants.IS_REAL) {
+            turnMotor.setEncoder(turnEncoder.getDeviceID(), MK5nSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
         }
 
         turnMotor.setPositionClosedLoopWrappingEnabled(true);
 
-        setGains(MK4cSwerveModuleConstants.DRIVING_GAINS, MK4cSwerveModuleConstants.TURNING_GAINS);
+        setDriveGains(MK5nSwerveModuleConstants.DRIVING_GAINS);
+        setTurnGains(MK5nSwerveModuleConstants.TURNING_GAINS);
 
         driveMotor.setTorqueCurrentLimits(
-            -MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
-            MK4cSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS);
+                -MK5nSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS,
+                MK5nSwerveModuleConstants.DRIVING_MOTOR_TORQUE_LIMIT_AMPS);
         turnMotor.setTorqueCurrentLimits(
-            -MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS,
-            MK4cSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS);
+                -MK5nSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS,
+                MK5nSwerveModuleConstants.TURNING_MOTOR_TORQUE_LIMIT_AMPS);
 
         setDriveBrakeMode(true);
         setTurnBrakeMode(true);
@@ -77,12 +82,12 @@ public class ModuleIOKraken implements ModuleIO {
 
     private void configEncoder(double absoluteEncoderOffset) {
         turnEncoder.configureMagnetSensor(false, absoluteEncoderOffset);
-        turnEncoder.setPositionConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
-        turnEncoder.setVelocityConversionFactor(MK4cSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
+        turnEncoder.setPositionConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_POSITION_FACTOR);
+        turnEncoder.setVelocityConversionFactor(MK5nSwerveModuleConstants.TURNING_ENCODER_VELOCITY_FACTOR);
     }
 
     /**
-     * Updates the inputs sent to the Mk4c module.
+     * Updates the inputs sent to the Mk5n module.
      */
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
@@ -97,7 +102,7 @@ public class ModuleIOKraken implements ModuleIO {
         inputs.driveSupplyCurrentAmps = driveMotor.getSupplyCurrentAsDouble();
         inputs.driveStatorCurrentAmps = driveMotor.getStatorCurrentAsDouble();
         inputs.driveTempCelcius = driveMotor.getTemperatureAsDouble();
-        
+
         // Call refreshALl() to refresh all status signals, and check in on him :)
         inputs.turnMotorConnected = turnMotor.refreshSignals().isOK();
         inputs.turnInternalPositionRads = turnMotor.getPositionAsDouble();
@@ -122,7 +127,7 @@ public class ModuleIOKraken implements ModuleIO {
      * Resets drive encoder to 0.
      */
     @Override
-    public void resetDriveEncoder()  {
+    public void resetDriveEncoder() {
         driveMotor.resetEncoder(0);
     }
 
@@ -148,8 +153,8 @@ public class ModuleIOKraken implements ModuleIO {
     }
 
     @Override
-    public void runDriveVelocity(double velocity) {
-        driveMotor.setTargetVelocity(velocity);
+    public void runDriveVelocity(double velocity, double feedforward) {
+        driveMotor.setTargetVelocity(velocity, feedforward);
     }
 
     @Override
@@ -158,9 +163,13 @@ public class ModuleIOKraken implements ModuleIO {
     }
 
     @Override
-    public void setGains(GainConstants driveGains, GainConstants turnGains) {
-        driveMotor.setGains(driveGains);
-        turnMotor.setGains(turnGains);
+    public void setDriveGains(GainConstants gains) {
+        driveMotor.setGains(gains);
     }
-    
+
+    @Override
+    public void setTurnGains(GainConstants gains) {
+        turnMotor.setGains(gains);
+    }
+
 }

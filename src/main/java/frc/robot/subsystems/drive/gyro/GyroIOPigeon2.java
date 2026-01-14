@@ -1,12 +1,13 @@
 package frc.robot.subsystems.drive.gyro;
 
+import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.hardware.phoenix.Pigeon2Custom;
 
 public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2Custom pigeon;
 
     public GyroIOPigeon2(int canId) {
-        pigeon = new Pigeon2Custom(canId, "Drivebase");
+        pigeon = new Pigeon2Custom(canId, CANConstants.DRIVEBASE_BUS);
     }
 
     @Override

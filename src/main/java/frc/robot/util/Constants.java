@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.spark.SparkBase;
@@ -16,8 +17,11 @@ import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
@@ -79,13 +83,9 @@ public final class Constants {
     public static final class DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        public static double MAX_SPEED_METERS_PER_SECOND = AutoConstants.MAX_SPEED_METERS_PER_SECOND;
+        public static double MAX_SPEED_METERS_PER_SECOND = 4.5;
 
         public static final double MAX_ANGULAR_SPEED_RADS_PER_SECOND = Units.degreesToRadians(1137.21); // radians per second
-
-        public static final double MAX_TELEOP_SPEED_METERS_PER_SECOND = 4.7;
-
-        public static final double PASS_ROTATION_DEADBAND = 10;
 
         public static final double ODOMETRY_FREQUENCY = 250.0;
 
@@ -111,6 +111,24 @@ public final class Constants {
             REAR_LEFT_WHEEL_POSITION,
             REAR_RIGHT_WHEEL_POSITION
         };
+
+        public static final SwerveModuleState[] X_WHEEL_STATES = new SwerveModuleState[] {
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-135))
+        };
+
+        public static final SwerveModuleState[] O_WHEEL_STATES = new SwerveModuleState[] {
+            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-135)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
+        };
+
+        public static final ChassisSpeeds ZEROED_SPEEDS = new ChassisSpeeds();
+        public static final ChassisSpeeds MAX_SPEEDS = new ChassisSpeeds(DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
+
 
         public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
                 WHEEL_POSITION_ARRAY
@@ -333,6 +351,102 @@ public final class Constants {
 
     }
 
+    public static final class MK5nSwerveModuleConstants {
+        // Driving motors CAN IDs
+        public static final int FRONT_LEFT_DRIVING_CAN_ID = 3;
+        public static final int REAR_LEFT_DRIVING_CAN_ID = 5;
+        public static final int FRONT_RIGHT_DRIVING_CAN_ID = 1;
+        public static final int REAR_RIGHT_DRIVING_CAN_ID = 7;
+
+        // Turning motors CAN IDs
+        public static final int FRONT_LEFT_TURNING_CAN_ID = 4;
+        public static final int REAR_LEFT_TURNING_CAN_ID = 6;
+        public static final int FRONT_RIGHT_TURNING_CAN_ID = 2;
+        public static final int REAR_RIGHT_TURNING_CAN_ID = 8;
+
+        // CANcoders CAN IDs
+        public static final int FRONT_LEFT_CANCODER_CAN_ID = 0;
+        public static final int REAR_LEFT_CANCODER_CAN_ID = 0;
+        public static final int FRONT_RIGHT_CANCODER_CAN_ID = 0;
+        public static final int REAR_RIGHT_CANCODER_CAN_ID = 0;
+
+        private enum SwerveGearing {
+
+            R1(7.03),
+            R2(6.03),
+            R3(5.27);
+
+            private final double gearRatio;
+
+            SwerveGearing(double gearRatio) {
+                this.gearRatio = gearRatio;
+            }
+            
+        };
+
+        public static final SwerveGearing CURRENT_GEARING = SwerveGearing.R2;
+
+        public static final double FRONT_LEFT_TURN_ENCODER_OFFSET = 0;
+        public static final double FRONT_RIGHT_TURN_ENCODER_OFFSET = 0;
+        public static final double REAR_LEFT_TURN_ENCODER_OFFSET = 0;
+        public static final double REAR_RIGHT_TURN_ENCODER_OFFSET = 0;
+
+        public static final double TURNING_MOTOR_REDUCTION = 26.09;
+
+        public static final boolean INVERT_TURNING_MOTOR = false;
+
+        public static final double DRIVING_MOTOR_FREE_SPEED_RPS = KrakenMotorConstants.KRAKENX60_FREE_SPEED_RPM_FOC / 60;
+
+        // **********************************************************************MK5n SWERVE**********************
+        public static final double WHEEL_DIAMETER_METERS = Units.inchesToMeters(0 * 2); //TODO: run wheel radius characterization
+        // **********************************************************************MK5n SWERVE**********************
+        public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
+
+        public static final double DRIVING_ENCODER_POSITION_FACTOR = (WHEEL_CIRCUMFERENCE_METERS)
+                / CURRENT_GEARING.gearRatio; // meters
+        public static final double DRIVING_ENCODER_VELOCITY_FACTOR = (WHEEL_CIRCUMFERENCE_METERS
+                / CURRENT_GEARING.gearRatio); // meters per second
+
+        public static final double TURNING_ENCODER_POSITION_FACTOR = (2 * Math.PI); // radians
+        public static final double TURNING_ENCODER_VELOCITY_FACTOR = (2 * Math.PI); // radians per second
+
+        public static final double DRIVING_MOTOR_STATOR_LIMIT_AMPS = 80.0;
+        public static final double DRIVING_MOTOR_SUPPLY_LIMIT_AMPS = 80.0;
+        public static final double TURNING_MOTOR_STATOR_LIMIT_AMPS = 40.0;
+        public static final double TURNING_MOTOR_SUPPLY_LIMIT_AMPS = 40.0;
+        public static final double DRIVING_MOTOR_TORQUE_LIMIT_AMPS = 80.0;
+        public static final double TURNING_MOTOR_TORQUE_LIMIT_AMPS = 40.0;
+
+        public static final double DRIVING_P = 0.0;
+        public static final double DRIVING_I = 0.0;
+        public static final double DRIVING_D = 0.0;
+        public static final double DRIVING_S = 0.0;
+        public static final double DRIVING_V = 0.0;
+
+        public static final GainConstants DRIVING_GAINS = new GainConstants(
+            DRIVING_P,
+            DRIVING_I,
+            DRIVING_D,
+            DRIVING_S,
+            DRIVING_V,
+            0.0
+        );
+
+        public static final double TURNING_P = 0.0;
+        public static final double TURNING_I = 0.0;
+        public static final double TURNING_D = 0.0;
+        public static final double TURNING_S = 0.0;
+
+        public static final GainConstants TURNING_GAINS = new GainConstants(
+            TURNING_P,
+            TURNING_I,
+            TURNING_D,
+            TURNING_S,
+            0.0,
+            0.0
+        );
+    }
+
     public static final class MK4cSwerveModuleConstants {
         // Driving motors CAN IDs
         public static final int FRONT_LEFT_DRIVING_CAN_ID = 4;
@@ -494,7 +608,9 @@ public final class Constants {
         public static final double KRAKENX60_FREE_SPEED_RPM = 6000;
         public static final double KRAKENX60_FREE_SPEED_RPM_FOC = 5800;
 
-        public static final double TALONFX_FAST_UPDATE_FREQ_HZ = 100;// TODO: FIND THE SWEET SPOT
+        public static final double KRAKENX44_FREE_SPEED_RPM = 7530;
+
+        public static final double TALONFX_FAST_UPDATE_FREQ_HZ = 75;// TODO: FIND THE SWEET SPOT
         public static final double TALONFX_MID_UPDATE_FREQ_HZ = 50; // TODO: FIND THE SWEET SPOT
         public static final double TALONFX_SLOW_UPDATE_FREQ_HZ = 4; // TODO: FIND THE SWEET SPOT
 
@@ -504,16 +620,16 @@ public final class Constants {
 
         public static Map<String, List<Kraken>> initializeMotorGroupMap() {
             KRAKEN_MOTOR_GROUPS.put("Drive", new ArrayList<Kraken>() {{
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.FRONT_LEFT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.FRONT_RIGHT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.REAR_LEFT_DRIVING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.REAR_RIGHT_DRIVING_CAN_ID));
             }});
             KRAKEN_MOTOR_GROUPS.put("Turn", new ArrayList<Kraken>() {{
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID));
-                add(KRAKEN_MOTOR_MAP.get(MK4cSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.FRONT_LEFT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.FRONT_RIGHT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.REAR_LEFT_TURNING_CAN_ID));
+                add(KRAKEN_MOTOR_MAP.get(MK5nSwerveModuleConstants.REAR_RIGHT_TURNING_CAN_ID));
             }});
 
             return KRAKEN_MOTOR_GROUPS;
@@ -521,15 +637,20 @@ public final class Constants {
 
     }
 
+    public static final class CANConstants {
+        public static final CANBus RIO_BUS = new CANBus("rio");
+        public static final CANBus DRIVEBASE_BUS =  new CANBus("Drivebase");
+    }
+
     public static final class CANCoderConstants {
 
-        public static final double ENCODER_UPDATE_FREQ_HZ = 250; // TODO: FIND THE SWEET SPOT
+        public static final double ENCODER_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
 
     }
 
     public static final class PigeonConstants {
 
-        public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
+        public static final double PIGEON_FAST_UPDATE_FREQ_HZ = 250; // TODO: FIND THE SWEET SPOT
 
     }
 
@@ -540,7 +661,7 @@ public final class Constants {
     public static final class FieldConstants {
 
         public static boolean IS_SIMULATION = Robot.isSimulation();
+        public static boolean IS_REAL = !IS_SIMULATION;
 
     }
-
 }
