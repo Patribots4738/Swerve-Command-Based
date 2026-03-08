@@ -69,7 +69,8 @@ public class Drive extends Command {
             x *= -1;
             y *= -1;
         }
-        if (x + y + rotation == 0 && Robot.gameMode == GameMode.TELEOP) {
+        if (x + y + rotation == 0 
+            && Robot.gameMode == GameMode.TELEOP) {
             swerve.setWheelsX();
         }
         else {
