@@ -50,6 +50,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.Constants.FieldConstants;
+import frc.robot.util.Constants.GeneralHardwareConstants;
 import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.custom.GainConstants;
 
@@ -61,6 +62,7 @@ public class Kraken extends TalonFX {
 
     private double positionConversionFactor = 1.0;
     private double velocityConversionFactor = 1.0;
+    private double timeoutSeconds = GeneralHardwareConstants.TIMEOUT_SECONDS;
 
     private final TalonFXConfigurator configurator = getConfigurator();
     private final TalonFXSimState sim = getSimState();
@@ -167,7 +169,7 @@ public class Kraken extends TalonFX {
 
         setTelemetryPreference(TelemetryPreference.DEFAULT);
         applyParameter(
-            () -> optimizeBusUtilization(0, 1.0),
+            () -> optimizeBusUtilization(0, timeoutSeconds),
             "Optimize Bus Utilization"
         );
 
@@ -439,7 +441,7 @@ public class Kraken extends TalonFX {
      */
     public StatusCode restoreFactoryDefaults() {
         return applyParameter(
-            () -> configurator.apply(new TalonFXConfiguration(), 1.0),
+            () -> configurator.apply(new TalonFXConfiguration(), timeoutSeconds),
             "Factory Defaults"
         );
     }
@@ -454,8 +456,8 @@ public class Kraken extends TalonFX {
         InvertedValue invertedValue = inverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
         outputConfigs.Inverted = invertedValue;
         return applyParameter(
-            () -> configurator.apply(outputConfigs, 1.0),
-            () -> configurator.refresh(outputConfigs, 1.0),
+            () -> configurator.apply(outputConfigs, timeoutSeconds),
+            () -> configurator.refresh(outputConfigs, timeoutSeconds),
             () -> outputConfigs.Inverted == invertedValue,
             "Motor Output Inverted"
         );
@@ -472,8 +474,8 @@ public class Kraken extends TalonFX {
         currentLimitConfigs.SupplyCurrentLimitEnable = true;
 
         return applyParameter(
-            () -> configurator.apply(currentLimitConfigs, 1.0), 
-            () -> configurator.refresh(currentLimitConfigs, 1.0),
+            () -> configurator.apply(currentLimitConfigs, timeoutSeconds), 
+            () -> configurator.refresh(currentLimitConfigs, timeoutSeconds),
             () -> (currentLimitConfigs.SupplyCurrentLimit != 0 ^ currentLimit == 0) 
                 && currentLimitConfigs.SupplyCurrentLimitEnable,
             "Supply Current Limit"
@@ -490,8 +492,8 @@ public class Kraken extends TalonFX {
         currentLimitConfigs.StatorCurrentLimit = currentLimit;
         currentLimitConfigs.StatorCurrentLimitEnable = true;
         return applyParameter(
-            () -> configurator.apply(currentLimitConfigs, 1.0),
-            () -> configurator.refresh(currentLimitConfigs, 1.0),
+            () -> configurator.apply(currentLimitConfigs, timeoutSeconds),
+            () -> configurator.refresh(currentLimitConfigs, timeoutSeconds),
             () -> (currentLimitConfigs.StatorCurrentLimit != 0 ^ currentLimit == 0) 
                 && currentLimitConfigs.StatorCurrentLimitEnable,
             "Stator Current Limit"
@@ -509,8 +511,8 @@ public class Kraken extends TalonFX {
         torqueCurrentConfigs.PeakReverseTorqueCurrent = reverseLimit;
         torqueCurrentConfigs.PeakForwardTorqueCurrent = forwardLimit;
         return applyParameter(
-            () -> configurator.apply(torqueCurrentConfigs, 1.0),
-            () -> configurator.apply(torqueCurrentConfigs, 1.0),
+            () -> configurator.apply(torqueCurrentConfigs, timeoutSeconds),
+            () -> configurator.apply(torqueCurrentConfigs, timeoutSeconds),
             () -> (torqueCurrentConfigs.PeakReverseTorqueCurrent != 0 ^ reverseLimit == 0)
                 && (torqueCurrentConfigs.PeakForwardTorqueCurrent != 0 ^ forwardLimit == 0),
             "Torque Current Limits"
@@ -531,8 +533,8 @@ public class Kraken extends TalonFX {
             closedLoopRampConfigs.VoltageClosedLoopRampPeriod = seconds;
         }
         return applyParameter(
-            () -> configurator.apply(closedLoopRampConfigs, 1.0),
-            () -> configurator.refresh(closedLoopRampConfigs, 1.0),
+            () -> configurator.apply(closedLoopRampConfigs, timeoutSeconds),
+            () -> configurator.refresh(closedLoopRampConfigs, timeoutSeconds),
             () -> (useTorqueControl ? 
                 closedLoopRampConfigs.TorqueClosedLoopRampPeriod != 0 : 
                 closedLoopRampConfigs.VoltageClosedLoopRampPeriod != 0)
@@ -549,7 +551,7 @@ public class Kraken extends TalonFX {
      */
     public StatusCode resetEncoder(double position) {
         return applyParameter(
-            () -> setPosition(position / positionConversionFactor, 1.0),
+            () -> setPosition(position / positionConversionFactor, timeoutSeconds),
             "Internal Encoder Reset"
         );
     }
@@ -568,10 +570,26 @@ public class Kraken extends TalonFX {
         NeutralModeValue neutralMode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
         outputConfigs.NeutralMode = neutralMode;
         return applyParameter(
-            () -> configurator.apply(outputConfigs, 1.0),
-            () -> configurator.refresh(outputConfigs, 1.0),
+            () -> configurator.apply(outputConfigs, timeoutSeconds),
+            () -> configurator.refresh(outputConfigs, timeoutSeconds),
             () -> outputConfigs.NeutralMode == neutralMode,
             "Brake Mode"
+        );
+    }
+
+    /**
+     * Sets the mechanism reduction for a mechanism that is not absolutely encoded.
+     * 
+     * @param mechanismReduction The mechanism reduction ratio.
+     * @return The status code indicating the result of the operation.
+     */
+    public StatusCode setGearRatio(double mechanismReduction) {
+        feedbackConfigs.SensorToMechanismRatio = mechanismReduction;
+        return applyParameter(
+            () -> configurator.apply(feedbackConfigs, timeoutSeconds),
+            () -> configurator.refresh(feedbackConfigs, timeoutSeconds),
+            () -> (feedbackConfigs.SensorToMechanismRatio != 0 ^ mechanismReduction == 0),
+            "Gear Ratio"
         );
     }
     
@@ -588,8 +606,8 @@ public class Kraken extends TalonFX {
         feedbackConfigs.SensorToMechanismRatio = 1.0;
         feedbackConfigs.RotorToSensorRatio = mechanismReduction;
         return applyParameter(
-            () -> configurator.apply(feedbackConfigs, 1.0),
-            () -> configurator.refresh(feedbackConfigs, 1.0),
+            () -> configurator.apply(feedbackConfigs, timeoutSeconds),
+            () -> configurator.refresh(feedbackConfigs, timeoutSeconds),
             () -> feedbackConfigs.FeedbackRemoteSensorID == canCoderId 
                 && feedbackConfigs.FeedbackSensorSource == FeedbackSensorSourceValue.FusedCANcoder
                 && feedbackConfigs.SensorToMechanismRatio == 1.0
@@ -607,8 +625,8 @@ public class Kraken extends TalonFX {
     public StatusCode setPositionClosedLoopWrappingEnabled(boolean enabled) {
         closedLoopConfigs.ContinuousWrap = enabled;
         return applyParameter(
-            () -> configurator.apply(closedLoopConfigs, 1.0),
-            () -> configurator.refresh(closedLoopConfigs, 1.0),
+            () -> configurator.apply(closedLoopConfigs, timeoutSeconds),
+            () -> configurator.refresh(closedLoopConfigs, timeoutSeconds),
             () -> closedLoopConfigs.ContinuousWrap == enabled,
             "PID Wrapping Enabled"
         );
@@ -861,8 +879,8 @@ public class Kraken extends TalonFX {
         slotConfigs.kV = appliedGains.getV();
         slotConfigs.kG = appliedGains.getG();
         return applyParameter(
-            () -> configurator.apply(slotConfigs, 1.0),
-            () -> configurator.refresh(slotConfigs, 1.0),
+            () -> configurator.apply(slotConfigs, timeoutSeconds),
+            () -> configurator.refresh(slotConfigs, timeoutSeconds),
             () -> (slotConfigs.kP != 0 ^ appliedGains.getP() == 0) 
                 && (slotConfigs.kI != 0 ^ appliedGains.getI() == 0)
                 && (slotConfigs.kD != 0 ^ appliedGains.getD() == 0)

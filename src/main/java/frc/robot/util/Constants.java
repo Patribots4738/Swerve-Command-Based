@@ -402,6 +402,8 @@ public final class Constants {
         // **********************************************************************MK5n SWERVE**********************
         public static final double WHEEL_CIRCUMFERENCE_METERS = WHEEL_DIAMETER_METERS * Math.PI;
 
+        public static final double DRIVE_GEAR_RATIO = CURRENT_GEARING.gearRatio;
+
         public static final double DRIVING_ENCODER_POSITION_FACTOR = (WHEEL_CIRCUMFERENCE_METERS)
                 / CURRENT_GEARING.gearRatio; // meters
         public static final double DRIVING_ENCODER_VELOCITY_FACTOR = (WHEEL_CIRCUMFERENCE_METERS
@@ -656,6 +658,7 @@ public final class Constants {
 
     public static final class GeneralHardwareConstants {
         public static final boolean SAFE_HARDWARE_MODE = false;
+        public static final double TIMEOUT_SECONDS = 1.0;
     }
 
     public static final class FieldConstants {

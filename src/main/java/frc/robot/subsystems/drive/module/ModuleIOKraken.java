@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive.module;
 import com.ctre.phoenix6.CANBus;
 
 import frc.robot.util.Constants.FieldConstants;
+import frc.robot.util.Constants.MK4cSwerveModuleConstants;
 import frc.robot.util.Constants.MK5nSwerveModuleConstants;
 import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.custom.GainConstants;
@@ -43,6 +44,8 @@ public class ModuleIOKraken implements ModuleIO {
 
         turnMotor.setMotorInverted(MK5nSwerveModuleConstants.INVERT_TURNING_MOTOR);
 
+        driveMotor.setGearRatio(MK5nSwerveModuleConstants.DRIVE_GEAR_RATIO);
+
         // Apply position and velocity conversion factors for the driving encoder. The
         // native units for position and velocity are rotations and RPM, respectively,
         // but we want meters and meters per second to use with WPILib's swerve APIs.
@@ -58,6 +61,14 @@ public class ModuleIOKraken implements ModuleIO {
         // Set status signal update frequencies, optimized for swerve
         driveMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
         turnMotor.setTelemetryPreference(TelemetryPreference.SWERVE);
+
+        // We only want to ask for the abs encoder in real life
+        if (FieldConstants.IS_REAL) {
+            turnMotor.setEncoder(turnEncoder.getDeviceID(), MK5nSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
+        }
+        else {
+            turnMotor.setGearRatio(MK5nSwerveModuleConstants.TURNING_MOTOR_REDUCTION);
+        }
 
         // We only want to ask for the abs encoder in real life
         if (FieldConstants.IS_REAL) {
