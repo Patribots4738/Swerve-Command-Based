@@ -2,7 +2,7 @@ package frc.robot.subsystems.drive.gyro;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation2d;
 
 public class Gyro {
 

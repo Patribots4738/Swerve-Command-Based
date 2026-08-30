@@ -1,18 +1,20 @@
 package frc.robot.commands.drive;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-//import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.managers.HDCTuner;
 import frc.robot.subsystems.drive.Swerve;
 import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.DriveConstants;
+import frc.robot.util.calc.ChassisVelocityCalculations;
+import org.wpilib.command2.Command;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Twist2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+//import org.wpilib.driverstation.DriverStation.Alliance;
 
 public class DriveHDC extends Command {
 
@@ -45,23 +47,19 @@ public class DriveHDC extends Command {
         addRequirements(swerve);
     }
 
-    public DriveHDC(Swerve swerve, Supplier<ChassisSpeeds> speeds, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
+    public DriveHDC(Swerve swerve, Supplier<ChassisVelocities> speeds, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
 
         this.swerve = swerve;
 
-        this.xSupplier = () -> speeds.get().vxMetersPerSecond;
-        this.ySupplier = () -> speeds.get().vyMetersPerSecond;
-        this.rotationSupplier = () -> speeds.get().omegaRadiansPerSecond;
+        this.xSupplier = () -> speeds.get().vx;
+        this.ySupplier = () -> speeds.get().vy;
+        this.rotationSupplier = () -> speeds.get().omega;
         this.shouldMirror = shouldMirror;
 
         addRequirements(swerve);
     }
 
-    @Override
-    public void initialize() {
-    }
-
-    @Override
+	@Override
     public void execute() {
         double x = xSupplier.getAsDouble();
         // The driver's right is negative 
@@ -72,7 +70,7 @@ public class DriveHDC extends Command {
             y *= -1;
         }
 
-        ChassisSpeeds desiredSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(x, y, rotationSupplier.getAsDouble(), swerve.getPose().getRotation());
+        ChassisVelocities desiredSpeeds = ChassisVelocityCalculations.fromFieldRelativeSpeeds(x, y, rotationSupplier.getAsDouble(), swerve.getPose().getRotation());
 
         // If the desired pose is more than 2 meters away, reset it to the current pose
         // This is to prevent the robot from chasing the sun
@@ -81,12 +79,12 @@ public class DriveHDC extends Command {
         }
 
         // integrate the speeds to positions with exp and twist
-        desiredPose = desiredPose.exp(
+        desiredPose = desiredPose.plus(
             new Twist2d(
-                desiredSpeeds.vxMetersPerSecond * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .02,
-                desiredSpeeds.vyMetersPerSecond * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .02,
-                desiredSpeeds.omegaRadiansPerSecond * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .015
-            )
+                desiredSpeeds.vx * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .02,
+                desiredSpeeds.vy * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .02,
+                desiredSpeeds.omega * DriveConstants.MAX_SPEED_METERS_PER_SECOND * .015
+            ).exp()
         );
 
 
@@ -100,10 +98,5 @@ public class DriveHDC extends Command {
     @Override
     public void end(boolean interrupted) {
         swerve.drive(0, 0, 0, false);
-    }
-
-    @Override
-    public boolean isFinished() {
-        return false;
     }
 }

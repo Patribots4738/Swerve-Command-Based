@@ -1,13 +1,10 @@
 package frc.robot.subsystems.drive.module;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.MK5nSwerveModuleConstants;
-import frc.robot.util.custom.GainConstants;
+import org.littletonrobotics.junction.Logger;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.SwerveModulePosition;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
 
 public class Module {
 
@@ -16,8 +13,8 @@ public class Module {
     private final int index;
     private final double chassisAngularOffset;
 
-    private SwerveModuleState desiredState = new SwerveModuleState(0.0, new Rotation2d());
-    private SwerveModuleState currentState = new SwerveModuleState(0.0, new Rotation2d());
+    private SwerveModuleVelocity desiredState = new SwerveModuleVelocity(0.0, new Rotation2d());
+    private SwerveModuleVelocity currentState = new SwerveModuleVelocity(0.0, new Rotation2d());
     private SwerveModulePosition currentPosition = new SwerveModulePosition(0.0, new Rotation2d());
 
     public Module(ModuleIO io, int index, double chassisAngularOffset) {
@@ -30,9 +27,9 @@ public class Module {
         io.updateInputs(inputs);
         Logger.processInputs("SubsystemInputs/Swerve/Module" + index, inputs);
 
-        currentState.speedMetersPerSecond = inputs.driveVelocityMPS;
+        currentState.velocity = inputs.driveVelocityMPS;
         currentState.angle = new Rotation2d(inputs.turnEncoderAbsPositionRads - chassisAngularOffset);
-        currentPosition.distanceMeters = inputs.drivePositionMeters;
+        currentPosition.distance = inputs.drivePositionMeters;
         currentPosition.angle = new Rotation2d(inputs.turnEncoderAbsPositionRads - chassisAngularOffset);
     }
 
@@ -41,16 +38,16 @@ public class Module {
      * 
      * @param desiredState stored rotation 2d and speed 
      */
-    public void setDesiredState(SwerveModuleState desiredState, double feedforward) {
+    public void setDesiredState(SwerveModuleVelocity desiredState, double feedforward) {
         // Apply chassis angular offset to the desired state.
-        this.desiredState.speedMetersPerSecond *= desiredState.angle.minus(new Rotation2d(inputs.turnEncoderAbsPositionRads)).getCos();
+        this.desiredState.velocity *= desiredState.angle.minus(new Rotation2d(inputs.turnEncoderAbsPositionRads)).getCos();
         this.desiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(chassisAngularOffset));
 
         // Optimize the reference state to avoid spinning further than 90 degrees.
-        this.desiredState.optimize(new Rotation2d(inputs.turnEncoderAbsPositionRads));
+        this.desiredState = this.desiredState.optimize(new Rotation2d(inputs.turnEncoderAbsPositionRads));
 
         // Command driving and turning TalonFX towards their respective setpoints.
-        io.runDriveVelocity(this.desiredState.speedMetersPerSecond, feedforward);
+        io.runDriveVelocity(this.desiredState.velocity, feedforward);
         io.setTurnPosition(this.desiredState.angle.getRadians());
     }
 
@@ -80,7 +77,7 @@ public class Module {
      * 
      * @return current module state
      */
-    public SwerveModuleState getState() {
+    public SwerveModuleVelocity getState() {
         return currentState;
     }
 
@@ -89,7 +86,7 @@ public class Module {
      * 
      * @return desired module state
      */
-    public SwerveModuleState getDesiredState() {
+    public SwerveModuleVelocity getDesiredState() {
         return desiredState;
     }
 

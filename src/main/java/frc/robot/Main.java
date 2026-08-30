@@ -4,7 +4,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.RobotBase;
+import org.wpilib.framework.RobotBase;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what
@@ -31,6 +31,6 @@ public final class Main {
         System.out.println("|   / // /_  / /   /_ <  / __  |");
         System.out.println("|  /__  __/ / /  ___/ / / /_/ /");
         System.out.println("|    /_/   /_/  /____/  \\____/\n");
-        RobotBase.startRobot(Robot::new);
+        RobotBase.startRobot(frc.robot.Robot.class);
     }
 }

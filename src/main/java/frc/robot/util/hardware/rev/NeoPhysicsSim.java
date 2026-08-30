@@ -27,8 +27,10 @@
  */
 
 package frc.robot.util.hardware.rev;
+
+import org.wpilib.math.system.DCMotor;
+
 import java.util.ArrayList;
-import edu.wpi.first.math.system.plant.DCMotor;
 
 /** Manages physics simulation for REV Robotics products. */
 public class NeoPhysicsSim {

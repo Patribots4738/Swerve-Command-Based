@@ -1,6 +1,6 @@
 package frc.robot.util.hardware.rev;
 
-import edu.wpi.first.math.system.plant.DCMotor;
+import org.wpilib.math.system.DCMotor;
 
 class NeoSimProfile extends NeoPhysicsSim.SimProfile {
     private final Neo neo;
@@ -31,8 +31,8 @@ class NeoSimProfile extends NeoPhysicsSim.SimProfile {
 
     public void run() {
         double period = this.getPeriod();
-        this.velocity = this.neo.getEncoder().getVelocity();
-        double position = this.neo.getEncoder().getPosition();
+        this.velocity = this.neo.getEncoder().getVelocity().get();
+        double position = this.neo.getEncoder().getPosition().get();
         double posFactor = this.neo.getPositionConversionFactor();
         this.neo.getEncoder().setPosition(position + this.velocity * period / 60000.0 * posFactor);
     }

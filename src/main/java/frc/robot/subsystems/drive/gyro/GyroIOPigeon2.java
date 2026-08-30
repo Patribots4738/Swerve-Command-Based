@@ -7,7 +7,7 @@ public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2Custom pigeon;
 
     public GyroIOPigeon2(int canId) {
-        pigeon = new Pigeon2Custom(canId, CANConstants.DRIVEBASE_BUS);
+        pigeon = new Pigeon2Custom(canId, CANConstants.MAIN_BUS);
     }
 
     @Override

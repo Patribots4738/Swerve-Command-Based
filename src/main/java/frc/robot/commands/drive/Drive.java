@@ -1,14 +1,14 @@
 package frc.robot.commands.drive;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.Robot.GameMode;
 import frc.robot.subsystems.drive.Swerve;
+import org.wpilib.command2.Command;
+import org.wpilib.math.kinematics.ChassisVelocities;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 public class Drive extends Command {
 
@@ -40,13 +40,13 @@ public class Drive extends Command {
         addRequirements(swerve);
     }
 
-    public Drive(Swerve swerve, Supplier<ChassisSpeeds> speeds, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
+    public Drive(Swerve swerve, Supplier<ChassisVelocities> speeds, BooleanSupplier fieldRelativeSupplier, BooleanSupplier shouldMirror) {
 
         this.swerve = swerve;
 
-        this.xSupplier = () -> speeds.get().vyMetersPerSecond;
-        this.ySupplier = () -> speeds.get().vxMetersPerSecond;
-        this.rotationSupplier = () -> speeds.get().omegaRadiansPerSecond;
+        this.xSupplier = () -> speeds.get().vy;
+        this.ySupplier = () -> speeds.get().vx;
+        this.rotationSupplier = () -> speeds.get().omega;
 
         this.fieldRelativeSupplier = fieldRelativeSupplier;
         this.shouldMirror = shouldMirror;

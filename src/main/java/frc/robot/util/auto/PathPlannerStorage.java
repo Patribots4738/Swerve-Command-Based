@@ -4,22 +4,20 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.util.Constants.AutoConstants;
 import frc.robot.Robot;
-import frc.robot.RobotContainer;
 import frc.robot.Robot.GameMode;
+import frc.robot.RobotContainer;
+import frc.robot.util.Constants.AutoConstants;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.math.geometry.Pose2d;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
-
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This file represents all of the auto paths that we will have

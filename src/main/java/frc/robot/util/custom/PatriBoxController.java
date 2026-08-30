@@ -1,21 +1,23 @@
 package frc.robot.util.custom;
 
-import java.util.function.DoubleSupplier;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.event.EventLoop;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.GameMode;
 import frc.robot.util.Constants.OIConstants;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.CommandGamepad;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.driverstation.GenericHID.RumbleType;
+import org.wpilib.driverstation.POVDirection;
+import org.wpilib.event.EventLoop;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.util.MathUtil;
 
-public class PatriBoxController extends CommandXboxController {
+import java.util.function.DoubleSupplier;
+
+public class PatriBoxController extends CommandGamepad {
 
     private double deadband;
 
@@ -29,19 +31,19 @@ public class PatriBoxController extends CommandXboxController {
     // They fix a loop overrun issue in 2024's wpilib
     // more info can be found at https://github.com/Patribots4738/Crescendo2024/issues/144
     public boolean getAButton() {
-        return super.getHID().getAButton();
+        return super.getHID().getSouthFaceButton();
     }
 
     public boolean getBButton() {
-        return super.getHID().getBButton();
+        return super.getHID().getEastFaceButton();
     }
 
     public boolean getXButton() {
-        return super.getHID().getXButton();
+        return super.getHID().getWestFaceButton();
     }
 
     public boolean getYButton() {
-        return super.getHID().getYButton();
+        return super.getHID().getNorthFaceButton();
     }
 
     public double getLeftTriggerAxis() {
@@ -69,19 +71,19 @@ public class PatriBoxController extends CommandXboxController {
     }
 
     public boolean getPOVUp() {
-        return super.getHID().getPOV() == 0;
+        return super.getHID().getPOV().equals(POVDirection.UP);
     }
 
     public boolean getPOVRight() {
-        return super.getHID().getPOV() == 90;
+        return super.getHID().getPOV().equals(POVDirection.RIGHT);
     }
 
     public boolean getPOVDown() {
-        return super.getHID().getPOV() == 180;
+        return super.getHID().getPOV().equals(POVDirection.DOWN);
     }
 
     public boolean getPOVLeft() {
-        return super.getHID().getPOV() == 270;
+        return super.getHID().getPOV().equals(POVDirection.LEFT);
     }
 
     public boolean getLeftBumper() {
@@ -235,9 +237,12 @@ public class PatriBoxController extends CommandXboxController {
     }
 
     public void setRumble(double rumble) {
-        if (Robot.gameMode == GameMode.TELEOP)
-            this.getHID().setRumble(RumbleType.kBothRumble, rumble);
-        else if (Robot.gameMode == GameMode.DISABLED)
-            this.getHID().setRumble(RumbleType.kBothRumble, 0);
+        if (Robot.gameMode == GameMode.TELEOP) {
+            this.getHID().setRumble(RumbleType.LEFT_RUMBLE, rumble);
+            this.getHID().setRumble(RumbleType.RIGHT_RUMBLE, rumble);
+        } else if (Robot.gameMode == GameMode.DISABLED) {
+            this.getHID().setRumble(RumbleType.LEFT_RUMBLE, 0);
+            this.getHID().setRumble(RumbleType.RIGHT_RUMBLE, 0);
+        }
     }
 }

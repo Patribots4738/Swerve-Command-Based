@@ -1,39 +1,25 @@
 // Primarily referenced from https://github.com/lasarobotics/PurpleLib/blob/master/src/main/java/org/lasarobotics/hardware/revrobotics/Spark.java
 package frc.robot.util.hardware.rev;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.*;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
-import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
-import com.revrobotics.spark.config.SignalsConfig;
-import com.revrobotics.spark.config.SoftLimitConfigAccessor;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkBaseConfigAccessor;
+import com.revrobotics.spark.config.*;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkFlexConfigAccessor;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkMaxConfigAccessor;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.config.FeedForwardConfigAccessor;
-
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.GeneralHardwareConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.custom.GainConstants;
+import org.wpilib.system.Timer;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public class SafeSpark extends SparkBase {
 
     protected final boolean isSparkFlex;
+    protected final int busID;
     protected final int canID;
     protected final boolean useAbsoluteEncoder;
     protected final SparkClosedLoopController pidController = getClosedLoopController();
@@ -51,9 +37,10 @@ public class SafeSpark extends SparkBase {
     private final double BURN_FLASH_WAIT_TIME = (NeoMotorConstants.SAFE_SPARK_MODE) ? 0.1 : 0.05;
     private final double APPLY_PARAMETER_WAIT_TIME = (NeoMotorConstants.SAFE_SPARK_MODE) ? 0.05 : 0;
 
-    public SafeSpark(int canID, boolean useAbsoluteEncoder, MotorType motorType, boolean isSparkFlex) {
-        super(canID, motorType, isSparkFlex ? SparkModel.SparkFlex : SparkModel.SparkMax);
+    public SafeSpark(int busID, int canID, boolean useAbsoluteEncoder, MotorType motorType, boolean isSparkFlex) {
+        super(busID, canID, motorType, isSparkFlex ? SparkModel.SparkFlex : SparkModel.SparkMax);
 
+        this.busID = busID;
         this.canID = canID;
         this.useAbsoluteEncoder = useAbsoluteEncoder;
         this.isSparkFlex = isSparkFlex;
@@ -148,7 +135,7 @@ public class SafeSpark extends SparkBase {
             System.err.println(canID + " (" + NeoMotorConstants.CAN_ID_MAP.get(canID) + ") " + errorMessage + " - "
                     + status.toString());
         }
-        if (getFaults().sensor) {
+        if (getFaults().get().sensor) {
             String message = "\nSensor fault detected on motor " +
                 canID + " (" + NeoMotorConstants.CAN_ID_MAP.get(canID) + ")" +
                 ". Power cycle the robot to fix.";
@@ -180,8 +167,8 @@ public class SafeSpark extends SparkBase {
     }
 
     /**
-     * Set encoder velocity measurement period to {@value Spark#MEASUREMENT_PERIOD}
-     * milliseconds
+     * Set encoder velocity measurement period to the measurement period
+     * of a motor in milliseconds
      * 
      * @return {@link REVLibError#kOk} if successful
      */
@@ -195,7 +182,7 @@ public class SafeSpark extends SparkBase {
     }
 
     /**
-     * Set encoder velocity average depth to {@value Spark#AVERAGE_DEPTH} samples
+     * Set encoder velocity average depth to the average depth of a motor in samples
      * 
      * @return {@link REVLibError#kOk} if successful
      */
@@ -228,14 +215,6 @@ public class SafeSpark extends SparkBase {
                 () -> (useAbsoluteEncoder ? accessor.absoluteEncoder.getInverted() == inverted : accessor.getInverted() == inverted),
                 "Set inverted failure!");
     }
-
-    /**
-     * Invert the motor
-     * 
-     */
-    public void setInverted(boolean inverted) {
-        invertMotor(inverted);
-    }
     
     /**
      * Set a Spark to follow another Spark
@@ -247,7 +226,7 @@ public class SafeSpark extends SparkBase {
     public REVLibError follow(SafeSpark leader, boolean invert) {
         config.follow(leader, invert);
         REVLibError status = applyParameter(
-            () -> (super.isFollower() && accessor.getFollowerModeInverted() == invert),
+            () -> (super.isFollower().get() && accessor.getFollowerModeInverted() == invert),
             "Set motor master failure!");
         return status;
     }
@@ -257,7 +236,6 @@ public class SafeSpark extends SparkBase {
      * native output units to
      * give you position.
      * 
-     * @param sensor Sensor to set conversion factor for
      * @param factor The conversion factor to multiply the native units by
      * @return {@link REVLibError#kOk} if successful
      */
@@ -291,7 +269,6 @@ public class SafeSpark extends SparkBase {
      * native output units to
      * give you velocity.
      * 
-     * @param sensor Sensor to set conversion factor for
      * @param factor The conversion factor to multiply the native units by
      * @return {@link REVLibError#kOk} if successful
      */
@@ -347,9 +324,9 @@ public class SafeSpark extends SparkBase {
      */
     public double getPosition() {
         if (useAbsoluteEncoder && !FieldConstants.IS_SIMULATION) {
-            return getAbsoluteEncoder().getPosition();
+            return getAbsoluteEncoder().getPosition().get();
         } else {
-            return getRelativeEncoder().getPosition();
+            return getRelativeEncoder().getPosition().get();
         }
     }
 
@@ -367,9 +344,9 @@ public class SafeSpark extends SparkBase {
      */
     public double getVelocity() {
         if (useAbsoluteEncoder) {
-            return getAbsoluteEncoder().getVelocity();
+            return getAbsoluteEncoder().getVelocity().get();
         } else {
-            return getRelativeEncoder().getVelocity();
+            return getRelativeEncoder().getVelocity().get();
         }
     }
 
@@ -614,7 +591,7 @@ public class SafeSpark extends SparkBase {
      * @param value        The value to set the reference to
      * @param controlType  The control type to use
      * @param slot         The slot to set
-     * @param arbFF        Arbitrary feed forward value
+     * @param arbitraryFeedForward        Arbitrary feed forward value
      * @param arbFFUnits   Units for the arbitrary feed forward value
      */
     public void setPIDReference(double value, ControlType controlType, int slot, double arbitraryFeedForward, ArbFFUnits arbFFUnits) {
@@ -729,7 +706,6 @@ public class SafeSpark extends SparkBase {
         /**
          * Constructs a StatusFrame with the specified frame and default period.
          * 
-         * @param frame         The periodic frame.
          * @param defaultPeriod The default period in milliseconds.
          */
         StatusFrame(int defaultPeriod) {

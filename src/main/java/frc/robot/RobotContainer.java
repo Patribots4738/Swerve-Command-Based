@@ -1,25 +1,7 @@
 package frc.robot;
 
-import java.util.function.BooleanSupplier;
-
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.event.EventLoop;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.GameMode;
 import frc.robot.commands.characterization.FeedForwardCharacterization;
 import frc.robot.commands.characterization.StaticCharacterization;
@@ -32,6 +14,22 @@ import frc.robot.util.Constants.AutoConstants;
 import frc.robot.util.Constants.OIConstants;
 import frc.robot.util.auto.PathPlannerStorage;
 import frc.robot.util.custom.PatriBoxController;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.driverstation.POVDirection;
+import org.wpilib.event.EventLoop;
+import org.wpilib.hardware.power.PowerDistribution;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.networktables.NetworkTableInstance;
+import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.smartdashboard.SmartDashboard;
+
+import java.util.function.BooleanSupplier;
 
 public class RobotContainer {
 
@@ -61,9 +59,9 @@ public class RobotContainer {
     @AutoLogOutput(key = "Draggables/RobotPose3d")
     public static Pose3d robotPose3d = new Pose3d();
     @AutoLogOutput(key = "Draggables/SwerveMeasuredStates")
-    public static SwerveModuleState[] swerveMeasuredStates;
+    public static SwerveModuleVelocity[] swerveMeasuredStates;
     @AutoLogOutput(key = "Draggables/SwerveDesiredStates")
-    public static SwerveModuleState[] swerveDesiredStates;
+    public static SwerveModuleVelocity[] swerveDesiredStates;
     @AutoLogOutput(key = "Draggables/GameModeStart")
     public static double gameModeStart = 0;
 
@@ -74,8 +72,8 @@ public class RobotContainer {
         driver = new PatriBoxController(OIConstants.DRIVER_CONTROLLER_PORT, OIConstants.DRIVER_DEADBAND);
         operator = new PatriBoxController(OIConstants.OPERATOR_CONTROLLER_PORT, OIConstants.OPERATOR_DEADBAND);
 
-        pdh = new PowerDistribution(30, ModuleType.kRev);
-        pdh.setSwitchableChannel(false);
+//        pdh = new PowerDistribution(30);
+//        pdh.setSwitchableChannel(false);
 
         swerve = new Swerve();
 
@@ -149,8 +147,8 @@ public class RobotContainer {
 
         controller.leftBumper().whileTrue(swerve.getSetWheelsX());
         controller.rightBumper().whileTrue(swerve.getSetWheelsO());
-        controller.b().whileTrue(swerve.driveCharacterization());
-        controller.y().whileTrue(swerve.getSetWheelsZero());
+        controller.eastFace().whileTrue(swerve.driveCharacterization());
+        controller.northFace().whileTrue(swerve.getSetWheelsZero());
     }
 
     private void configureOperatorBindings(PatriBoxController controller) {
@@ -229,16 +227,16 @@ public class RobotContainer {
     }
 
     private void configureHDCBindings(PatriBoxController controller) {
-        controller.pov(0, 270, testButtonBindingLoop)
+        controller.pov(0, POVDirection.LEFT, testButtonBindingLoop)
                 .onTrue(HDCTuner.controllerDecrementCommand());
 
-        controller.pov(0, 90, testButtonBindingLoop)
+        controller.pov(0, POVDirection.RIGHT, testButtonBindingLoop)
                 .onTrue(HDCTuner.controllerIncrementCommand());
 
-        controller.pov(0, 0, testButtonBindingLoop)
+        controller.pov(0, POVDirection.UP, testButtonBindingLoop)
                 .onTrue(HDCTuner.increaseCurrentConstantCommand(.1));
 
-        controller.pov(0, 180, testButtonBindingLoop)
+        controller.pov(0, POVDirection.DOWN, testButtonBindingLoop)
                 .onTrue(HDCTuner.increaseCurrentConstantCommand(-.1));
 
         controller.rightBumper(testButtonBindingLoop)
@@ -247,13 +245,13 @@ public class RobotContainer {
         controller.leftBumper(testButtonBindingLoop)
                 .onTrue(HDCTuner.constantDecrementCommand());
 
-        controller.a(testButtonBindingLoop)
+        controller.southFace(testButtonBindingLoop)
                 .onTrue(HDCTuner.logCommand());
 
-        controller.x(testButtonBindingLoop)
+        controller.westFace(testButtonBindingLoop)
                 .onTrue(HDCTuner.multiplyPIDCommand(2));
 
-        controller.b(testButtonBindingLoop)
+        controller.eastFace(testButtonBindingLoop)
                 .onTrue(HDCTuner.multiplyPIDCommand(.5));
     }
 

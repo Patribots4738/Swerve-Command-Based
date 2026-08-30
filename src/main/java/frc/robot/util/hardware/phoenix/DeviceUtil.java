@@ -1,12 +1,11 @@
 package frc.robot.util.hardware.phoenix;
 
-import java.util.function.Supplier;
-import java.util.function.BooleanSupplier;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
-
 import frc.robot.util.Constants.GeneralHardwareConstants;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public class DeviceUtil {
 
@@ -15,7 +14,7 @@ public class DeviceUtil {
     /**
      * Applies a parameter to a device using the provided status code supplier.
      * 
-     * @param statusCode The supplier that provides the status code.
+     * @param applySupplier The supplier that provides the status code.
      * @param name The name of the parameter.
      * @param deviceId The ID of the device.
      * @return The status code after applying the parameter.

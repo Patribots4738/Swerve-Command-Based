@@ -1,8 +1,8 @@
 package frc.robot.util.calc;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.Constants.OIConstants;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 public class OICalc {
 

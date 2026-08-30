@@ -7,14 +7,15 @@
 
 package frc.robot.commands.characterization;
 
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.util.calc.PolynomialRegression;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Subsystem;
+import org.wpilib.system.Timer;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
-import frc.robot.util.calc.PolynomialRegression;
 
 public class FeedForwardCharacterization extends Command {
   private static final double START_DELAY_SECS = 2.0;

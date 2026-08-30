@@ -4,12 +4,13 @@
 
 package frc.robot.commands.characterization;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Swerve;
 import frc.robot.util.Constants.DriveConstants;
+import org.wpilib.command2.Command;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.util.MathUtil;
+import org.wpilib.math.util.Units;
+
 import java.util.function.DoubleSupplier;
 
 // thanks 6328 :D <3
@@ -47,7 +48,7 @@ public class WheelRadiusCharacterization extends Command {
     @Override
     public void execute() {
         
-        swerve.drive(new ChassisSpeeds(0.0, 0.0, .5));
+        swerve.drive(new ChassisVelocities(0.0, 0.0, .5));
         
         accumGyroYawRads += MathUtil.angleModulus(gyroYawRadsSupplier.getAsDouble() - lastGyroYawRads);
         lastGyroYawRads = gyroYawRadsSupplier.getAsDouble();

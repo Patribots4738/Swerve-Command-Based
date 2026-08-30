@@ -1,27 +1,22 @@
 package frc.robot;
 
-import java.util.Optional;
-
+import frc.robot.util.Constants.*;
+import frc.robot.util.hardware.phoenix.Kraken;
+import frc.robot.util.hardware.rev.Neo;
+import frc.robot.util.hardware.rev.NeoPhysicsSim;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.internal.DriverStationBackend;
+import org.wpilib.system.Timer;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.util.Constants.AutoConstants;
-import frc.robot.util.Constants.DriveConstants;
-import frc.robot.util.Constants.KrakenMotorConstants;
-import frc.robot.util.Constants.LoggingConstants;
-import frc.robot.util.Constants.NeoMotorConstants;
-import frc.robot.util.hardware.phoenix.Kraken;
-import frc.robot.util.hardware.rev.Neo;
-import frc.robot.util.hardware.rev.NeoPhysicsSim;
+import java.util.Optional;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -45,10 +40,9 @@ public class Robot extends LoggedRobot {
 
     private Command autonomousCommand;
 
-    private RobotContainer robotContainer;
+    private final RobotContainer robotContainer;
 
-    @Override
-    public void robotInit() { 
+    public Robot() {
         // Git metadata for tracking version for AKit
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
         Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -75,7 +69,11 @@ public class Robot extends LoggedRobot {
         Logger.start(); 
 
         robotContainer = new RobotContainer();
-        DriverStation.silenceJoystickConnectionWarning(true);
+    }
+    
+    @Override
+    public void driverStationConnected() {
+        DriverStationBackend.silenceJoystickConnectionWarning(true);
     }
 
     /**
@@ -88,7 +86,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotPeriodic() {
         Robot.previousTimestamp = Robot.currentTimestamp;
-        Robot.currentTimestamp = Timer.getFPGATimestamp();
+        Robot.currentTimestamp = Timer.getTimestamp();
         CommandScheduler.getInstance().run();
     }
 
@@ -102,8 +100,8 @@ public class Robot extends LoggedRobot {
     public void disabledPeriodic() {
         // Now while this may not necessarily be a constant...
         // it needs to be updated.
-        DriverStation.refreshData();
-        Robot.alliance = DriverStation.getAlliance();
+        DriverStationBackend.refreshData();
+        Robot.alliance = DriverStationBackend.getAlliance();
     }
 
     @Override
@@ -123,8 +121,8 @@ public class Robot extends LoggedRobot {
         // sim GUI starts the bot in a "disconnected"
         // state which won't update the alliance before
         // we enable...
-        DriverStation.refreshData();
-        Robot.alliance = DriverStation.getAlliance();
+        DriverStationBackend.refreshData();
+        Robot.alliance = DriverStationBackend.getAlliance();
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -157,11 +155,8 @@ public class Robot extends LoggedRobot {
     public void teleopPeriodic() {
     }
 
-    @Override
-    public void teleopExit() {}
-
-    @Override
-    public void testInit() {
+	@Override
+    public void utilityInit() {
         // Cancels all running commands at the start of test mode.
         Robot.gameMode = GameMode.TEST;
         CommandScheduler.getInstance().cancelAll();
@@ -169,23 +164,19 @@ public class Robot extends LoggedRobot {
     }
 
     @Override
-    public void testPeriodic() {
+    public void utilityPeriodic() {
     }
 
     @Override
-    public void testExit() {
+    public void utilityExit() {
         // Switch back to the normal button loop!
         CommandScheduler.getInstance().setActiveButtonLoop(CommandScheduler.getInstance().getDefaultButtonLoop());
     }
-
-    @Override
-    public void simulationInit() {
-    }
-
-    @Override
+	
+	@Override
     public void simulationPeriodic() {
         NeoPhysicsSim.getInstance().run();
-        Robot.alliance = DriverStation.getAlliance();
+        Robot.alliance = DriverStationBackend.getAlliance();
 
         for (Neo neo : NeoMotorConstants.NEO_MOTOR_MAP.values()) {
             neo.tick();
@@ -197,10 +188,10 @@ public class Robot extends LoggedRobot {
     }
 
     public static boolean isRedAlliance() {
-        return alliance.equals(Optional.of(Alliance.Red));
+        return alliance.equals(Optional.of(Alliance.RED));
     }
 
     public static boolean isBlueAlliance() {
-        return alliance.equals(Optional.of(Alliance.Blue));
+        return alliance.equals(Optional.of(Alliance.BLUE));
     }
 }

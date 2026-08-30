@@ -1,19 +1,19 @@
 package frc.robot.commands.logging;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Map.Entry;
-
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.Constants.KrakenMotorConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.rev.Neo;
+import org.wpilib.command2.Command;
+import org.wpilib.networktables.NetworkTable;
+import org.wpilib.networktables.NetworkTableEntry;
+import org.wpilib.networktables.NetworkTableInstance;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 public class NTGainTuner extends Command {
     
@@ -183,7 +183,7 @@ public class NTGainTuner extends Command {
     }
 
     /**
-     * Updates the PID values of the motors, which is called by {@link #updateValues()}.
+     * Updates the PID values of the Spark, which is called by {@link #updateNeoValues(Entry)}.
      * 
      * @param motorList the list of motors to update
      * @param name      the name of the PID value to update

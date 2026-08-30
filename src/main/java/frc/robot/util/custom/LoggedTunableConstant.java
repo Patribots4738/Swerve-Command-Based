@@ -2,8 +2,8 @@ package frc.robot.util.custom;
 
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.button.Trigger;
 
 public class LoggedTunableConstant extends LoggedNetworkNumber {
 

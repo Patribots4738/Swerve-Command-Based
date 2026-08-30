@@ -1,12 +1,12 @@
 package frc.robot.util.custom;
 
-import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
-
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.util.sendable.SendableBuilder;
 
 import java.util.function.BooleanSupplier;
+
+import static org.wpilib.util.ErrorMessages.requireNonNullParam;
 
 /**
  * A command composition that runs one of two commands, depending on the value of the given

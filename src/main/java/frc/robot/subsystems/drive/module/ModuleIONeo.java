@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot.subsystems.drive.module;
 
+import frc.robot.util.Constants.CANConstants;
 import frc.robot.util.Constants.MAXSwerveModuleConstants;
 import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.rev.Neo;
@@ -19,12 +20,12 @@ public class ModuleIONeo implements ModuleIO {
      * Encoder.
      */
     public ModuleIONeo(int drivingCANId, int turningCANId) {
-        driveMotor = new Neo(drivingCANId, true);
+        driveMotor = new Neo(CANConstants.DRIVEBASE_BUS_ID, drivingCANId, true);
 
         // Invert the turning encoder, since the output shaft rotates in the opposite
         // direction of
         // the steering motor in the MAXSwerve Module.
-        turnMotor = new Neo(turningCANId, false, MAXSwerveModuleConstants.TURNING_ENCODER_INVERTED, true);
+        turnMotor = new Neo(CANConstants.DRIVEBASE_BUS_ID, turningCANId, false, MAXSwerveModuleConstants.TURNING_ENCODER_INVERTED, true);
         resetDriveEncoder();
         configMotors();
     }
@@ -67,14 +68,14 @@ public class ModuleIONeo implements ModuleIO {
         // drive motor
         inputs.drivePositionMeters = driveMotor.getPosition();
         inputs.driveVelocityMPS = driveMotor.getVelocity();
-        inputs.driveAppliedVolts = driveMotor.getAppliedOutput();
-        inputs.driveSupplyCurrentAmps = driveMotor.getOutputCurrent();
+        inputs.driveAppliedVolts = driveMotor.getAppliedOutput().get();
+        inputs.driveSupplyCurrentAmps = driveMotor.getOutputCurrent().get();
 
         // turning motor
-        inputs.turnAppliedVolts = turnMotor.getAppliedOutput();
+        inputs.turnAppliedVolts = turnMotor.getAppliedOutput().get();
         inputs.turnInternalPositionRads = turnMotor.getPosition();
         inputs.turnInternalVelocityRadsPerSec = turnMotor.getVelocity();
-        inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent();
+        inputs.turnSupplyCurrentAmps = turnMotor.getOutputCurrent().get();
 
         // Fake it till you make it or something
         inputs.turnEncoderAbsPositionRads = turnMotor.getPosition();

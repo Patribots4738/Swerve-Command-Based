@@ -4,12 +4,12 @@ package frc.robot.util.hardware.rev;
 
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.util.Constants.FieldConstants;
 import frc.robot.util.Constants.NeoMotorConstants;
 import frc.robot.util.custom.GainConstants;
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.util.MathUtil;
+
 /*
  * Some of this is adapted from 3005's 2022 Code
  * Original source published at https://github.com/FRC3005/Rapid-React-2022-Public/tree/d499655448ed592c85f9cfbbd78336d8841f46e2
@@ -29,8 +29,8 @@ public class Neo extends SafeSpark {
      * @param id          CANID of the Spark the Neo is connected to.
      * @param isSparkFlex Whether the Spark is a SparkMax or SparkMax Flex
      */
-    public Neo(int id, boolean isSparkFlex) {
-        this(id, isSparkFlex, false, false);
+    public Neo(int busID, int id, boolean isSparkFlex) {
+        this(busID, id, isSparkFlex, false, false);
     }
 
     /**
@@ -41,8 +41,8 @@ public class Neo extends SafeSpark {
      * @param isSparkFlex Whether the Spark is a SparkMax or SparkMax Flex
      * @param inverted    Whether the motor is reversed or not.
      */
-    public Neo(int id, boolean isSparkFlex, boolean inverted) {
-        this(id, isSparkFlex, inverted, false);
+    public Neo(int busID, int id, boolean isSparkFlex, boolean inverted) {
+        this(busID, id, isSparkFlex, inverted, false);
     }
 
     /**
@@ -53,10 +53,10 @@ public class Neo extends SafeSpark {
      * @param inverted          Whether the motor is reversed or not.
      * @param useAbsoluteEncoder Whether the motor uses an absolute encoder or not.
      */
-    public Neo(int id, boolean isSparkFlex, boolean inverted, boolean useAbsoluteEncoder) {
-        super(id, useAbsoluteEncoder, SparkLowLevel.MotorType.kBrushless, isSparkFlex);
+    public Neo(int busID, int id, boolean isSparkFlex, boolean inverted, boolean useAbsoluteEncoder) {
+        super(busID, id, useAbsoluteEncoder, SparkLowLevel.MotorType.kBrushless, isSparkFlex);
         
-        setInverted(inverted);
+        invertMotor(inverted);
         
         // Turn off alternate and analog encoders
         // we never use them
@@ -214,11 +214,11 @@ public class Neo extends SafeSpark {
      * Sets the output of the Neo motor controller based on a percentage value.
      * Positive values are counter clockwise if there is no reversedMultiplier
      * 
-     * @param percent The percentage value to set the motor output to.
+     * @param percent The percentage value to set the motor output to (-1 to 1).
      */
     public void set(double percent) {
         targetPercent = percent;
-        super.set(percent);
+        super.setThrottle(percent);
         controlType = ControlLoopType.PERCENT;
     }
 
@@ -360,7 +360,7 @@ public class Neo extends SafeSpark {
      * Sets the PID constants for the Neo motor controller.
      * 
      * @param constants the PID constants to set
-     * @param slotID    the slot ID of the PID controller
+     * @param slot    the slot ID of the PID controller
      */
     public void setPID(GainConstants constants, int slot) {
         setPID(
@@ -390,7 +390,7 @@ public class Neo extends SafeSpark {
         super.setI(I, slotID);
         super.setD(D, slotID);
         super.setFF(FF, slotID);
-        super.setIZone(MathUtil.clamp(iZone, 0, 999), slotID);
+        super.setIZone(Math.clamp(iZone, 0, 999), slotID);
         super.setOutputRange(minOutput, maxOutput, slotID);
     }
 

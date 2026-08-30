@@ -1,8 +1,5 @@
 package frc.robot.util.hardware.phoenix;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
@@ -12,11 +9,13 @@ import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.util.Constants.CANCoderConstants;
 import frc.robot.util.Constants.CANConstants;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularVelocity;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public class CANCoderCustom extends CANcoder {
 
@@ -33,7 +32,7 @@ public class CANCoderCustom extends CANcoder {
 
 
     public CANCoderCustom(int id) {
-        this(id, CANConstants.RIO_BUS);
+        this(id, CANConstants.MAIN_BUS);
     }
 
     /**

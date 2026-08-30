@@ -4,30 +4,29 @@
 
 package frc.robot.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.spark.SparkBase;
-
-import edu.wpi.first.math.controller.HolonomicDriveController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
+import frc.robot.util.calc.HolonomicDriveController;
 import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.rev.Neo;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.controller.ProfiledPIDController;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveDriveKinematics;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.math.trajectory.TrapezoidProfile;
+import org.wpilib.math.util.Units;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -112,22 +111,22 @@ public final class Constants {
             REAR_RIGHT_WHEEL_POSITION
         };
 
-        public static final SwerveModuleState[] X_WHEEL_STATES = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-135))
+        public static final SwerveModuleVelocity[] X_WHEEL_STATES = new SwerveModuleVelocity[] {
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(135)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(-135))
         };
 
-        public static final SwerveModuleState[] O_WHEEL_STATES = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-135)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
+        public static final SwerveModuleVelocity[] O_WHEEL_STATES = new SwerveModuleVelocity[] {
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(135)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(-135)),
+            new SwerveModuleVelocity(0, Rotation2d.fromDegrees(-45))
         };
 
-        public static final ChassisSpeeds ZEROED_SPEEDS = new ChassisSpeeds();
-        public static final ChassisSpeeds MAX_SPEEDS = new ChassisSpeeds(DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
+        public static final ChassisVelocities ZEROED_SPEEDS = new ChassisVelocities();
+        public static final ChassisVelocities MAX_SPEEDS = new ChassisVelocities(DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_SPEED_METERS_PER_SECOND, DriveConstants.MAX_ANGULAR_SPEED_RADS_PER_SECOND);
 
 
         public static final SwerveDriveKinematics DRIVE_KINEMATICS = new SwerveDriveKinematics(
@@ -640,8 +639,10 @@ public final class Constants {
     }
 
     public static final class CANConstants {
-        public static final CANBus RIO_BUS = new CANBus("rio");
-        public static final CANBus DRIVEBASE_BUS =  new CANBus("Drivebase");
+        public static final int MAIN_BUS_ID = 0;
+        public static final int DRIVEBASE_BUS_ID = 1;
+        public static final CANBus MAIN_BUS = CANBus.systemcore(MAIN_BUS_ID);
+        public static final CANBus DRIVEBASE_BUS = CANBus.systemcore(DRIVEBASE_BUS_ID);
     }
 
     public static final class CANCoderConstants {
