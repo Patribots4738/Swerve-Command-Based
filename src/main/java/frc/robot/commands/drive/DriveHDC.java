@@ -89,7 +89,7 @@ public class DriveHDC extends Command {
 
 
         swerve.drive(
-            AutoConstants.HDC.calculate(swerve.getPose(), desiredPose, 0, desiredPose.getRotation())
+            AutoConstants.HDC.calculateNextPosition(swerve.getPose(), desiredPose, 0, desiredPose.getRotation())
         );
 
         swerve.setDesiredPose(desiredPose);

@@ -9,7 +9,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.spark.SparkBase;
 import frc.robot.Robot;
-import frc.robot.util.calc.HolonomicDriveController;
+import frc.robot.util.calc.PatrinomicDriveController;
 import frc.robot.util.custom.GainConstants;
 import frc.robot.util.hardware.phoenix.Kraken;
 import frc.robot.util.hardware.rev.Neo;
@@ -218,7 +218,7 @@ public final class Constants {
         public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS = new TrapezoidProfile.Constraints(
                 MAX_ANGULAR_SPEED_RADIANS_PER_SECOND, MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
 
-        public static HolonomicDriveController HDC = new HolonomicDriveController(
+        public static PatrinomicDriveController HDC = new PatrinomicDriveController(
                 XY_PID,
                 XY_PID,
                 THETA_PID

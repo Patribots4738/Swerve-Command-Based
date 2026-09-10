@@ -1,7 +1,7 @@
 package frc.robot.commands.managers;
 
 import frc.robot.util.Constants.AutoConstants;
-import frc.robot.util.calc.HolonomicDriveController;
+import frc.robot.util.calc.PatrinomicDriveController;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -26,7 +26,7 @@ public class HDCTuner extends SubsystemBase {
     }
 
     public void updateValues() {
-        AutoConstants.HDC = new HolonomicDriveController(
+        AutoConstants.HDC = new PatrinomicDriveController(
             XYController,
             XYController,
             thetaController
