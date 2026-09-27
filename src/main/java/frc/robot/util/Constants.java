@@ -645,9 +645,17 @@ public final class Constants {
     }
 
     public static final class CANCoderConstants {
-
         public static final double ENCODER_UPDATE_FREQ_HZ = 100; // TODO: FIND THE SWEET SPOT
+    }
 
+    public static final class RollerConstants {
+        public static final int CAN_ID = 42;
+
+        public static final boolean BRAKE_MOTOR = false;
+        public static final boolean MOTOR_INVERTED = false;
+        public static final double GEAR_RATIO = 10.0;
+
+        public static final double CURRENT_LIMIT = 20.0;
     }
 
     public static final class PigeonConstants {
@@ -659,6 +667,8 @@ public final class Constants {
     public static final class GeneralHardwareConstants {
         public static final boolean SAFE_HARDWARE_MODE = false;
         public static final double TIMEOUT_SECONDS = 1.0;
+
+        
     }
 
     public static final class FieldConstants {

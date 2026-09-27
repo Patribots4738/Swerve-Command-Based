@@ -107,8 +107,8 @@ public class Kraken extends TalonFX {
      * @param id ID of Kraken motor
      * @param canBus CANivore Kraken is connected to
      */
-    public Kraken(int id, CANBus canBus) {
-        this(id, canBus, false, false);
+    public Kraken(int id, int motorType, CANBus canBus) {
+        this(id, motorType, canBus, false, false);
     }
 
     /**
@@ -116,8 +116,8 @@ public class Kraken extends TalonFX {
      * 
      * @param id ID of Kraken motor
      */
-    public Kraken(int id) {
-        this(id, CANConstants.RIO_BUS);
+    public Kraken(int id, int motorType) {
+        this(id, motorType, CANConstants.RIO_BUS);
     }
 
     /**
@@ -127,8 +127,8 @@ public class Kraken extends TalonFX {
      * @param useFOC uses FOC to enhance motor communication when set to true
      * @param useTorqueControl uses the TalonFX native torque control mode when set to true
      */
-    public Kraken(int id, boolean useFOC, boolean useTorqueControl) {
-        this(id, CANConstants.RIO_BUS, useFOC, useTorqueControl);
+    public Kraken(int id, int motorType, boolean useFOC, boolean useTorqueControl) {
+        this(id, motorType, CANConstants.RIO_BUS, useFOC, useTorqueControl);
     }
 
     /**
@@ -139,7 +139,7 @@ public class Kraken extends TalonFX {
      * @param useFOC Whether to use Field Oriented Control (FOC) for the Kraken object.
      * @param useTorqueControl Uses the TalonFX native torque control mode when set to true.
      */
-    public Kraken(int id, CANBus canBus, boolean useFOC, boolean useTorqueControl) {
+    public Kraken(int id, int motorType, CANBus canBus, boolean useFOC, boolean useTorqueControl) {
 
         super(id, canBus);
 
@@ -173,7 +173,7 @@ public class Kraken extends TalonFX {
             "Optimize Bus Utilization"
         );
 
-        register();
+        register(motorType);
 
     }
 
@@ -818,10 +818,10 @@ public class Kraken extends TalonFX {
     /**
      * Adds the Kraken to motor map.
      */
-    public void register() {
+    public void register(int motorType) {
         KrakenMotorConstants.KRAKEN_MOTOR_MAP.put(getDeviceID(), this);
         if (FieldConstants.IS_SIMULATION) {
-            if (getDeviceID() % 2 == 0) {
+            if (motorType == 44) {
                 motorSimModel = 
                 new DCMotorSim(
                     LinearSystemId.createDCMotorSystem(
